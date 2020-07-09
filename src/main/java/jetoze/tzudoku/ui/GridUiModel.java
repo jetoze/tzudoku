@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.Cell;
 import jetoze.tzudoku.Grid;
+import jetoze.tzudoku.PencilMarks;
 import jetoze.tzudoku.Position;
 import jetoze.tzudoku.UnknownCell;
 import jetoze.tzudoku.Value;
@@ -97,9 +98,9 @@ public class GridUiModel {
 		case NORMAL:
 			return new SetValueAction(value, cells);
 		case CORNER_PENCIL_MARK:
-			return new TogglePencilMarkAction(value, UnknownCell::toggleCornerPencilMark, cells);
+			return new TogglePencilMarkAction(value, PencilMarks::toggleCorner, cells);
 		case CENTER_PENCIL_MARK:
-			return new TogglePencilMarkAction(value, UnknownCell::toggleCenterPencilMark, cells);
+			return new TogglePencilMarkAction(value, PencilMarks::toggleCenter, cells);
 		default:
 			throw new RuntimeException("Unexpected mode: " + enterValueMode);
 		}
@@ -174,11 +175,11 @@ public class GridUiModel {
 	
 	private class TogglePencilMarkAction implements UndoableAction {
 		private final Value value;
-		private final BiConsumer<UnknownCell, Value> pencil;
+		private final BiConsumer<PencilMarks, Value> pencil;
 		private final ImmutableList<UnknownCell> cells;
 		
 		public TogglePencilMarkAction(Value value, 
-									  BiConsumer<UnknownCell, Value> pencil, 
+									  BiConsumer<PencilMarks, Value> pencil, 
 									  ImmutableList<UnknownCell> cells) {
 			this.value = requireNonNull(value);
 			this.pencil = requireNonNull(pencil);
@@ -191,7 +192,7 @@ public class GridUiModel {
 		}
 
 		private void toggle() {
-			cells.forEach(c -> pencil.accept(c, value));
+			cells.forEach(c -> pencil.accept(c.getPencilMarks(), value));
 			notifyListeners(GridUiModelListener::onCellStateChanged);
 		}
 
@@ -251,14 +252,15 @@ public class GridUiModel {
 		private final ImmutableSet<Value> centerMarks;
 		
 		public CellHadPencilMarks(UnknownCell cell) {
-			this.cornerMarks = cell.getCornerPencilMarks();
-			this.centerMarks = cell.getCenterPencilMarks();
+			this.cornerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCornerMarks());
+			this.centerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCenterMarks());
 		}
 
 		@Override
 		public void restore(UnknownCell cell) {
-			cornerMarks.forEach(cell::toggleCornerPencilMark);
-			centerMarks.forEach(cell::toggleCenterPencilMark);
+			PencilMarks pencilMarks = cell.getPencilMarks();
+			cornerMarks.forEach(pencilMarks::toggleCorner);
+			centerMarks.forEach(pencilMarks::toggleCenter);
 		}
 	}
 

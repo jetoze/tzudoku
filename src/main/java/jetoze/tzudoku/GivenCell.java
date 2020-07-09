@@ -4,8 +4,6 @@ import static java.util.Objects.*;
 
 import java.util.Optional;
 
-import com.google.common.collect.ImmutableSet;
-
 public final class GivenCell implements Cell {
 	private final Value value;
 	
@@ -30,15 +28,5 @@ public final class GivenCell implements Cell {
 	@Override
 	public boolean isGiven() {
 		return true;
-	}
-
-	@Override
-	public ImmutableSet<Value> getCenterPencilMarks() {
-		return ImmutableSet.of();
-	}
-
-	@Override
-	public ImmutableSet<Value> getCornerPencilMarks() {
-		return ImmutableSet.of();
 	}
 }

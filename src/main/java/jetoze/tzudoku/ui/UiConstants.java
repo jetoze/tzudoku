@@ -9,15 +9,12 @@ import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
-import java.util.stream.Collectors;
 
 import javax.swing.AbstractButton;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
-import com.google.common.collect.ImmutableSet;
-
-import jetoze.tzudoku.Cell;
+import jetoze.tzudoku.PencilMarks;
 import jetoze.tzudoku.Position;
 import jetoze.tzudoku.Value;
 
@@ -154,10 +151,8 @@ final class UiConstants {
 	    g.drawString(text, x, y);
 	}
 	
-	static void drawPencilMarks(Graphics2D g, Cell cell) {
-	    ImmutableSet<Value> cornerPencilMarks = cell.getCornerPencilMarks();
-	    ImmutableSet<Value> centerPencilMarks = cell.getCenterPencilMarks();
-	    if (cornerPencilMarks.isEmpty() && centerPencilMarks.isEmpty()) {
+	static void drawPencilMarks(Graphics2D g, PencilMarks pencilMarks) {
+	    if (pencilMarks.isEmpty()) {
 	    	return;
 	    }
 		
@@ -167,19 +162,17 @@ final class UiConstants {
 	    g.setFont(PENCIL_MARK_FONT);
 	    g.setColor(PENCIL_MARK_COLOR);
 	    
-	    if (!cornerPencilMarks.isEmpty()) {
+	    if (pencilMarks.hasCornerMarks()) {
 	    	int num = 1;
-	    	for (Value pencilMark : cornerPencilMarks) {
+	    	for (Value pencilMark : pencilMarks.iterateOverCornerMarks()) {
 	    		String text = pencilMark.toString();
 	    		Point p = getCornerPencilMarkLocation(g, text, num);
 	    		g.drawString(text, p.x, p.y);
 	    		++num;
 	    	}
 	    }
-	    if (!centerPencilMarks.isEmpty()) {
-			String text = centerPencilMarks.stream()
-					.map(Value::toString)
-					.collect(Collectors.joining());
+	    if (pencilMarks.hasCenterMarks()) {
+			String text = pencilMarks.centerAsString();
 		    drawTextCentered(g, PENCIL_MARK_FONT, text);
 	    }
 	    

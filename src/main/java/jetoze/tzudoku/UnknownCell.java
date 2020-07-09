@@ -2,18 +2,14 @@ package jetoze.tzudoku;
 
 import static java.util.Objects.*;
 
-import java.util.EnumSet;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.ImmutableSet;
-
 public final class UnknownCell implements Cell {
 	@Nullable
 	private Value value;
-	private EnumSet<Value> cornerPencilMarks = EnumSet.noneOf(Value.class);
-	private EnumSet<Value> centerPencilMarks = EnumSet.noneOf(Value.class);
+	private final PencilMarks pencilMarks = new PencilMarks();
 	
 	public static UnknownCell empty() {
 		return new UnknownCell();
@@ -36,13 +32,8 @@ public final class UnknownCell implements Cell {
 		if (this.value != null) {
 			this.value = null;
 		} else {
-			clearPencilMarks();
+			pencilMarks.clear();
 		}
-	}
-	
-	private void clearPencilMarks() {
-		cornerPencilMarks.clear();
-		centerPencilMarks.clear();
 	}
 
 	@Override
@@ -56,33 +47,10 @@ public final class UnknownCell implements Cell {
 	}
 	
 	public boolean isEmpty() {
-		return (value == null) && cornerPencilMarks.isEmpty() && centerPencilMarks.isEmpty();
+		return (value == null) && pencilMarks.isEmpty();
 	}
 
-	@Override
-	public ImmutableSet<Value> getCornerPencilMarks() {
-		return ImmutableSet.copyOf(cornerPencilMarks);
-	}
-
-	@Override
-	public ImmutableSet<Value> getCenterPencilMarks() {
-		return ImmutableSet.copyOf(centerPencilMarks);
-	}
-
-	public void toggleCornerPencilMark(Value value) {
-		toggle(value, cornerPencilMarks);
-	}
-	
-	public void toggleCenterPencilMark(Value value) {
-		toggle(value, centerPencilMarks);
-	}
-
-	private void toggle(Value value, EnumSet<Value> set) {
-		requireNonNull(value);
-		if (set.contains(value)) {
-			set.remove(value);
-		} else {
-			set.add(value);
-		}
+	public PencilMarks getPencilMarks() {
+		return pencilMarks;
 	}
 }
