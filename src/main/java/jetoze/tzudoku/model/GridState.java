@@ -1,4 +1,4 @@
-package jetoze.tzudoku;
+package jetoze.tzudoku.model;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,7 +9,7 @@ import com.google.gson.Gson;
 public class GridState {
 	private List<String> given = new ArrayList<>();
 	private List<String> entered = new ArrayList<>();
-	private List<PencilMarkState> pencilMarks = new ArrayList<>();
+	private List<AdditionalCellState> pencilMarks = new ArrayList<>();
 	
 	public GridState(Grid grid) {
 		for (int r = 1; r <= 9; ++r) {
@@ -28,7 +28,7 @@ public class GridState {
 					givenValuesInRow.append("x");
 					PencilMarks pm = ((UnknownCell) cell).getPencilMarks();
 					if (!pm.isEmpty()) {
-						pencilMarks.add(new PencilMarkState(p, pm));
+						pencilMarks.add(new AdditionalCellState(p, pm));
 					}
 				}
 			}
@@ -64,7 +64,6 @@ public class GridState {
 		return UnknownCell.empty();
 	}
 	
-	
 	public String toJson() {
 		Gson gson = new Gson();
 		return gson.toJson(this);
@@ -76,19 +75,21 @@ public class GridState {
 	}
 	
 	
-	private static class PencilMarkState {
-		private Position position;
+	private static class AdditionalCellState {
+		private int row;
+		private int col;
 		private String corner;
 		private String center;
 		
-		public PencilMarkState(Position p, PencilMarks marks) {
-			this.position = p;
+		public AdditionalCellState(Position p, PencilMarks marks) {
+			this.row = p.getRow();
+			this.col = p.getColumn();
 			this.corner = marks.cornerAsString();
 			this.center = marks.centerAsString();
 		}
 		
 		public void restore(Grid grid) {
-			Cell cell = grid.cellAt(position);
+			Cell cell = grid.cellAt(new Position(row, col));
 			if (cell.isGiven()) {
 				return;
 			}

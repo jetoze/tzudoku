@@ -18,7 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
-import jetoze.tzudoku.Value;
+import jetoze.tzudoku.model.Value;
 
 class ControlPanel {
 	private final GridUiModel model;

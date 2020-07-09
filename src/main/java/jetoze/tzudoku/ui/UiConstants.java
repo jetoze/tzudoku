@@ -13,9 +13,9 @@ import javax.swing.AbstractButton;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
-import jetoze.tzudoku.PencilMarks;
-import jetoze.tzudoku.Position;
-import jetoze.tzudoku.Value;
+import jetoze.tzudoku.model.PencilMarks;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 final class UiConstants {
 	

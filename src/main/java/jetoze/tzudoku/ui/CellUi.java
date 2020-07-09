@@ -5,10 +5,10 @@ import java.awt.Graphics2D;
 
 import javax.swing.JComponent;
 
-import jetoze.tzudoku.Cell;
-import jetoze.tzudoku.Position;
-import jetoze.tzudoku.UnknownCell;
-import jetoze.tzudoku.Value;
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.UnknownCell;
+import jetoze.tzudoku.model.Value;
 
 class CellUi extends JComponent {
 	private final Position position;

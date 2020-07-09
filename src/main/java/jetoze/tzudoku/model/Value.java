@@ -1,4 +1,4 @@
-package jetoze.tzudoku;
+package jetoze.tzudoku.model;
 
 import java.util.Arrays;
 

@@ -1,4 +1,4 @@
-package jetoze.tzudoku;
+package jetoze.tzudoku.model;
 
 import static java.util.Objects.*;
 

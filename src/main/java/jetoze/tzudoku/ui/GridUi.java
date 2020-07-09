@@ -30,10 +30,10 @@ import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.MouseInputAdapter;
 
-import jetoze.tzudoku.Grid;
-import jetoze.tzudoku.GridState;
-import jetoze.tzudoku.Position;
-import jetoze.tzudoku.Value;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.GridState;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 public class GridUi {
 	private final GridUiModel model;

@@ -23,12 +23,12 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import jetoze.tzudoku.Cell;
-import jetoze.tzudoku.Grid;
-import jetoze.tzudoku.PencilMarks;
-import jetoze.tzudoku.Position;
-import jetoze.tzudoku.UnknownCell;
-import jetoze.tzudoku.Value;
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.PencilMarks;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.UnknownCell;
+import jetoze.tzudoku.model.Value;
 
 public class GridUiModel {
 	private final Grid grid;
