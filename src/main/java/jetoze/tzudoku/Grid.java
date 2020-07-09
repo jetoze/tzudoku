@@ -38,17 +38,30 @@ public final class Grid {
 	}
 	
 	public static Grid exampleOfUnsolvedGrid() {
-		return new Grid(IntStream.of(
-			     0, 0, 0, 2, 6, 0, 7, 0, 1,
-			     6, 8, 0, 0, 7, 0, 0, 9, 0,
-			     1, 9, 0, 0, 0, 4, 5, 0, 0,
-			     8, 2, 0, 1, 0, 0, 0, 4, 0,
-			     0, 0, 4, 6, 0, 2, 9, 0, 0,
-			     0, 5, 0, 0, 0, 3, 0, 2, 8,
-			     0, 0, 9, 3, 0, 0, 0, 7, 4,
-			     0, 4, 0, 0, 5, 0, 0, 3, 6,
-			     7, 0, 3, 0, 1, 8, 0, 0, 0)
-				.mapToObj(Grid::toCell));
+		return new Grid(
+				"605004002",
+				"000600901",
+				"000050300",
+				"001000000",
+				"300587006",
+				"000000400",
+				"004030000",
+				"503008000",
+				"800100207");
+	}
+	
+	public Grid(String... rows) {
+		checkArgument(rows.length == 9, "Must provide 9 rows");
+		checkArgument(Stream.of(rows).allMatch(r -> r.length() == 9), "Each row must have 9 digits");
+		ImmutableMap.Builder<Position, Cell> mapBuilder = ImmutableMap.builder();
+		for (int r = 1; r <= 9; ++r) {
+			for (int c = 1; c <= 9; ++c) {
+				var p = new Position(r, c);
+				var intVal = rows[r - 1].charAt(c - 1) - 48;
+				mapBuilder.put(p, toCell(intVal));
+			}
+		}
+		this.cells = mapBuilder.build();
 	}
 	
 	public Grid(Stream<Cell> cells) {
@@ -61,7 +74,7 @@ public final class Grid {
 		Iterator<Cell> it = cells.iterator();
 		for (int r = 1; r <= 9; ++r) {
 			for (int c = 1; c <= 9; ++c) {
-				Position p = new Position(r, c);
+				var p = new Position(r, c);
 				mapBuilder.put(p, it.next());
 			}
 		}
