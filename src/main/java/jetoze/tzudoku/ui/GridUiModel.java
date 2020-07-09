@@ -2,6 +2,7 @@ package jetoze.tzudoku.ui;
 
 import static com.google.common.collect.ImmutableList.*;
 import static com.google.common.collect.ImmutableMap.*;
+import static java.util.stream.Collectors.*;
 import static java.util.Objects.*;
 
 import java.util.ArrayList;
@@ -124,11 +125,24 @@ public class GridUiModel {
 	}
 	
 	public void clearSelectedCells() {
-		ImmutableList<UnknownCell> cells = getSelectedUnknownCells()
-			.filter(Predicate.not(UnknownCell::isEmpty))
-			.collect(toImmutableList());
+		List<UnknownCell> cells = getSelectedUnknownCells()
+				.filter(Predicate.not(UnknownCell::isEmpty))
+				.collect(toList());
+		clearCellsImpl(cells, false);
+	}
+	
+	public void reset() {
+		List<UnknownCell> cells = cellUis.values().stream()
+				.map(CellUi::getCell)
+				.filter(Predicate.not(Cell::isGiven))
+				.map(UnknownCell.class::cast)
+				.collect(toList());
+		clearCellsImpl(cells, true);
+	}
+	
+	private void clearCellsImpl(List<UnknownCell> cells, boolean reset) {
 		if (!cells.isEmpty()) {
-			ClearCellsAction action = new ClearCellsAction(cells);
+			ClearCellsAction action = new ClearCellsAction(cells, reset);
 			undoRedoState.add(action);
 			action.perform();
 		}
@@ -213,16 +227,23 @@ public class GridUiModel {
 	
 	private class ClearCellsAction implements UndoableAction {
 		private final ImmutableMap<UnknownCell, PreviousCellState> cellsAndTheirPreviousState;
+		private final boolean reset;
 		
-		public ClearCellsAction(List<UnknownCell> cells) {
+		public ClearCellsAction(List<UnknownCell> cells, boolean reset) {
 			this.cellsAndTheirPreviousState = cells.stream().collect(toImmutableMap(
 					Function.identity(), PreviousCellState::of));
+			this.reset = reset;
 		}
 		
 		
 		@Override
 		public void perform() {
-			cellsAndTheirPreviousState.keySet().forEach(UnknownCell::clearValue);
+			cellsAndTheirPreviousState.keySet().forEach(c -> {
+				c.clearValue();
+				if (reset) {
+					c.clearPencilMarks();
+				}
+			});
 			notifyListeners(GridUiModelListener::onCellStateChanged);
 		}
 
@@ -232,6 +253,7 @@ public class GridUiModel {
 			notifyListeners(GridUiModelListener::onCellStateChanged);
 		}
 	}
+	
 	
 	private static interface PreviousCellState {
 		void restore(UnknownCell cell);

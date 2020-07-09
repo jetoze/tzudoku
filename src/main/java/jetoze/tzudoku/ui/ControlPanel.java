@@ -82,6 +82,12 @@ class ControlPanel {
 		
 		c.gridy = 3;
 		p.add(new JLabel(" "/*empty space for now*/), c);
+
+		c.gridy = 4;
+		p.add(createLargeButton(new ResetAction()), c);
+
+		c.gridy = 5;
+		p.add(createLargeButton(new CheckAction()), c);
 		
 		c.gridx = 2;
 		c.gridy = 3;
@@ -158,6 +164,32 @@ class ControlPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			EventQueue.invokeLater(model::clearSelectedCells);
+		}
+	}
+	
+	private class ResetAction extends AbstractAction {
+		
+		public ResetAction() {
+			super("Restart");
+		}
+		
+		public void actionPerformed(ActionEvent e) {
+			EventQueue.invokeLater(model::reset);
+		}
+	}
+	
+	private class CheckAction extends AbstractAction {
+		
+		public CheckAction() {
+			super("Check");
+		}
+		
+		public void actionPerformed(ActionEvent e) {
+			EventQueue.invokeLater(() -> {
+				boolean solved = model.getGrid().isSolved();
+				// TODO: add a UI for this
+				System.out.println(solved);
+			});
 		}
 	}
 }

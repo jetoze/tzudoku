@@ -34,13 +34,17 @@ public final class UnknownCell implements Cell {
 	}
 	
 	public void clearValue() {
-		if (this.value != null) {
-			this.value = null;
+		if (value != null) {
+			value = null;
 		} else {
 			pencilMarks.clear();
 		}
 	}
 
+	public void clearPencilMarks() {
+		pencilMarks.clear();
+	}
+	
 	@Override
 	public boolean hasValue() {
 		return value != null;

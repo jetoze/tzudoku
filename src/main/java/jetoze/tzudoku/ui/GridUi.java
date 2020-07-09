@@ -244,7 +244,7 @@ public class GridUi {
 	}
 	
 	private static Grid loadGrid() throws IOException {
-		File file = new File("/Users/torgil/tmp/tzudoku_input.json");
+		File file = new File("/Users/torgil/tmp/tzudoku_input_solved.json");
 		String json = Files.readString(file.toPath());
 		GridState state = GridState.fromJson(json);
 		return state.restoreGrid();
