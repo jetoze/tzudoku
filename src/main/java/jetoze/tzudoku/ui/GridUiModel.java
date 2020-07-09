@@ -4,6 +4,7 @@ import static java.util.Objects.*;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.function.Consumer;
 import java.util.function.Predicate;
@@ -16,6 +17,7 @@ import com.google.common.collect.ImmutableMap;
 
 import jetoze.tzudoku.Cell;
 import jetoze.tzudoku.Grid;
+import jetoze.tzudoku.Position;
 import jetoze.tzudoku.UnknownCell;
 import jetoze.tzudoku.Value;
 
@@ -23,20 +25,13 @@ public class GridUiModel {
 	private final ImmutableMap<Position, CellUi> cellUis;
 	@Nullable
 	private CellUi lastSelectedCell;
-	private EnterValueMode enterValueMode = EnterValueMode.VALUE;
+	private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
 	private final List<GridUiModelListener> listeners = new ArrayList<>();
 	
 	
 	public GridUiModel(Grid grid) {
-		ImmutableMap.Builder<Position, CellUi> builder = ImmutableMap.builder();
-		for (int row = 1; row <= 9; ++row) {
-			for (int col = 1; col <= 9; ++col) {
-				Position pos = new Position(row, col);
-				CellUi cellUi = new CellUi(pos, grid.cellAt(row, col));
-				builder.put(pos, cellUi);
-			}
-		}
-		this.cellUis = builder.build();
+		this.cellUis = grid.getCells().entrySet().stream()
+				.collect(ImmutableMap.toImmutableMap(Entry::getKey, e -> new CellUi(e.getKey(), e.getValue())));
 	}
 
 	public ImmutableCollection<CellUi> getCells() {
@@ -84,7 +79,7 @@ public class GridUiModel {
 	
 	private void applyValueToCell(UnknownCell cell, Value value) {
 		switch (enterValueMode) {
-		case VALUE:
+		case NORMAL:
 			cell.setValue(value);
 			break;
 		case CENTER_PENCIL_MARK:

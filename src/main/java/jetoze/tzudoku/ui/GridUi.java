@@ -24,6 +24,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.MouseInputAdapter;
 
 import jetoze.tzudoku.Grid;
+import jetoze.tzudoku.Position;
 import jetoze.tzudoku.Value;
 
 public class GridUi {
@@ -61,6 +62,12 @@ public class GridUi {
 					"enter-" + v,
 					() -> model.enterValue(v));
 		}
+		registerAction(
+				inputMap,
+				actionMap,
+				KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0, false),
+				"clear-cells-via-backspace",
+				() -> model.clearSelectedCells());
 		registerSelectionActions(inputMap, actionMap, KeyEvent.VK_LEFT, Position::left);
 		registerSelectionActions(inputMap, actionMap, KeyEvent.VK_RIGHT, Position::right);
 		registerSelectionActions(inputMap, actionMap, KeyEvent.VK_UP, Position::up);
@@ -68,9 +75,21 @@ public class GridUi {
 		registerAction(
 				inputMap,
 				actionMap,
-				KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0, false),
-				"clear-cells-via-backspace",
-				() -> model.clearSelectedCells());
+				KeyStroke.getKeyStroke(KeyEvent.VK_N, 0, false),
+				"normal-value-mode",
+				() -> model.setEnterValueMode(EnterValueMode.NORMAL));
+		registerAction(
+				inputMap,
+				actionMap,
+				KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false),
+				"corner-value-mode",
+				() -> model.setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
+		registerAction(
+				inputMap,
+				actionMap,
+				KeyStroke.getKeyStroke(KeyEvent.VK_C, 0, false),
+				"center-value-mode",
+				() -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
 	}
 	
 	private void registerAction(InputMap inputMap, 
@@ -112,7 +131,12 @@ public class GridUi {
 			.map(CellUi::getPosition)
 			.map(nextPosition)
 			.map(model::getCell)
-			.ifPresent(c -> model.selectCell(c, isMultiSelect));
+			.ifPresentOrElse(c -> model.selectCell(c, isMultiSelect), this::selectTopLeftCell);
+	}
+	
+	private void selectTopLeftCell() {
+		CellUi cellUi = model.getCell(new Position(1, 1));
+		model.selectCell(cellUi, false);
 	}
 
 	

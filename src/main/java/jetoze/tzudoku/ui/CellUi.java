@@ -6,6 +6,7 @@ import java.awt.Graphics2D;
 import javax.swing.JComponent;
 
 import jetoze.tzudoku.Cell;
+import jetoze.tzudoku.Position;
 import jetoze.tzudoku.Value;
 
 class CellUi extends JComponent {

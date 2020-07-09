@@ -1,7 +1,7 @@
 package jetoze.tzudoku.ui;
 
 public enum EnterValueMode {
-	VALUE,
+	NORMAL,
 	CENTER_PENCIL_MARK,
 	CORNER_PENCIL_MARK
 }

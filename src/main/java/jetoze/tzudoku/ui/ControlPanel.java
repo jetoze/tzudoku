@@ -3,33 +3,44 @@ package jetoze.tzudoku.ui;
 import static java.util.Objects.*;
 
 import java.awt.EventQueue;
-import java.awt.GridLayout;
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
+
+import jetoze.tzudoku.Value;
 
 class ControlPanel {
 	private final GridUiModel model;
 	
 	private final JToggleButton normalModeButton = new JToggleButton(
-			new SetEnterValueModeAction(EnterValueMode.VALUE, "Normal"));
-	
-	private final JToggleButton centerPencilMarkModeButton = new JToggleButton(
-			new SetEnterValueModeAction(EnterValueMode.CENTER_PENCIL_MARK, "Center"));
+			new SetEnterValueModeAction(EnterValueMode.NORMAL, "Normal"));
 	
 	private final JToggleButton cornerPencilMarkModeButton = new JToggleButton(
 			new SetEnterValueModeAction(EnterValueMode.CORNER_PENCIL_MARK, "Corner"));
+	
+	private final JToggleButton centerPencilMarkModeButton = new JToggleButton(
+			new SetEnterValueModeAction(EnterValueMode.CENTER_PENCIL_MARK, "Center"));
 	
 	public ControlPanel(GridUiModel model) {
 		this.model = requireNonNull(model);
 		selectModeButton(model.getEnterValueMode());
 		ButtonGroup buttonGroup = new ButtonGroup();
 		buttonGroup.add(normalModeButton);
-		buttonGroup.add(centerPencilMarkModeButton);
 		buttonGroup.add(cornerPencilMarkModeButton);
+		buttonGroup.add(centerPencilMarkModeButton);
+		UiConstants.makeOverLarge(normalModeButton);
+		UiConstants.makeOverLarge(cornerPencilMarkModeButton);
+		UiConstants.makeOverLarge(centerPencilMarkModeButton);
 		model.addListener(new GridUiModelListener() {
 
 			@Override
@@ -41,14 +52,14 @@ class ControlPanel {
 	
 	private void selectModeButton(EnterValueMode mode) {
 		switch (mode) {
-			case VALUE:
+			case NORMAL:
 				normalModeButton.setSelected(true);
-				break;
-			case CENTER_PENCIL_MARK:
-				centerPencilMarkModeButton.setSelected(true);
 				break;
 			case CORNER_PENCIL_MARK:
 				cornerPencilMarkModeButton.setSelected(true);
+				break;
+			case CENTER_PENCIL_MARK:
+				centerPencilMarkModeButton.setSelected(true);
 				break;
 			default:
 				throw new RuntimeException();
@@ -56,17 +67,62 @@ class ControlPanel {
 	}
 	
 	public JPanel getUi() {
-		GridLayout layout = new GridLayout(3, 1, 0, 10);
-		JPanel p = new JPanel(layout);
-		p.add(normalModeButton);
-		p.add(centerPencilMarkModeButton);
-		p.add(cornerPencilMarkModeButton);
+		JPanel p = new JPanel(new GridBagLayout());
+		GridBagConstraints c = new GridBagConstraints();
+		c.fill = GridBagConstraints.BOTH;
+		
+		c.gridx = 0;
+		c.gridy = 0;
+		c.gridwidth = 2;
+		p.add(normalModeButton, c);
+		c.gridy = 1;
+		p.add(cornerPencilMarkModeButton, c);
+		c.gridy = 2;
+		p.add(centerPencilMarkModeButton, c);
+		
+		c.gridy = 3;
+		p.add(new JLabel(" "/*empty space for now*/), c);
+		
+		c.gridx = 2;
+		c.gridy = 3;
+		c.gridwidth = 3;
+		p.add(createLargeButton(new DeleteAction()), c);
+		
+		List<JButton> valueButtons = Value.ALL.stream()
+				.map(EnterValueAction::new)
+				.map(this::createSmallButton)
+				.collect(Collectors.toList());
+		c.gridx = 2;
+		c.gridy = 0;
+		c.gridwidth = 1;
+		for (JButton b : valueButtons) {
+			p.add(b, c);
+			++c.gridx;
+			if (c.gridx == 5) {
+				c.gridx = 2;
+				c.gridy++;
+			}
+		}
+		
 		return p;
+	}
+	
+	private JButton createLargeButton(Action action) {
+		JButton b = new JButton(action);
+		UiConstants.makeOverLarge(b);
+		return b;
+	}
+	
+	private JButton createSmallButton(Action action) {
+		JButton b = new JButton(action);
+		UiConstants.makeOverSmall(b);
+		return b;
 	}
 	
 	
 	private class SetEnterValueModeAction extends AbstractAction {
 		private final EnterValueMode mode;
+		
 		public SetEnterValueModeAction(EnterValueMode mode, String name) {
 			super(name);
 			this.mode = mode;
@@ -75,6 +131,33 @@ class ControlPanel {
 		@Override
 		public void actionPerformed(ActionEvent e) {
 			EventQueue.invokeLater(() -> model.setEnterValueMode(mode));
+		}
+	}
+	
+	private class EnterValueAction extends AbstractAction {
+		private final Value value;
+		
+		public EnterValueAction(Value value) {
+			super(value.toString());
+			this.value = value;
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			EventQueue.invokeLater(() -> model.enterValue(value));
+		}
+	}
+	
+	
+	private class DeleteAction extends AbstractAction {
+		
+		public DeleteAction() {
+			super("Delete");
+		}
+		
+		@Override
+		public void actionPerformed(ActionEvent e) {
+			EventQueue.invokeLater(model::clearSelectedCells);
 		}
 	}
 }

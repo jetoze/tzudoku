@@ -5,17 +5,20 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
+import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.util.stream.Collectors;
 
+import javax.swing.AbstractButton;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.Cell;
+import jetoze.tzudoku.Position;
 import jetoze.tzudoku.Value;
 
 final class UiConstants {
@@ -40,6 +43,14 @@ final class UiConstants {
 	private static final int VALUE_FONT_SIZE = (2 * CELL_SIZE) / 3; 
 	
 	private static final Font VALUE_FONT = new Font("Tahoma", Font.PLAIN, VALUE_FONT_SIZE);
+	
+	private static final int LARGE_BUTTON_FONT_SIZE = 20;
+	
+	private static final Font LARGE_BUTTON_FONT = new Font("Tahoma", Font.PLAIN, LARGE_BUTTON_FONT_SIZE);
+	
+	private static final int SMALL_BUTTON_FONT_SIZE = 12;
+	
+	private static final Font SMALL_BUTTON_FONT = new Font("Tahoma", Font.PLAIN, SMALL_BUTTON_FONT_SIZE);
 	
 	private static final Color GIVEN_VALUE_COLOR = Color.BLACK;
 	
@@ -144,9 +155,9 @@ final class UiConstants {
 	}
 	
 	static void drawPencilMarks(Graphics2D g, Cell cell) {
-	    ImmutableSet<Value> centerPencilMarks = cell.getCenterPencilMarks();
 	    ImmutableSet<Value> cornerPencilMarks = cell.getCornerPencilMarks();
-	    if (centerPencilMarks.isEmpty() && cornerPencilMarks.isEmpty()) {
+	    ImmutableSet<Value> centerPencilMarks = cell.getCenterPencilMarks();
+	    if (cornerPencilMarks.isEmpty() && centerPencilMarks.isEmpty()) {
 	    	return;
 	    }
 		
@@ -156,6 +167,15 @@ final class UiConstants {
 	    g.setFont(PENCIL_MARK_FONT);
 	    g.setColor(PENCIL_MARK_COLOR);
 	    
+	    if (!cornerPencilMarks.isEmpty()) {
+	    	int num = 1;
+	    	for (Value pencilMark : cornerPencilMarks) {
+	    		String text = pencilMark.toString();
+	    		Point p = getCornerPencilMarkLocation(g, text, num);
+	    		g.drawString(text, p.x, p.y);
+	    		++num;
+	    	}
+	    }
 	    if (!centerPencilMarks.isEmpty()) {
 			String text = centerPencilMarks.stream()
 					.map(Value::toString)
@@ -165,6 +185,40 @@ final class UiConstants {
 	    
 	    g.setFont(originalFont);
 	    g.setColor(originalColor);
+	}
+	
+	private static Point getCornerPencilMarkLocation(Graphics2D g, String text, int pencilMarkNo) {
+		FontMetrics metrics = g.getFontMetrics(g.getFont());
+		switch (pencilMarkNo) {
+		case 1:
+		case 9: // yeah, the 9th pencil mark overwrites the first one...
+			return new Point(4, metrics.getHeight());
+		case 2:
+			return new Point(CELL_SIZE - 4 - metrics.stringWidth(text), metrics.getHeight());
+		case 3:
+			return new Point(4, CELL_SIZE - 4 - metrics.getHeight() + metrics.getAscent());
+		case 4:
+			return new Point(CELL_SIZE - 4 - metrics.stringWidth(text), CELL_SIZE - 4 - metrics.getHeight() + metrics.getAscent());
+		case 5:
+			return new Point((CELL_SIZE - metrics.stringWidth(text)) / 2, metrics.getHeight());
+		case 6:
+			return new Point((CELL_SIZE - metrics.stringWidth(text)) / 2, CELL_SIZE - 4 - metrics.getHeight() + metrics.getAscent());
+		case 7:
+			return new Point(4, ((CELL_SIZE - metrics.getHeight()) / 2) + metrics.getAscent());
+		case 8:
+			return new Point(CELL_SIZE - 4 - metrics.stringWidth(text), ((CELL_SIZE - metrics.getHeight()) / 2) + metrics.getAscent());
+		default:
+			throw new RuntimeException("Unexpected number of pencil marks: " + pencilMarkNo);
+		}
+	}
+	
+	static void makeOverLarge(AbstractButton button) {
+		button.setFont(LARGE_BUTTON_FONT);
+	}
+	
+	static void makeOverSmall(AbstractButton button) {
+		button.setFont(SMALL_BUTTON_FONT);
+		button.setMargin(new Insets(0, 0, 0, 0));
 	}
 	
 	private UiConstants() {/**/}
