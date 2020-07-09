@@ -64,14 +64,17 @@ public class GridUiModel {
 
 	public void selectCell(CellUi cell, boolean isMultiSelect) {
 		lastSelectedCell = cell;
+		boolean changed = !cell.isSelected() || 
+				(!isMultiSelect && cellUis.values().stream().anyMatch(CellUi::isSelected));
 		cell.setSelected(true);
 		if (!isMultiSelect) {
 			cellUis.values().stream()
 				.filter(c -> c != cell)
 				.forEach(c -> c.setSelected(false));
 		}
-		// TODO: Only do this if something changed.
-		notifyListeners(GridUiModelListener::onCellStateChanged);
+		if (changed) {
+			notifyListeners(GridUiModelListener::onCellStateChanged);
+		}
 	}
 	
 	public EnterValueMode getEnterValueMode() {
