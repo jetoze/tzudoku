@@ -183,7 +183,7 @@ public class GridUi {
 		
 		@Override
 		public void mouseEntered(MouseEvent e) {
-			boolean buttonDown = (e.getModifiersEx() == MouseEvent.BUTTON1_DOWN_MASK);
+			boolean buttonDown = (e.getModifiersEx() & MouseEvent.BUTTON1_DOWN_MASK) != 0;
 			if (!buttonDown) {
 				return;
 			}
