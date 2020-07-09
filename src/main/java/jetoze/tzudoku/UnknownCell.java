@@ -41,8 +41,8 @@ public final class UnknownCell implements Cell {
 	}
 	
 	private void clearPencilMarks() {
-		centerPencilMarks.clear();
 		cornerPencilMarks.clear();
+		centerPencilMarks.clear();
 	}
 
 	@Override
@@ -54,15 +54,19 @@ public final class UnknownCell implements Cell {
 	public boolean isGiven() {
 		return false;
 	}
-
-	@Override
-	public ImmutableSet<Value> getCenterPencilMarks() {
-		return ImmutableSet.copyOf(centerPencilMarks);
+	
+	public boolean isEmpty() {
+		return (value == null) && cornerPencilMarks.isEmpty() && centerPencilMarks.isEmpty();
 	}
 
 	@Override
 	public ImmutableSet<Value> getCornerPencilMarks() {
 		return ImmutableSet.copyOf(cornerPencilMarks);
+	}
+
+	@Override
+	public ImmutableSet<Value> getCenterPencilMarks() {
+		return ImmutableSet.copyOf(centerPencilMarks);
 	}
 
 	public void toggleCornerPencilMark(Value value) {

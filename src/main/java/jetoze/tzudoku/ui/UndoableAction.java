@@ -4,6 +4,6 @@ public interface UndoableAction {
 	
 	public void undo();
 
-	public void redo();
+	public void perform();
 	
 }

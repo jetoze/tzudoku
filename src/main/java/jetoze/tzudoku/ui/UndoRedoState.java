@@ -21,7 +21,7 @@ public class UndoRedoState {
 	}
 	
 	public void redo() {
-		transition(redoStack, undoStack, UndoableAction::redo);
+		transition(redoStack, undoStack, UndoableAction::perform);
 	}
 	
 	private void transition(Stack<UndoableAction> from, 

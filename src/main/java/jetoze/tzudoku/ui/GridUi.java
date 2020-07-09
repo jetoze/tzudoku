@@ -10,6 +10,7 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.ActionEvent;
+import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.function.UnaryOperator;
@@ -47,7 +48,7 @@ public class GridUi {
 		model.addListener(new GridUiModelListener() {
 			
 			@Override
-			public void repaintBoard() {
+			public void onCellStateChanged() {
 				board.repaint();
 			}
 		});
@@ -58,7 +59,7 @@ public class GridUi {
 			registerAction(
 					inputMap, 
 					actionMap, 
-					KeyStroke.getKeyStroke(KeyEvent.VK_0 + v.toInt(), 0, false), 
+					KeyStroke.getKeyStroke(KeyEvent.VK_0 + v.toInt(), 0), 
 					"enter-" + v,
 					() -> model.enterValue(v));
 		}
@@ -75,21 +76,33 @@ public class GridUi {
 		registerAction(
 				inputMap,
 				actionMap,
-				KeyStroke.getKeyStroke(KeyEvent.VK_N, 0, false),
+				KeyStroke.getKeyStroke(KeyEvent.VK_N, 0),
 				"normal-value-mode",
 				() -> model.setEnterValueMode(EnterValueMode.NORMAL));
 		registerAction(
 				inputMap,
 				actionMap,
-				KeyStroke.getKeyStroke(KeyEvent.VK_R, 0, false),
+				KeyStroke.getKeyStroke(KeyEvent.VK_R, 0),
 				"corner-value-mode",
 				() -> model.setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
 		registerAction(
 				inputMap,
 				actionMap,
-				KeyStroke.getKeyStroke(KeyEvent.VK_C, 0, false),
+				KeyStroke.getKeyStroke(KeyEvent.VK_C, 0),
 				"center-value-mode",
 				() -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
+		registerAction(
+				inputMap,
+				actionMap,
+				KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()),
+				"undo",
+				model::undo);
+		registerAction(
+				inputMap,
+				actionMap,
+				KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
+				"redo",
+				model::redo);
 	}
 	
 	private void registerAction(InputMap inputMap, 

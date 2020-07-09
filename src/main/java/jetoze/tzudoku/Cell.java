@@ -10,10 +10,10 @@ public interface Cell {
 	
 	boolean hasValue();
 	
-	ImmutableSet<Value> getCenterPencilMarks();
-	
 	ImmutableSet<Value> getCornerPencilMarks();
 	
+	ImmutableSet<Value> getCenterPencilMarks();
+		
 	boolean isGiven();
 	
 	// TODO: Should we add properties for background color and selected = true/false?
