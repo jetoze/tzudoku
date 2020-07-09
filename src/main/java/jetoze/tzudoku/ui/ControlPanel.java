@@ -1,7 +1,8 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
+import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -67,42 +68,36 @@ class ControlPanel {
 	}
 	
 	public JPanel getUi() {
-		JPanel p = new JPanel(new GridBagLayout());
+		JPanel top = new JPanel(new GridBagLayout());
 		GridBagConstraints c = new GridBagConstraints();
 		c.fill = GridBagConstraints.BOTH;
 		
 		c.gridx = 0;
 		c.gridy = 0;
 		c.gridwidth = 2;
-		p.add(normalModeButton, c);
+		top.add(normalModeButton, c);
 		c.gridy = 1;
-		p.add(cornerPencilMarkModeButton, c);
+		top.add(cornerPencilMarkModeButton, c);
 		c.gridy = 2;
-		p.add(centerPencilMarkModeButton, c);
+		top.add(centerPencilMarkModeButton, c);
 		
 		c.gridy = 3;
-		p.add(new JLabel(" "/*empty space for now*/), c);
-
-		c.gridy = 4;
-		p.add(createLargeButton(new ResetAction()), c);
-
-		c.gridy = 5;
-		p.add(createLargeButton(new CheckAction()), c);
+		top.add(new JLabel(" "/*empty space for now*/), c);
 		
 		c.gridx = 2;
 		c.gridy = 3;
 		c.gridwidth = 3;
-		p.add(createLargeButton(new DeleteAction()), c);
+		top.add(largeButton("Delete", model::clearSelectedCells), c);
 		
 		List<JButton> valueButtons = Value.ALL.stream()
 				.map(EnterValueAction::new)
-				.map(this::createSmallButton)
+				.map(ControlPanel::smallButton)
 				.collect(Collectors.toList());
 		c.gridx = 2;
 		c.gridy = 0;
 		c.gridwidth = 1;
 		for (JButton b : valueButtons) {
-			p.add(b, c);
+			top.add(b, c);
 			++c.gridx;
 			if (c.gridx == 5) {
 				c.gridx = 2;
@@ -110,16 +105,53 @@ class ControlPanel {
 			}
 		}
 		
-		return p;
+		JPanel bottom = new JPanel(new GridBagLayout());
+		c = new GridBagConstraints();
+		c.fill = GridBagConstraints.HORIZONTAL;
+		c.weightx = 0.5;
+		
+		c.gridx = 0;
+		c.gridy = 0;
+		bottom.add(largeButton("Undo", model::undo), c);
+		c.gridx = 1;
+		c.gridy = 0;
+		bottom.add(largeButton("Redo", model::redo), c);
+		c.gridx = 0;
+		c.gridy = 1;
+		bottom.add(largeButton("Restart", model::reset), c);
+		c.gridx = 1;
+		c.gridy = 1;
+		bottom.add(largeButton("Check", this::checkSolution), c);
+
+		JPanel ui = new JPanel(new BorderLayout(0, 10));
+		ui.add(top, BorderLayout.NORTH);
+		ui.add(bottom, BorderLayout.SOUTH);
+		return ui;
 	}
 	
-	private JButton createLargeButton(Action action) {
-		JButton b = new JButton(action);
+	private void checkSolution() {
+		boolean solved = model.getGrid().isSolved();
+		// TODO: add a UI for this
+		System.out.println(solved ? "Solved! :)" : "Not solved :(");
+	}
+	
+	private static JButton largeButton(String text, Runnable work) {
+		JButton b = new JButton(createAction(text, work));
 		UiConstants.makeOverLarge(b);
 		return b;
 	}
 	
-	private JButton createSmallButton(Action action) {
+	private static Action createAction(String name, Runnable action) {
+		return new AbstractAction(name) {
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				EventQueue.invokeLater(action);
+			}
+		};
+	}
+	
+	private static JButton smallButton(Action action) {
 		JButton b = new JButton(action);
 		UiConstants.makeOverSmall(b);
 		return b;
@@ -153,43 +185,5 @@ class ControlPanel {
 			EventQueue.invokeLater(() -> model.enterValue(value));
 		}
 	}
-	
-	
-	private class DeleteAction extends AbstractAction {
-		
-		public DeleteAction() {
-			super("Delete");
-		}
-		
-		@Override
-		public void actionPerformed(ActionEvent e) {
-			EventQueue.invokeLater(model::clearSelectedCells);
-		}
-	}
-	
-	private class ResetAction extends AbstractAction {
-		
-		public ResetAction() {
-			super("Restart");
-		}
-		
-		public void actionPerformed(ActionEvent e) {
-			EventQueue.invokeLater(model::reset);
-		}
-	}
-	
-	private class CheckAction extends AbstractAction {
-		
-		public CheckAction() {
-			super("Check");
-		}
-		
-		public void actionPerformed(ActionEvent e) {
-			EventQueue.invokeLater(() -> {
-				boolean solved = model.getGrid().isSolved();
-				// TODO: add a UI for this
-				System.out.println(solved);
-			});
-		}
-	}
+
 }

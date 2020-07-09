@@ -1,6 +1,7 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
+
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
@@ -25,6 +26,8 @@ import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.MouseInputAdapter;
 
 import jetoze.tzudoku.Grid;
@@ -222,6 +225,8 @@ public class GridUi {
 		System.setProperty("swing.aatext", "true");
 		Grid grid = loadGrid();
 		EventQueue.invokeLater(() -> {
+			installNimbus();
+			
 			JFrame frame = new JFrame("tzudoku");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 			
@@ -241,6 +246,19 @@ public class GridUi {
 			frame.setVisible(true);
 			frame.requestFocusInWindow();
 		});
+	}
+
+	private static void installNimbus() {
+		try {
+			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+				if ("Nimbus".equals(info.getName())) {
+					UIManager.setLookAndFeel(info.getClassName());
+					break;
+				}
+			}
+		} catch (Exception e) {
+			// If Nimbus is not available, you can set the GUI to another look and feel.
+		}
 	}
 	
 	private static Grid loadGrid() throws IOException {

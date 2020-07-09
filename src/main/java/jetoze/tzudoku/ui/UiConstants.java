@@ -5,7 +5,6 @@ import java.awt.Color;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics2D;
-import java.awt.Insets;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
@@ -211,7 +210,6 @@ final class UiConstants {
 	
 	static void makeOverSmall(AbstractButton button) {
 		button.setFont(SMALL_BUTTON_FONT);
-		button.setMargin(new Insets(0, 0, 0, 0));
 	}
 	
 	private UiConstants() {/**/}
