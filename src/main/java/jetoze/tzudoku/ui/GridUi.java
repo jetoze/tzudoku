@@ -13,6 +13,9 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.function.UnaryOperator;
 
 import javax.swing.AbstractAction;
@@ -25,6 +28,7 @@ import javax.swing.KeyStroke;
 import javax.swing.event.MouseInputAdapter;
 
 import jetoze.tzudoku.Grid;
+import jetoze.tzudoku.GridState;
 import jetoze.tzudoku.Position;
 import jetoze.tzudoku.Value;
 
@@ -103,6 +107,12 @@ public class GridUi {
 				KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
 				"redo",
 				model::redo);
+		registerAction(
+				inputMap,
+				actionMap,
+				KeyStroke.getKeyStroke(KeyEvent.VK_J, 0),
+				"dump-json",
+				this::dumpJson);
 	}
 	
 	private void registerAction(InputMap inputMap, 
@@ -136,7 +146,12 @@ public class GridUi {
 				KeyStroke.getKeyStroke(keyEvent, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(), false), 
 				keyEvent + "-multi-select", 
 				() -> selectNext(nextPosition, true));
-
+	}
+	
+	private void dumpJson() {
+		GridState state = new GridState(model.getGrid());
+		String json = state.toJson();
+		System.out.println(json);
 	}
 	
 	private void selectNext(UnaryOperator<Position> nextPosition, boolean isMultiSelect) {
@@ -202,10 +217,10 @@ public class GridUi {
 	}
 	
 	
-	public static void main(String[] args) {
+	public static void main(String[] args) throws IOException {
 		System.setProperty("awt.useSystemAAFontSettings","on");
 		System.setProperty("swing.aatext", "true");
-		Grid grid = Grid.exampleOfUnsolvedGrid();
+		Grid grid = loadGrid();
 		EventQueue.invokeLater(() -> {
 			JFrame frame = new JFrame("tzudoku");
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
@@ -226,6 +241,13 @@ public class GridUi {
 			frame.setVisible(true);
 			frame.requestFocusInWindow();
 		});
+	}
+	
+	private static Grid loadGrid() throws IOException {
+		File file = new File("/Users/torgil/tmp/tzudoku_input.json");
+		String json = Files.readString(file.toPath());
+		GridState state = GridState.fromJson(json);
+		return state.restoreGrid();
 	}
 	
 }

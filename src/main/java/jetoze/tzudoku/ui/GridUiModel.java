@@ -30,6 +30,7 @@ import jetoze.tzudoku.UnknownCell;
 import jetoze.tzudoku.Value;
 
 public class GridUiModel {
+	private final Grid grid;
 	private final ImmutableMap<Position, CellUi> cellUis;
 	@Nullable
 	private CellUi lastSelectedCell;
@@ -39,8 +40,13 @@ public class GridUiModel {
 	
 	
 	public GridUiModel(Grid grid) {
+		this.grid = grid;
 		this.cellUis = grid.getCells().entrySet().stream()
 				.collect(ImmutableMap.toImmutableMap(Entry::getKey, e -> new CellUi(e.getKey(), e.getValue())));
+	}
+	
+	public Grid getGrid() {
+		return grid;
 	}
 
 	public ImmutableCollection<CellUi> getCells() {

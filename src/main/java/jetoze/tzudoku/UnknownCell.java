@@ -12,11 +12,16 @@ public final class UnknownCell implements Cell {
 	private final PencilMarks pencilMarks = new PencilMarks();
 	
 	public static UnknownCell empty() {
-		return new UnknownCell();
+		return new UnknownCell(null);
 	}
 	
-	private UnknownCell() {
-		/* use empty() to create an empty cell */
+	public static UnknownCell withValue(Value value) {
+		requireNonNull(value);
+		return new UnknownCell(value);
+	}
+	
+	private UnknownCell(@Nullable Value value) {
+		this.value = value;
 	}
 	
 	@Override
