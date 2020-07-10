@@ -1,5 +1,6 @@
 package jetoze.tzudoku.ui;
 
+import static com.google.common.collect.ImmutableList.*;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.GridBagConstraints;
@@ -16,8 +17,12 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
+
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
+import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
@@ -31,6 +36,10 @@ public class ControlPanel {
 
     private final JToggleButton centerPencilMarkModeButton = new JToggleButton(
             new SetEnterValueModeAction(EnterValueMode.CENTER_PENCIL_MARK, "Center"));
+    
+    private final ImmutableList<EnterValueAction> valueActions;
+    
+    private final ImmutableMap<Position, JButton> valueButtons;
     
     private final JPanel ui;
 
@@ -51,6 +60,18 @@ public class ControlPanel {
                 selectModeButton(newMode);
             }
         });
+        this.valueActions = Value.ALL.stream()
+                .map(EnterValueAction::new)
+                .collect(toImmutableList());
+        ImmutableMap.Builder<Position, JButton> valueButtonsBuilder = ImmutableMap.builder();
+        for (int r = 1; r <= 3; ++r) {
+            for (int c = 1; c <= 3; ++c) {
+                JButton btn = new JButton();
+                UiConstants.makeOverSmall(btn);
+                valueButtonsBuilder.put(new Position(r, c), btn);
+            }
+        }
+        this.valueButtons = valueButtonsBuilder.build();
         this.ui = layoutUi();
     }
 
@@ -96,6 +117,8 @@ public class ControlPanel {
         c.gridwidth = 3;
         top.add(largeButton("Delete", model::delete), c);
 
+        
+        
         List<JButton> valueButtons = Value.ALL.stream().map(EnterValueAction::new).map(ControlPanel::smallButton)
                 .collect(Collectors.toList());
         c.gridx = 2;

@@ -2,6 +2,7 @@ package jetoze.tzudoku.model;
 
 import static java.util.Objects.*;
 
+import java.awt.Color;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -34,16 +35,20 @@ public final class UnknownCell implements Cell {
         this.value = requireNonNull(value);
     }
 
-    public void clearValue() {
+    public void clearContent() {
         if (value != null) {
             value = null;
-        } else {
+        } else if (!pencilMarks.isEmpty()) {
             pencilMarks.clear();
+        } else {
+            color = CellColor.WHITE;
         }
     }
 
-    public void clearPencilMarks() {
+    public void reset() {
+        value = null;
         pencilMarks.clear();
+        color = CellColor.WHITE;
     }
 
     public CellColor getColor() {

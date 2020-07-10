@@ -1,9 +1,9 @@
 package jetoze.tzudoku.ui;
 
-import static com.google.common.collect.ImmutableList.*;
-import static com.google.common.collect.ImmutableMap.*;
-import static java.util.stream.Collectors.*;
-import static java.util.Objects.*;
+import static com.google.common.collect.ImmutableList.toImmutableList;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -24,6 +24,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
@@ -197,7 +198,7 @@ public class GridUiModel {
             for (Map.Entry<UnknownCell, Optional<Value>> e : cellsAndTheirOldValues.entrySet()) {
                 UnknownCell cell = e.getKey();
                 Optional<Value> value = e.getValue();
-                value.ifPresentOrElse(cell::setValue, cell::clearValue);
+                value.ifPresentOrElse(cell::setValue, cell::clearContent);
             }
             notifyListeners(GridUiModelListener::onCellStateChanged);
         }
@@ -230,6 +231,8 @@ public class GridUiModel {
             toggle();
         }
     }
+    
+    
 
     private class ClearCellsAction implements UndoableAction {
         private final ImmutableMap<UnknownCell, PreviousCellState> cellsAndTheirPreviousState;
@@ -237,16 +240,17 @@ public class GridUiModel {
 
         public ClearCellsAction(List<UnknownCell> cells, boolean reset) {
             this.cellsAndTheirPreviousState = cells.stream()
-                    .collect(toImmutableMap(Function.identity(), PreviousCellState::of));
+                    .collect(toImmutableMap(Function.identity(), PreviousCellState::new));
             this.reset = reset;
         }
 
         @Override
         public void perform() {
             cellsAndTheirPreviousState.keySet().forEach(c -> {
-                c.clearValue();
                 if (reset) {
-                    c.clearPencilMarks();
+                    c.reset();
+                } else {
+                    c.clearContent();
                 }
             });
             notifyListeners(GridUiModelListener::onCellStateChanged);
@@ -259,42 +263,26 @@ public class GridUiModel {
         }
     }
 
-    private static interface PreviousCellState {
-        void restore(UnknownCell cell);
-
-        static PreviousCellState of(UnknownCell cell) {
-            return cell.getValue().<PreviousCellState>map(CellHadValue::new)
-                    .orElseGet(() -> new CellHadPencilMarks(cell));
-        }
-    }
-
-    private static class CellHadValue implements PreviousCellState {
-        private final Value value;
-
-        public CellHadValue(Value value) {
-            this.value = requireNonNull(value);
-        }
-
-        @Override
-        public void restore(UnknownCell cell) {
-            cell.setValue(value);
-        }
-    }
-
-    private static class CellHadPencilMarks implements PreviousCellState {
+    private static class PreviousCellState {
+        private final Optional<Value> value;
         private final ImmutableSet<Value> cornerMarks;
         private final ImmutableSet<Value> centerMarks;
-
-        public CellHadPencilMarks(UnknownCell cell) {
+        private final CellColor color;
+        
+        public PreviousCellState(UnknownCell cell) {
+            this.value = cell.getValue();
             this.cornerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCornerMarks());
             this.centerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCenterMarks());
+            this.color = cell.getColor();
         }
-
-        @Override
+        
         public void restore(UnknownCell cell) {
+            value.ifPresent(cell::setValue);
             PencilMarks pencilMarks = cell.getPencilMarks();
+            pencilMarks.clear();
             cornerMarks.forEach(pencilMarks::toggleCorner);
             centerMarks.forEach(pencilMarks::toggleCenter);
+            cell.setColor(color);
         }
     }
 
