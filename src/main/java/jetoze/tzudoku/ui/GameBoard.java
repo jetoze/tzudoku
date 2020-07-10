@@ -40,7 +40,7 @@ public class GameBoard {
 
         return Layouts.border()
                 .west(gridWrapper)
-                .east(gridWrapper)
+                .east(controlPanelWrapper)
                 .build();
     }
 
