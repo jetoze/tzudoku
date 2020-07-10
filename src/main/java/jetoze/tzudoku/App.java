@@ -1,15 +1,15 @@
 package jetoze.tzudoku;
 
-import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-import javax.swing.JComponent;
 import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import jetoze.gunga.KeyBindings;
+import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
@@ -24,7 +24,7 @@ public class App {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
         Grid grid = loadGrid();
-        EventQueue.invokeLater(() -> {
+        UiThread.run(() -> {
             installNimbus();
 
             JFrame frame = new JFrame("tzudoku");
@@ -39,8 +39,7 @@ public class App {
                 .center(gameBoard.getUi())
                 .buildAsContent(frame);
 
-            gridUi.registerActions(frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW),
-                    frame.getRootPane().getActionMap());
+            gridUi.registerActions(KeyBindings.whenInFocusedWindow(frame.getRootPane()));
 
             frame.pack();
             frame.setVisible(true);

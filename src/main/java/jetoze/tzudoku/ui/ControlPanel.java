@@ -2,7 +2,6 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
@@ -17,6 +16,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
+import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.Value;
 
@@ -151,7 +151,7 @@ public class ControlPanel {
 
             @Override
             public void actionPerformed(ActionEvent e) {
-                EventQueue.invokeLater(action);
+                UiThread.runLater(action);
             }
         };
     }
@@ -172,7 +172,7 @@ public class ControlPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            EventQueue.invokeLater(() -> model.setEnterValueMode(mode));
+            UiThread.runLater(() -> model.setEnterValueMode(mode));
         }
     }
 
@@ -186,7 +186,7 @@ public class ControlPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            EventQueue.invokeLater(() -> model.enterValue(value));
+            UiThread.runLater(() -> model.enterValue(value));
         }
     }
 

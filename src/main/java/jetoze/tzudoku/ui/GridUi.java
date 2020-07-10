@@ -7,20 +7,16 @@ import java.awt.Dimension;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
-import java.awt.event.ActionEvent;
-import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
 import java.util.function.UnaryOperator;
 
-import javax.swing.AbstractAction;
-import javax.swing.ActionMap;
-import javax.swing.InputMap;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
-import javax.swing.KeyStroke;
 import javax.swing.event.MouseInputAdapter;
 
+import jetoze.gunga.KeyBindings;
+import jetoze.gunga.KeyStrokes;
 import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
@@ -57,52 +53,32 @@ public class GridUi {
         model.clearSelection();
     }
 
-    public void registerActions(InputMap inputMap, ActionMap actionMap) {
+    public void registerActions(KeyBindings keyBindings) {
         for (Value v : Value.values()) {
-            registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_0 + v.toInt(), 0), "enter-" + v,
+            keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_0 + v.toInt()), "enter-" + v, 
                     () -> model.enterValue(v));
         }
-        registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0, false),
-                "clear-cells-via-backspace", model::delete);
-        registerSelectionActions(inputMap, actionMap, KeyEvent.VK_LEFT, Position::left);
-        registerSelectionActions(inputMap, actionMap, KeyEvent.VK_RIGHT, Position::right);
-        registerSelectionActions(inputMap, actionMap, KeyEvent.VK_UP, Position::up);
-        registerSelectionActions(inputMap, actionMap, KeyEvent.VK_DOWN, Position::down);
-        registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_N, 0), "normal-value-mode",
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_BACK_SPACE), "clear-cells-via-backspace", model::delete);
+        registerSelectionActions(keyBindings, KeyEvent.VK_LEFT, Position::left);
+        registerSelectionActions(keyBindings, KeyEvent.VK_RIGHT, Position::right);
+        registerSelectionActions(keyBindings, KeyEvent.VK_UP, Position::up);
+        registerSelectionActions(keyBindings, KeyEvent.VK_DOWN, Position::down);
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_N), "normal-value-mode",
                 () -> model.setEnterValueMode(EnterValueMode.NORMAL));
-        registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_R, 0), "corner-value-mode",
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_R), "corner-value-mode",
                 () -> model.setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
-        registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_C, 0), "center-value-mode",
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_C), "center-value-mode",
                 () -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
-        registerAction(inputMap, actionMap,
-                KeyStroke.getKeyStroke(KeyEvent.VK_Z, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx()), "undo",
-                model::undo);
-        registerAction(inputMap, actionMap,
-                KeyStroke.getKeyStroke(KeyEvent.VK_Z,
-                        Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx() | InputEvent.SHIFT_DOWN_MASK),
-                "redo", model::redo);
-        registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_J, 0), "dump-json", this::dumpJson);
+        keyBindings.add(KeyStrokes.commandDown(KeyEvent.VK_Z), "undo", model::undo);
+        keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_Z), "redo", model::redo);
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_J), "dump-json", this::dumpJson);
     }
 
-    private void registerAction(InputMap inputMap, ActionMap actionMap, KeyStroke keyStroke, String actionMapKey,
-            Runnable action) {
-        inputMap.put(keyStroke, actionMapKey);
-        actionMap.put(actionMapKey, new AbstractAction() {
-
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                action.run();
-            }
-        });
-    }
-
-    private void registerSelectionActions(InputMap inputMap, ActionMap actionMap, int keyEvent,
-            UnaryOperator<Position> nextPosition) {
-        registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(keyEvent, 0, false), keyEvent + "-single-select",
+    private void registerSelectionActions(KeyBindings keyBindings, int keyCode, UnaryOperator<Position> nextPosition) {
+        keyBindings.add(KeyStrokes.forKey(keyCode), keyCode + "-single-select",
                 () -> selectNext(nextPosition, false));
-        registerAction(inputMap, actionMap,
-                KeyStroke.getKeyStroke(keyEvent, Toolkit.getDefaultToolkit().getMenuShortcutKeyMaskEx(), false),
-                keyEvent + "-multi-select", () -> selectNext(nextPosition, true));
+        keyBindings.add(KeyStrokes.commandDown(keyCode), keyCode + "-multi-select",
+                () -> selectNext(nextPosition, true));
     }
 
     private void dumpJson() {
