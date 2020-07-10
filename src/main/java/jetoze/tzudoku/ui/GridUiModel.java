@@ -120,9 +120,8 @@ public class GridUiModel {
                 .map(UnknownCell.class::cast);
     }
 
-    // TODO: Rename me. We are not clearing the selection, we are clearing the
-    // content of selected cells.
-    public void clearSelectedCells() {
+    // TODO: This is not a very good name.
+    public void delete() {
         List<UnknownCell> cells = getSelectedUnknownCells()
                 .filter(Predicate.not(UnknownCell::isEmpty))
                 .collect(toList());

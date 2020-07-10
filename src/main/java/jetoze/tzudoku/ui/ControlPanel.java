@@ -94,7 +94,7 @@ public class ControlPanel {
         c.gridx = 2;
         c.gridy = 3;
         c.gridwidth = 3;
-        top.add(largeButton("Delete", model::clearSelectedCells), c);
+        top.add(largeButton("Delete", model::delete), c);
 
         List<JButton> valueButtons = Value.ALL.stream().map(EnterValueAction::new).map(ControlPanel::smallButton)
                 .collect(Collectors.toList());

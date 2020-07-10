@@ -63,7 +63,7 @@ public class GridUi {
                     () -> model.enterValue(v));
         }
         registerAction(inputMap, actionMap, KeyStroke.getKeyStroke(KeyEvent.VK_BACK_SPACE, 0, false),
-                "clear-cells-via-backspace", () -> model.clearSelectedCells());
+                "clear-cells-via-backspace", model::delete);
         registerSelectionActions(inputMap, actionMap, KeyEvent.VK_LEFT, Position::left);
         registerSelectionActions(inputMap, actionMap, KeyEvent.VK_RIGHT, Position::right);
         registerSelectionActions(inputMap, actionMap, KeyEvent.VK_UP, Position::up);
