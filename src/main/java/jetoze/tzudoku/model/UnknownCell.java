@@ -10,6 +10,7 @@ public final class UnknownCell implements Cell {
     @Nullable
     private Value value;
     private final PencilMarks pencilMarks = new PencilMarks();
+    private CellColor color = CellColor.WHITE;
 
     public static UnknownCell empty() {
         return new UnknownCell(null);
@@ -43,6 +44,14 @@ public final class UnknownCell implements Cell {
 
     public void clearPencilMarks() {
         pencilMarks.clear();
+    }
+
+    public CellColor getColor() {
+        return color;
+    }
+
+    public void setColor(CellColor color) {
+        this.color = requireNonNull(color);
     }
 
     @Override

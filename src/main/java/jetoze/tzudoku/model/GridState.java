@@ -40,14 +40,19 @@ public class GridState {
                 } else {
                     enteredValuesInRow.append(value);
                     givenValuesInRow.append("x");
-                    PencilMarks pm = ((UnknownCell) cell).getPencilMarks();
-                    if (!pm.isEmpty()) {
-                        cellStates.add(new AdditionalCellState(p, pm));
-                    }
+                    storeAdditionalState(p, (UnknownCell) cell);
                 }
             }
             given.add(givenValuesInRow.toString());
             entered.add(enteredValuesInRow.toString());
+        }
+    }
+    
+    private void storeAdditionalState(Position p, UnknownCell cell) {
+        PencilMarks pm = ((UnknownCell) cell).getPencilMarks();
+        CellColor color = cell.getColor();
+        if (!pm.isEmpty() || color != CellColor.WHITE) {
+            cellStates.add(new AdditionalCellState(p, pm, color));
         }
     }
 
@@ -95,12 +100,14 @@ public class GridState {
         private int col;
         private String corner;
         private String center;
+        private CellColor color;
 
-        public AdditionalCellState(Position p, PencilMarks marks) {
+        public AdditionalCellState(Position p, PencilMarks marks, CellColor color) {
             this.row = p.getRow();
             this.col = p.getColumn();
             this.corner = marks.cornerAsString();
             this.center = marks.centerAsString();
+            this.color = color;
         }
 
         public void restore(Grid grid) {
@@ -111,6 +118,9 @@ public class GridState {
             PencilMarks marks = ((UnknownCell) cell).getPencilMarks();
             toValues(corner).forEach(marks::toggleCorner);
             toValues(center).forEach(marks::toggleCenter);
+            if (color != null) {
+                ((UnknownCell) cell).setColor(color);
+            }
         }
 
         private Stream<Value> toValues(String s) {
