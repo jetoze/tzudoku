@@ -110,6 +110,9 @@ public class GridUiModel {
             return new TogglePencilMarkAction(value, PencilMarks::toggleCorner, cells);
         case CENTER_PENCIL_MARK:
             return new TogglePencilMarkAction(value, PencilMarks::toggleCenter, cells);
+        case COLOR:
+            CellColor color = CellColor.values()[value.ordinal()];
+            return new SetColorAction(color, cells);
         default:
             throw new RuntimeException("Unexpected mode: " + enterValueMode);
         }
@@ -247,6 +250,35 @@ public class GridUiModel {
         }
     }
     
+    
+    private class SetColorAction implements UndoableAction {
+        private final CellColor color;
+        private final ImmutableMap<UnknownCell, CellColor> cellsAndTheirOldColors;
+
+        public SetColorAction(CellColor color, List<UnknownCell> cells) {
+            this.color = requireNonNull(color);
+            this.cellsAndTheirOldColors = cells.stream()
+                    .collect(toImmutableMap(Function.identity(), UnknownCell::getColor));
+        }
+
+        @Override
+        public boolean isNoOp() {
+            return cellsAndTheirOldColors.values().stream()
+                    .allMatch(c -> c == color);
+        }
+
+        @Override
+        public void perform() {
+            cellsAndTheirOldColors.keySet().forEach(c -> c.setColor(color));
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        }
+
+        @Override
+        public void undo() {
+            cellsAndTheirOldColors.forEach((cell, oldColor) -> cell.setColor(oldColor));
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        }
+    }
     
 
     private class ClearCellsAction implements UndoableAction {
