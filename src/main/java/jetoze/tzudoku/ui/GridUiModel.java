@@ -28,7 +28,6 @@ import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
-import jetoze.tzudoku.model.UnknownCell;
 import jetoze.tzudoku.model.Value;
 
 public class GridUiModel {
@@ -88,12 +87,12 @@ public class GridUiModel {
     }
 
     public void enterValue(Value value) {
-        ImmutableList<UnknownCell> cells = getSelectedUnknownCells().collect(toImmutableList());
+        ImmutableList<Cell> cells = getSelectedCellsForValueInput().collect(toImmutableList());
         applyValueToCells(cells, value);
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
 
-    private void applyValueToCells(ImmutableList<UnknownCell> cells, Value value) {
+    private void applyValueToCells(ImmutableList<Cell> cells, Value value) {
         UndoableAction action = getApplyValueAction(cells, value);
         if (action.isNoOp()) {
             return;
@@ -102,7 +101,7 @@ public class GridUiModel {
         action.perform();
     }
 
-    private UndoableAction getApplyValueAction(ImmutableList<UnknownCell> cells, Value value) {
+    private UndoableAction getApplyValueAction(ImmutableList<Cell> cells, Value value) {
         switch (enterValueMode) {
         case NORMAL:
             return new SetValueAction(value, cells);
@@ -117,35 +116,43 @@ public class GridUiModel {
             throw new RuntimeException("Unexpected mode: " + enterValueMode);
         }
     }
+    
+    private Stream<Cell> getSelectedCellsForValueInput() {
+        Stream<Cell> selected = getSelectedCells();
+        if (enterValueMode == EnterValueMode.COLOR) {
+            // all cells can have a color
+            return selected;
+        } else {
+            // given cells cannot get a new value or pencil marks
+            return selected.filter(Predicate.not(Cell::isGiven));
+        }
+    }
 
-    private Stream<UnknownCell> getSelectedUnknownCells() {
+    private Stream<Cell> getSelectedCells() {
         return cellUis.values()
                 .stream()
                 .filter(CellUi::isSelected)
-                .map(CellUi::getCell)
-                .filter(Predicate.not(Cell::isGiven))
-                .map(UnknownCell.class::cast);
+                .map(CellUi::getCell);
     }
 
     // TODO: This is not a very good name.
     public void delete() {
-        List<UnknownCell> cells = getSelectedUnknownCells()
-                .filter(Predicate.not(UnknownCell::isEmpty))
+        List<Cell> cells = getSelectedCells()
+                .filter(Cell::hasNewInformation)
                 .collect(toList());
         clearCellsImpl(cells, false);
     }
 
     public void reset() {
-        List<UnknownCell> cells = cellUis.values()
+        List<Cell> cells = cellUis.values()
                 .stream()
                 .map(CellUi::getCell)
-                .filter(Predicate.not(Cell::isGiven))
-                .map(UnknownCell.class::cast)
+                .filter(Cell::hasNewInformation)
                 .collect(toList());
         clearCellsImpl(cells, true);
     }
 
-    private void clearCellsImpl(List<UnknownCell> cells, boolean reset) {
+    private void clearCellsImpl(List<Cell> cells, boolean reset) {
         if (!cells.isEmpty()) {
             ClearCellsAction action = new ClearCellsAction(cells, reset);
             undoRedoState.add(action);
@@ -185,12 +192,12 @@ public class GridUiModel {
 
     private class SetValueAction implements UndoableAction {
         private final Value value;
-        private final ImmutableMap<UnknownCell, Optional<Value>> cellsAndTheirOldValues;
+        private final ImmutableMap<Cell, Optional<Value>> cellsAndTheirOldValues;
 
-        public SetValueAction(Value value, List<UnknownCell> cells) {
+        public SetValueAction(Value value, List<Cell> cells) {
             this.value = requireNonNull(value);
             this.cellsAndTheirOldValues = cells.stream()
-                    .collect(toImmutableMap(Function.identity(), UnknownCell::getValue));
+                    .collect(toImmutableMap(Function.identity(), Cell::getValue));
         }
 
         @Override
@@ -207,8 +214,8 @@ public class GridUiModel {
 
         @Override
         public void undo() {
-            for (Map.Entry<UnknownCell, Optional<Value>> e : cellsAndTheirOldValues.entrySet()) {
-                UnknownCell cell = e.getKey();
+            for (Map.Entry<Cell, Optional<Value>> e : cellsAndTheirOldValues.entrySet()) {
+                Cell cell = e.getKey();
                 Optional<Value> value = e.getValue();
                 value.ifPresentOrElse(cell::setValue, cell::clearContent);
             }
@@ -219,10 +226,10 @@ public class GridUiModel {
     private class TogglePencilMarkAction implements UndoableAction {
         private final Value value;
         private final BiConsumer<PencilMarks, Value> pencil;
-        private final ImmutableList<UnknownCell> cells;
+        private final ImmutableList<Cell> cells;
 
         public TogglePencilMarkAction(Value value, BiConsumer<PencilMarks, Value> pencil,
-                ImmutableList<UnknownCell> cells) {
+                ImmutableList<Cell> cells) {
             this.value = requireNonNull(value);
             this.pencil = requireNonNull(pencil);
             this.cells = requireNonNull(cells);
@@ -253,12 +260,12 @@ public class GridUiModel {
     
     private class SetColorAction implements UndoableAction {
         private final CellColor color;
-        private final ImmutableMap<UnknownCell, CellColor> cellsAndTheirOldColors;
+        private final ImmutableMap<Cell, CellColor> cellsAndTheirOldColors;
 
-        public SetColorAction(CellColor color, List<UnknownCell> cells) {
+        public SetColorAction(CellColor color, List<Cell> cells) {
             this.color = requireNonNull(color);
             this.cellsAndTheirOldColors = cells.stream()
-                    .collect(toImmutableMap(Function.identity(), UnknownCell::getColor));
+                    .collect(toImmutableMap(Function.identity(), Cell::getColor));
         }
 
         @Override
@@ -282,10 +289,10 @@ public class GridUiModel {
     
 
     private class ClearCellsAction implements UndoableAction {
-        private final ImmutableMap<UnknownCell, PreviousCellState> cellsAndTheirPreviousState;
+        private final ImmutableMap<Cell, PreviousCellState> cellsAndTheirPreviousState;
         private final boolean reset;
 
-        public ClearCellsAction(List<UnknownCell> cells, boolean reset) {
+        public ClearCellsAction(List<Cell> cells, boolean reset) {
             this.cellsAndTheirPreviousState = cells.stream()
                     .collect(toImmutableMap(Function.identity(), PreviousCellState::new));
             this.reset = reset;
@@ -294,7 +301,7 @@ public class GridUiModel {
         @Override
         public boolean isNoOp() {
             return cellsAndTheirPreviousState.keySet().stream()
-                    .allMatch(UnknownCell::isEmpty);
+                    .allMatch(Cell::isEmpty);
         }
 
         @Override
@@ -322,19 +329,21 @@ public class GridUiModel {
         private final ImmutableSet<Value> centerMarks;
         private final CellColor color;
         
-        public PreviousCellState(UnknownCell cell) {
+        public PreviousCellState(Cell cell) {
             this.value = cell.getValue();
             this.cornerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCornerMarks());
             this.centerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCenterMarks());
             this.color = cell.getColor();
         }
         
-        public void restore(UnknownCell cell) {
-            value.ifPresent(cell::setValue);
-            PencilMarks pencilMarks = cell.getPencilMarks();
-            pencilMarks.clear();
-            cornerMarks.forEach(pencilMarks::toggleCorner);
-            centerMarks.forEach(pencilMarks::toggleCenter);
+        public void restore(Cell cell) {
+            if (!cell.isGiven()) {
+                value.ifPresent(cell::setValue);
+                PencilMarks pencilMarks = cell.getPencilMarks();
+                pencilMarks.clear();
+                cornerMarks.forEach(pencilMarks::toggleCorner);
+                centerMarks.forEach(pencilMarks::toggleCenter);
+            }
             cell.setColor(color);
         }
     }
