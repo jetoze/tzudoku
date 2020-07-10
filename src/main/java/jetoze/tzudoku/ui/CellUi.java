@@ -6,8 +6,8 @@ import java.awt.Graphics2D;
 import javax.swing.JComponent;
 
 import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
-import jetoze.tzudoku.model.UnknownCell;
 import jetoze.tzudoku.model.Value;
 
 class CellUi extends JComponent {
@@ -52,8 +52,9 @@ class CellUi extends JComponent {
     }
 
     private void renderPencilMarks(Graphics2D g) {
-        if (!cell.isGiven()) {
-            UiConstants.drawPencilMarks(g, ((UnknownCell) cell).getPencilMarks());
+        PencilMarks marks = cell.getPencilMarks();
+        if (!marks.isEmpty()) {
+            UiConstants.drawPencilMarks(g, marks);
         }
     }
 }
