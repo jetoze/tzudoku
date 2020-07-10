@@ -40,7 +40,10 @@ public class GridState {
                 } else {
                     enteredValuesInRow.append(value);
                     givenValuesInRow.append("x");
-                    storeAdditionalState(p, (UnknownCell) cell);
+                    storeAdditionalState(p, cell);
+                }
+                if (cell.hasNewInformation()) {
+                    
                 }
             }
             given.add(givenValuesInRow.toString());
@@ -48,12 +51,10 @@ public class GridState {
         }
     }
     
-    private void storeAdditionalState(Position p, UnknownCell cell) {
-        PencilMarks pm = ((UnknownCell) cell).getPencilMarks();
+    private void storeAdditionalState(Position p, Cell cell) {
+        PencilMarks pm = cell.getPencilMarks();
         CellColor color = cell.getColor();
-        if (!pm.isEmpty() || color != CellColor.WHITE) {
-            cellStates.add(new AdditionalCellState(p, pm, color));
-        }
+        cellStates.add(new AdditionalCellState(p, pm, color));
     }
 
     public Grid restoreGrid() {
@@ -76,13 +77,13 @@ public class GridState {
     private Cell restoreCell(String givenValuesInRow, String enteredValuesInRow, int col) {
         char c = givenValuesInRow.charAt(col - 1);
         if (c != 'x') {
-            return GivenCell.of(Value.of(c - 48));
+            return Cell.given(Value.of(c - 48));
         }
         c = enteredValuesInRow.charAt(col - 1);
         if (c != 'x') {
-            return UnknownCell.withValue(Value.of(c - 48));
+            return Cell.unknownWithValue(Value.of(c - 48));
         }
-        return UnknownCell.empty();
+        return Cell.empty();
     }
 
     public String toJson() {
@@ -112,15 +113,15 @@ public class GridState {
 
         public void restore(Grid grid) {
             Cell cell = grid.cellAt(new Position(row, col));
+            if (color != null) {
+                cell.setColor(color);
+            }
             if (cell.isGiven()) {
                 return;
             }
-            PencilMarks marks = ((UnknownCell) cell).getPencilMarks();
+            PencilMarks marks = cell.getPencilMarks();
             toValues(corner).forEach(marks::toggleCorner);
             toValues(center).forEach(marks::toggleCenter);
-            if (color != null) {
-                ((UnknownCell) cell).setColor(color);
-            }
         }
 
         private Stream<Value> toValues(String s) {

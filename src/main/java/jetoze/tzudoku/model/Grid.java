@@ -32,7 +32,7 @@ public final class Grid {
     }
 
     private static Cell toCell(int value) {
-        return (value == 0) ? UnknownCell.empty() : new GivenCell(Value.of(value));
+        return (value == 0) ? Cell.empty() : Cell.given(Value.of(value));
     }
 
     public static Grid exampleOfUnsolvedGrid() {

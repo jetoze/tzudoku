@@ -18,8 +18,13 @@ public class Cell {
         return new Cell(true, value, PencilMarks.forGivenCell());
     }
     
-    public static Cell unknown() {
+    public static Cell empty() {
         return new Cell(false, null, PencilMarks.forUnknownCell());
+    }
+    
+    public static Cell unknownWithValue(Value value) {
+        requireNonNull(value);
+        return new Cell(false, value, PencilMarks.forUnknownCell());
     }
     
     private Cell(boolean given, @Nullable Value value, PencilMarks pencilMarks) {
