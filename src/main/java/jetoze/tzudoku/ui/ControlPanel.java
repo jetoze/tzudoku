@@ -1,6 +1,6 @@
 package jetoze.tzudoku.ui;
 
-import static com.google.common.collect.ImmutableList.*;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.GridBagConstraints;
@@ -13,7 +13,6 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.JButton;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
@@ -36,6 +35,9 @@ public class ControlPanel {
 
     private final JToggleButton centerPencilMarkModeButton = new JToggleButton(
             new SetEnterValueModeAction(EnterValueMode.CENTER_PENCIL_MARK, "Center"));
+
+    private final JToggleButton colorModeButton = new JToggleButton(
+            new SetEnterValueModeAction(EnterValueMode.COLOR, "Color"));
     
     private final ImmutableList<EnterValueAction> valueActions;
     
@@ -50,9 +52,11 @@ public class ControlPanel {
         buttonGroup.add(normalModeButton);
         buttonGroup.add(cornerPencilMarkModeButton);
         buttonGroup.add(centerPencilMarkModeButton);
+        buttonGroup.add(colorModeButton);
         UiConstants.makeOverLarge(normalModeButton);
         UiConstants.makeOverLarge(cornerPencilMarkModeButton);
         UiConstants.makeOverLarge(centerPencilMarkModeButton);
+        UiConstants.makeOverLarge(colorModeButton);
         model.addListener(new GridUiModelListener() {
 
             @Override
@@ -76,21 +80,24 @@ public class ControlPanel {
     }
 
     private void selectModeButton(EnterValueMode mode) {
-        switch (mode) {
-        case NORMAL:
-            normalModeButton.setSelected(true);
-            break;
-        case CORNER_PENCIL_MARK:
-            cornerPencilMarkModeButton.setSelected(true);
-            break;
-        case CENTER_PENCIL_MARK:
-            centerPencilMarkModeButton.setSelected(true);
-            break;
-        default:
-            throw new RuntimeException();
-        }
+        getValueModeButton(mode).setSelected(true);
     }
 
+    private JToggleButton getValueModeButton(EnterValueMode mode) {
+        switch (mode) {
+        case NORMAL:
+            return normalModeButton;
+        case CORNER_PENCIL_MARK:
+            return cornerPencilMarkModeButton;
+        case CENTER_PENCIL_MARK:
+            return centerPencilMarkModeButton;
+        case COLOR:
+            return colorModeButton;
+        default:
+            throw new RuntimeException("Unknown mode: " + mode);
+        }
+    }
+    
     public JPanel getUi() {
         return ui;
     }
@@ -108,9 +115,8 @@ public class ControlPanel {
         top.add(cornerPencilMarkModeButton, c);
         c.gridy = 2;
         top.add(centerPencilMarkModeButton, c);
-
         c.gridy = 3;
-        top.add(new JLabel(" "/* empty space for now */), c);
+        top.add(colorModeButton, c);
 
         c.gridx = 2;
         c.gridy = 3;

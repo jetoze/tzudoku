@@ -95,6 +95,9 @@ public class GridUiModel {
 
     private void applyValueToCells(ImmutableList<UnknownCell> cells, Value value) {
         UndoableAction action = getApplyValueAction(cells, value);
+        if (action.isNoOp()) {
+            return;
+        }
         undoRedoState.add(action);
         action.perform();
     }
@@ -188,6 +191,12 @@ public class GridUiModel {
         }
 
         @Override
+        public boolean isNoOp() {
+            return cellsAndTheirOldValues.values().stream()
+                    .allMatch(o -> o.isPresent() && o.get() == value);
+        }
+
+        @Override
         public void perform() {
             cellsAndTheirOldValues.keySet().forEach(c -> c.setValue(value));
             notifyListeners(GridUiModelListener::onCellStateChanged);
@@ -217,6 +226,12 @@ public class GridUiModel {
         }
 
         @Override
+        public boolean isNoOp() {
+            // Since we are toggling the values, this action will never be a no-op.
+            return false;
+        }
+
+        @Override
         public void perform() {
             toggle();
         }
@@ -242,6 +257,12 @@ public class GridUiModel {
             this.cellsAndTheirPreviousState = cells.stream()
                     .collect(toImmutableMap(Function.identity(), PreviousCellState::new));
             this.reset = reset;
+        }
+        
+        @Override
+        public boolean isNoOp() {
+            return cellsAndTheirPreviousState.keySet().stream()
+                    .allMatch(UnknownCell::isEmpty);
         }
 
         @Override
