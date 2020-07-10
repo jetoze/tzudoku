@@ -120,7 +120,7 @@ public class ControlPanel {
         
         
         List<JButton> valueButtons = valueActions.stream()
-                .map(ControlPanel::smallButton)
+                .map(UiConstants::createValueButton)
                 .collect(toList());
         c.gridx = 2;
         c.gridy = 0;
@@ -178,12 +178,6 @@ public class ControlPanel {
                 UiThread.runLater(action);
             }
         };
-    }
-
-    private static JButton smallButton(Action action) {
-        JButton b = new JButton(action);
-        UiConstants.makeOverLarge(b);
-        return b;
     }
 
     private class SetEnterValueModeAction extends AbstractAction {

@@ -4,6 +4,7 @@ import static java.util.Objects.*;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
 import java.awt.Graphics;
@@ -13,7 +14,9 @@ import java.awt.Rectangle;
 import java.awt.Stroke;
 
 import javax.swing.AbstractButton;
+import javax.swing.Action;
 import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
@@ -47,10 +50,12 @@ final class UiConstants {
     private static final int LARGE_BUTTON_FONT_SIZE = 20;
 
     private static final Font LARGE_BUTTON_FONT = new Font("Tahoma", Font.PLAIN, LARGE_BUTTON_FONT_SIZE);
-
+    
     private static final int SMALL_BUTTON_FONT_SIZE = 12;
 
     private static final Font SMALL_BUTTON_FONT = new Font("Tahoma", Font.PLAIN, SMALL_BUTTON_FONT_SIZE);
+    
+    private static final int VALUE_BUTTON_SIZE = 40;
 
     private static final Color GIVEN_VALUE_COLOR = Color.BLACK;
 
@@ -227,9 +232,19 @@ final class UiConstants {
     static void makeOverLarge(AbstractButton button) {
         button.setFont(LARGE_BUTTON_FONT);
     }
+    
+    static JButton createValueButton(Action action) {
+        requireNonNull(action);
+        JButton btn = new JButton(action) {
 
-    static void makeOverSmall(AbstractButton button) {
-        button.setFont(SMALL_BUTTON_FONT);
+            @Override
+            public Dimension getPreferredSize() {
+                return new Dimension(VALUE_BUTTON_SIZE, VALUE_BUTTON_SIZE);
+            }
+        };
+        btn.setMargin(null);
+        btn.setFont(SMALL_BUTTON_FONT);
+        return btn;
     }
     
     static Color getColorOfCell(CellColor cellColor) {
