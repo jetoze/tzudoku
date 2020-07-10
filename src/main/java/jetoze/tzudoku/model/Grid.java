@@ -15,139 +15,125 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableMap;
 
 public final class Grid {
-	private final ImmutableMap<Position, Cell> cells;
-	
-	public static Grid exampleOfSolvedGrid() {
-		return new Grid(IntStream.of(
-			     8, 2, 7, 1, 5, 4, 3, 9, 6,
-			     9, 6, 5, 3, 2, 7, 1, 4, 8,
-			     3, 4, 1, 6, 8, 9, 7, 5, 2,
-			     5, 9, 3, 4, 6, 8, 2, 7, 1,
-			     4, 7, 2, 5, 1, 3, 6, 8, 9,
-			     6, 1, 8, 9, 7, 2, 4, 3, 5,
-			     7, 8, 6, 2, 3, 5, 9, 1, 4,
-			     1, 5, 4, 7, 9, 6, 8, 2, 3,
-			     2, 3, 9, 8, 4, 1, 5, 6, 7)
-				.mapToObj(Grid::toCell));
-	}
-	
-	private static Cell toCell(int value) {
-		return (value == 0)
-				? UnknownCell.empty()
-				: new GivenCell(Value.of(value));
-	}
-	
-	public static Grid exampleOfUnsolvedGrid() {
-		return new Grid(
-				"605004002",
-				"000600901",
-				"000050300",
-				"001000000",
-				"300587006",
-				"000000400",
-				"004030000",
-				"503008000",
-				"800100207");
-	}
-	
-	public Grid(String... rows) {
-		checkArgument(rows.length == 9, "Must provide 9 rows");
-		checkArgument(Stream.of(rows).allMatch(r -> r.length() == 9), "Each row must have 9 digits");
-		ImmutableMap.Builder<Position, Cell> mapBuilder = ImmutableMap.builder();
-		for (int r = 1; r <= 9; ++r) {
-			for (int c = 1; c <= 9; ++c) {
-				var p = new Position(r, c);
-				var intVal = rows[r - 1].charAt(c - 1) - 48;
-				mapBuilder.put(p, toCell(intVal));
-			}
-		}
-		this.cells = mapBuilder.build();
-	}
-	
-	public Grid(Stream<Cell> cells) {
-		this(cells.collect(toList()));
-	}
-	
-	public Grid(List<Cell> cells) {
-		checkArgument(cells.size() == 81, "Must provide 81 cells");
-		ImmutableMap.Builder<Position, Cell> mapBuilder = ImmutableMap.builder();
-		Iterator<Cell> it = cells.iterator();
-		for (int r = 1; r <= 9; ++r) {
-			for (int c = 1; c <= 9; ++c) {
-				var p = new Position(r, c);
-				mapBuilder.put(p, it.next());
-			}
-		}
-		this.cells = mapBuilder.build();
-	}
-	
-	public ImmutableMap<Position, Cell> getCells() {
-		return cells;
-	}
+    private final ImmutableMap<Position, Cell> cells;
 
-	public Cell cellAt(Position p) {
-		return cells.get(requireNonNull(p));
-	}
+    public static Grid exampleOfSolvedGrid() {
+        return new Grid(IntStream.of(
+                8, 2, 7, 1, 5, 4, 3, 9, 6, 
+                9, 6, 5, 3, 2, 7, 1, 4, 8, 
+                3, 4, 1, 6, 8, 9, 7, 5, 2, 
+                5, 9, 3, 4, 6, 8, 2, 7, 1, 
+                4, 7, 2, 5, 1, 3, 6, 8, 9, 
+                6, 1, 8, 9, 7, 2, 4, 3, 5, 
+                7, 8, 6, 2, 3, 5, 9, 1, 4,
+                1, 5, 4, 7, 9, 6, 8, 2, 3,
+                2, 3, 9, 8, 4, 1, 5, 6, 7)
+                .mapToObj(Grid::toCell));
+    }
 
-	public boolean isSolved() {
-		if (!allCellsHaveValues()) {
-			return false;
-		}
-		for (int n = 1; n <= 9; ++n) {
-			if (!hasAllValues(getRow(n))) {
-				return false;
-			}
-			if (!hasAllValues(getColumn(n))) {
-				return false;
-			}
-			if (!hasAllValues(getBox(n))) {
-				return false;
-			}
-		}
-		return true;
-	}
-	
-	private boolean allCellsHaveValues() {
-		return cells.values().stream().map(Cell::getValue).allMatch(Optional::isPresent);
-	}
-	
-	private boolean hasAllValues(Stream<Cell> cells) {
-		Set<Value> values = cells
-				.map(Cell::getValue)
-				.flatMap(Optional::stream)
-				.collect(toSet());
-		return values
-				.equals(Value.ALL);
-	}
-	
-	public Stream<Cell> getRow(int n) {
-		return Position.positionsInRow(n)
-				.stream()
-				.map(cells::get);
-	}
-	
-	public Stream<Cell> getColumn(int n) {
-		return Position.positionsInColumn(n)
-				.stream()
-				.map(cells::get);
-	}
-	
-	private Stream<Cell> getBox(int n) {
-		return Position.positionsInBox(n)
-				.stream()
-				.map(cells::get);
-	}
-	
-	public static void main(String[] args) {
-		Grid grid = exampleOfSolvedGrid();
-		for (int n = 1; n <= 9; ++n) {
-			grid.getRow(n).map(Cell::getValue)
-				.flatMap(Optional::stream)
-				.map(v -> v.toInt() + " ")
-				.forEach(System.out::print);
-			System.out.println();
-		}
-		System.out.println(grid.isSolved());
-	}
-	
+    private static Cell toCell(int value) {
+        return (value == 0) ? UnknownCell.empty() : new GivenCell(Value.of(value));
+    }
+
+    public static Grid exampleOfUnsolvedGrid() {
+        return new Grid(
+                "605004002", 
+                "000600901", 
+                "000050300", 
+                "001000000", 
+                "300587006", 
+                "000000400", 
+                "004030000",
+                "503008000", 
+                "800100207");
+    }
+
+    public Grid(String... rows) {
+        checkArgument(rows.length == 9, "Must provide 9 rows");
+        checkArgument(Stream.of(rows).allMatch(r -> r.length() == 9), "Each row must have 9 digits");
+        ImmutableMap.Builder<Position, Cell> mapBuilder = ImmutableMap.builder();
+        for (int r = 1; r <= 9; ++r) {
+            for (int c = 1; c <= 9; ++c) {
+                var p = new Position(r, c);
+                var intVal = rows[r - 1].charAt(c - 1) - 48;
+                mapBuilder.put(p, toCell(intVal));
+            }
+        }
+        this.cells = mapBuilder.build();
+    }
+
+    public Grid(Stream<Cell> cells) {
+        this(cells.collect(toList()));
+    }
+
+    public Grid(List<Cell> cells) {
+        checkArgument(cells.size() == 81, "Must provide 81 cells");
+        ImmutableMap.Builder<Position, Cell> mapBuilder = ImmutableMap.builder();
+        Iterator<Cell> it = cells.iterator();
+        for (int r = 1; r <= 9; ++r) {
+            for (int c = 1; c <= 9; ++c) {
+                var p = new Position(r, c);
+                mapBuilder.put(p, it.next());
+            }
+        }
+        this.cells = mapBuilder.build();
+    }
+
+    public ImmutableMap<Position, Cell> getCells() {
+        return cells;
+    }
+
+    public Cell cellAt(Position p) {
+        return cells.get(requireNonNull(p));
+    }
+
+    public boolean isSolved() {
+        if (!allCellsHaveValues()) {
+            return false;
+        }
+        for (int n = 1; n <= 9; ++n) {
+            if (!hasAllValues(getRow(n))) {
+                return false;
+            }
+            if (!hasAllValues(getColumn(n))) {
+                return false;
+            }
+            if (!hasAllValues(getBox(n))) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean allCellsHaveValues() {
+        return cells.values().stream().map(Cell::getValue).allMatch(Optional::isPresent);
+    }
+
+    private boolean hasAllValues(Stream<Cell> cells) {
+        Set<Value> values = cells.map(Cell::getValue).flatMap(Optional::stream).collect(toSet());
+        return values.equals(Value.ALL);
+    }
+
+    public Stream<Cell> getRow(int n) {
+        return Position.positionsInRow(n).stream().map(cells::get);
+    }
+
+    public Stream<Cell> getColumn(int n) {
+        return Position.positionsInColumn(n).stream().map(cells::get);
+    }
+
+    private Stream<Cell> getBox(int n) {
+        return Position.positionsInBox(n).stream().map(cells::get);
+    }
+
+    public static void main(String[] args) {
+        Grid grid = exampleOfSolvedGrid();
+        for (int n = 1; n <= 9; ++n) {
+            grid.getRow(n).map(Cell::getValue).flatMap(Optional::stream).map(v -> v.toInt() + " ")
+                    .forEach(System.out::print);
+            System.out.println();
+        }
+        System.out.println(grid.isSolved());
+    }
+
 }

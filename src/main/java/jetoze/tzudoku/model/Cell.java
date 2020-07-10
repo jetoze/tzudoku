@@ -4,10 +4,10 @@ import java.util.Optional;
 
 public interface Cell {
 
-	Optional<Value> getValue();
-	
-	boolean hasValue();
-		
-	boolean isGiven();
-	
+    Optional<Value> getValue();
+
+    boolean hasValue();
+
+    boolean isGiven();
+
 }
