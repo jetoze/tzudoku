@@ -2,66 +2,158 @@ package jetoze.tzudoku.model;
 
 import static java.util.Objects.*;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.stream.Collectors;
 
-public class PencilMarks {
+public abstract class PencilMarks {
 
-    private final EnumSet<Value> corner = EnumSet.noneOf(Value.class);
-    private final EnumSet<Value> center = EnumSet.noneOf(Value.class);
-
-    public boolean isEmpty() {
-        return corner.isEmpty() && center.isEmpty();
+    private static final PencilMarks EMPTY = new NoPencilMarks();
+    
+    public static PencilMarks forGivenCell() {
+        return EMPTY;
+    }
+    
+    public static PencilMarks forUnknownCell() {
+        return new EditablePencilMarks();
+    }
+    
+    
+    public final boolean isEmpty() {
+        return !hasCornerMarks() && !hasCenterMarks();
     }
 
-    public boolean hasCornerMarks() {
-        return !corner.isEmpty();
-    }
+    public abstract boolean hasCornerMarks();
 
-    public boolean hasCenterMarks() {
-        return !center.isEmpty();
-    }
+    public abstract boolean hasCenterMarks();
 
-    public void toggleCorner(Value value) {
-        toggle(value, corner);
-    }
+    public abstract void toggleCorner(Value value);
 
-    public void toggleCenter(Value value) {
-        toggle(value, center);
-    }
+    public abstract void toggleCenter(Value value);
 
-    public void clear() {
-        corner.clear();
-        center.clear();
-    }
+    public abstract void clear();
 
-    public String cornerAsString() {
-        return asString(corner);
-    }
+    public abstract Iterable<Value> iterateOverCornerMarks();
 
-    public String centerAsString() {
-        return asString(center);
-    }
+    public abstract Iterable<Value> iterateOverCenterMarks();
 
-    public Iterable<Value> iterateOverCornerMarks() {
-        return corner;
-    }
+    public abstract String cornerAsString();
 
-    public Iterable<Value> iterateOverCenterMarks() {
-        return center;
-    }
+    public abstract String centerAsString();
 
-    private void toggle(Value value, EnumSet<Value> set) {
-        requireNonNull(value);
-        if (set.contains(value)) {
-            set.remove(value);
-        } else {
-            set.add(value);
+    
+    private static class NoPencilMarks extends PencilMarks {
+
+        @Override
+        public boolean hasCornerMarks() {
+            return false;
+        }
+
+        @Override
+        public boolean hasCenterMarks() {
+            return false;
+        }
+
+        @Override
+        public void toggleCorner(Value value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void toggleCenter(Value value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public void clear() {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public Iterable<Value> iterateOverCornerMarks() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public Iterable<Value> iterateOverCenterMarks() {
+            return Collections.emptySet();
+        }
+
+        @Override
+        public String cornerAsString() {
+            return "";
+        }
+
+        @Override
+        public String centerAsString() {
+            return "";
         }
     }
+    
 
-    private String asString(EnumSet<Value> set) {
-        return set.stream().map(Object::toString).collect(Collectors.joining());
+    private static class EditablePencilMarks extends PencilMarks {
+
+        private final EnumSet<Value> corner = EnumSet.noneOf(Value.class);
+        private final EnumSet<Value> center = EnumSet.noneOf(Value.class);
+
+        @Override
+        public boolean hasCornerMarks() {
+            return !corner.isEmpty();
+        }
+
+        @Override
+        public boolean hasCenterMarks() {
+            return !center.isEmpty();
+        }
+
+        @Override
+        public void toggleCorner(Value value) {
+            toggle(value, corner);
+        }
+
+        @Override
+        public void toggleCenter(Value value) {
+            toggle(value, center);
+        }
+
+        @Override
+        public void clear() {
+            corner.clear();
+            center.clear();
+        }
+
+        @Override
+        public String cornerAsString() {
+            return asString(corner);
+        }
+
+        @Override
+        public String centerAsString() {
+            return asString(center);
+        }
+
+        @Override
+        public Iterable<Value> iterateOverCornerMarks() {
+            return corner;
+        }
+
+        @Override
+        public Iterable<Value> iterateOverCenterMarks() {
+            return center;
+        }
+
+        private void toggle(Value value, EnumSet<Value> set) {
+            requireNonNull(value);
+            if (set.contains(value)) {
+                set.remove(value);
+            } else {
+                set.add(value);
+            }
+        }
+
+        private String asString(EnumSet<Value> set) {
+            return set.stream().map(Object::toString).collect(Collectors.joining());
+        }
+
     }
-
 }
