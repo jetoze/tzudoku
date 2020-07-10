@@ -43,7 +43,7 @@ class CellUi extends JComponent {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        UiConstants.fillCellBackground(g2, selected);
+        UiConstants.fillCellBackground(g2, cell.getColor(), selected);
         cell.getValue().ifPresentOrElse(value -> renderValue(g2, value), () -> renderPencilMarks(g2));
     }
 

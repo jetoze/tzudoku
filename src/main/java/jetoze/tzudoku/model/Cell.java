@@ -9,5 +9,7 @@ public interface Cell {
     boolean hasValue();
 
     boolean isGiven();
+    
+    CellColor getColor();
 
 }

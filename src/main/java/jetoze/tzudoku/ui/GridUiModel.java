@@ -111,7 +111,7 @@ public class GridUiModel {
         case CENTER_PENCIL_MARK:
             return new TogglePencilMarkAction(value, PencilMarks::toggleCenter, cells);
         case COLOR:
-            CellColor color = CellColor.values()[value.ordinal()];
+            CellColor color = CellColor.fromValue(value);
             return new SetColorAction(color, cells);
         default:
             throw new RuntimeException("Unexpected mode: " + enterValueMode);

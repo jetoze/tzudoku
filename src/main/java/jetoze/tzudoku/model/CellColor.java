@@ -9,5 +9,9 @@ public enum CellColor {
     ORANGE,
     RED,
     YELLOW,
-    BLUE
+    BLUE;
+    
+    public static CellColor fromValue(Value value) {
+        return values()[value.ordinal()];
+    }
 }

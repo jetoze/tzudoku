@@ -50,6 +50,7 @@ public final class UnknownCell implements Cell {
         color = CellColor.WHITE;
     }
 
+    @Override
     public CellColor getColor() {
         return color;
     }
@@ -69,7 +70,7 @@ public final class UnknownCell implements Cell {
     }
 
     public boolean isEmpty() {
-        return (value == null) && pencilMarks.isEmpty();
+        return (value == null) && pencilMarks.isEmpty() && (color == CellColor.WHITE);
     }
 
     public PencilMarks getPencilMarks() {

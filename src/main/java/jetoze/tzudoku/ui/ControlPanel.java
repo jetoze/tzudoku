@@ -12,6 +12,7 @@ import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.ButtonGroup;
+import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
@@ -20,6 +21,7 @@ import com.google.common.collect.ImmutableList;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
+import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
@@ -180,7 +182,7 @@ public class ControlPanel {
 
     private static JButton smallButton(Action action) {
         JButton b = new JButton(action);
-        UiConstants.makeOverSmall(b);
+        UiConstants.makeOverLarge(b);
         return b;
     }
 
@@ -213,10 +215,13 @@ public class ControlPanel {
         
         public void update(EnterValueMode mode) {
             if (mode == EnterValueMode.COLOR) {
-                // TODO: Switch to color icon.
-                putValue(Action.NAME, "C");
+                CellColor cellColor = CellColor.fromValue(value);
+                Icon icon = UiConstants.getCellColorSelectionIcon(cellColor);
+                putValue(Action.NAME, null);
+                putValue(Action.SMALL_ICON, icon);
             } else {
                 putValue(Action.NAME, value.toString());
+                putValue(Action.SMALL_ICON, null);
             }
         }
     }

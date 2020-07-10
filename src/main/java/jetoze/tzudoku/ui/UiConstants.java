@@ -1,18 +1,25 @@
 package jetoze.tzudoku.ui;
 
+import static java.util.Objects.*;
 import java.awt.BasicStroke;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Font;
 import java.awt.FontMetrics;
+import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.Stroke;
 
 import javax.swing.AbstractButton;
+import javax.swing.Icon;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
+import com.google.common.collect.ImmutableMap;
+
+import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
@@ -29,9 +36,7 @@ final class UiConstants {
     // TODO: No idea why this is necessary
             ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 8/* thin borders */ * THIN_BORDER_WIDTH;
 
-    private static final Color SELECTION_COLOR = new Color(0xff, 0xe8, 0xa5);
-
-    private static final Color BACKGROUND_COLOR = Color.WHITE;
+    private static final Color SELECTION_COLOR = new Color(0xff, 0xea, 0x97);
 
     private static final Color BORDER_COLOR = Color.BLACK;
 
@@ -49,13 +54,27 @@ final class UiConstants {
 
     private static final Color GIVEN_VALUE_COLOR = Color.BLACK;
 
-    private static final Color ENTERED_VALUE_COLOR = new Color(0x00, 0x66, 0xf0);
+    private static final Color ENTERED_VALUE_COLOR = new Color(0x24, 0x6e, 0xe2);
 
     private static final int PENCIL_MARK_FONT_SIZE = CELL_SIZE / 4;
 
     private static final Font PENCIL_MARK_FONT = new Font("Tahoma", Font.PLAIN, PENCIL_MARK_FONT_SIZE);
 
     private static final Color PENCIL_MARK_COLOR = ENTERED_VALUE_COLOR;
+    
+    private static final int COLOR_SELECTION_ICON_SIZE = 16;
+    
+    private static final ImmutableMap<CellColor, Color> CELL_COLOR_MAP = ImmutableMap.<CellColor, Color>builder()
+            .put(CellColor.BLACK, Color.BLACK)
+            .put(CellColor.WHITE, Color.WHITE)
+            .put(CellColor.GRAY, new Color(0xcf, 0xcf, 0xcf))
+            .put(CellColor.YELLOW, new Color(0xfb, 0xe7, 0xa4))
+            .put(CellColor.GREEN, new Color(0xd2, 0xef, 0xa9))
+            .put(CellColor.ORANGE, new Color(0xf4, 0xba, 0x9d))
+            .put(CellColor.PURPLE, new Color(0xe8, 0xa2, 0xf2))
+            .put(CellColor.RED, new Color(0xf1, 0x94, 0x94))
+            .put(CellColor.BLUE, new Color(0x9e, 0xdd, 0xf1))
+            .build();
 
     static Rectangle getCellBounds(Position pos) {
         Point upperLeft = getUpperLeftCellCorner(pos.getRow(), pos.getColumn());
@@ -112,10 +131,10 @@ final class UiConstants {
         g.setStroke(originalStroke);
     }
 
-    static void fillCellBackground(Graphics2D g, boolean selected) {
+    static void fillCellBackground(Graphics2D g, CellColor cellColor, boolean selected) {
         Color originalColor = g.getColor();
 
-        Color bg = selected ? SELECTION_COLOR : BACKGROUND_COLOR;
+        Color bg = selected ? SELECTION_COLOR : getColorOfCell(cellColor);
         g.setColor(bg);
         g.fillRect(0, 0, CELL_SIZE, CELL_SIZE);
 
@@ -212,6 +231,43 @@ final class UiConstants {
     static void makeOverSmall(AbstractButton button) {
         button.setFont(SMALL_BUTTON_FONT);
     }
+    
+    static Color getColorOfCell(CellColor cellColor) {
+        requireNonNull(cellColor);
+        return CELL_COLOR_MAP.get(cellColor);
+    }
+    
+    static Icon getCellColorSelectionIcon(CellColor cellColor) {
+        return new CellColorIcon(getColorOfCell(cellColor));
+    }
+    
+    private static class CellColorIcon implements Icon {
+        private final Color color;
+
+        public CellColorIcon(Color color) {
+            this.color = requireNonNull(color);
+        }
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Color originalColor = g.getColor();
+            g.setColor(color);
+            g.fillRect(x, y, getIconWidth(), getIconHeight());
+            g.setColor(originalColor);
+        }
+
+        @Override
+        public int getIconWidth() {
+            return COLOR_SELECTION_ICON_SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return COLOR_SELECTION_ICON_SIZE;
+        }
+    }
+    
+    
 
     private UiConstants() {/**/}
 

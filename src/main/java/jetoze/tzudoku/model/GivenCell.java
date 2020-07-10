@@ -29,4 +29,9 @@ public final class GivenCell implements Cell {
     public boolean isGiven() {
         return true;
     }
+
+    @Override
+    public CellColor getColor() {
+        return CellColor.WHITE;
+    }
 }
