@@ -1,9 +1,8 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.awt.AWTEvent;
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.FlowLayout;
 import java.awt.Toolkit;
@@ -13,6 +12,8 @@ import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
+
+import jetoze.gunga.layout.Layouts;
 
 public class GameBoard {
 
@@ -37,11 +38,10 @@ public class GameBoard {
         JPanel controlPanelWrapper = new JPanel(new FlowLayout());
         controlPanelWrapper.add(controlPanel.getUi());
 
-        JPanel ui = new JPanel(new BorderLayout());
-        ui.add(gridWrapper, BorderLayout.WEST);
-        ui.add(controlPanelWrapper, BorderLayout.EAST);
-
-        return ui;
+        return Layouts.border()
+                .west(gridWrapper)
+                .east(gridWrapper)
+                .build();
     }
 
     private void installGlobalMouseListener() {

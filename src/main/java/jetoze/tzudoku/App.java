@@ -1,6 +1,5 @@
 package jetoze.tzudoku;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.io.File;
 import java.io.IOException;
@@ -11,6 +10,7 @@ import javax.swing.JFrame;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
+import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.ui.ControlPanel;
@@ -34,7 +34,10 @@ public class App {
             GridUi gridUi = new GridUi(model);
             ControlPanel controlPanel = new ControlPanel(model);
             GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
-            frame.getContentPane().add(gameBoard.getUi(), BorderLayout.CENTER);
+            
+            Layouts.border()
+                .center(gameBoard.getUi())
+                .buildAsContent(frame);
 
             gridUi.registerActions(frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW),
                     frame.getRootPane().getActionMap());

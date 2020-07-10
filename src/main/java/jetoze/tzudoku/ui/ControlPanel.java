@@ -2,7 +2,6 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.BorderLayout;
 import java.awt.EventQueue;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -18,6 +17,7 @@ import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
+import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
@@ -127,11 +127,11 @@ public class ControlPanel {
         c.gridx = 1;
         c.gridy = 1;
         bottom.add(largeButton("Check", this::checkSolution), c);
-
-        JPanel ui = new JPanel(new BorderLayout(0, 10));
-        ui.add(top, BorderLayout.NORTH);
-        ui.add(bottom, BorderLayout.SOUTH);
-        return ui;
+        
+        return Layouts.border(0, 10)
+                .north(top)
+                .south(bottom)
+                .build();
     }
 
     private void checkSolution() {
