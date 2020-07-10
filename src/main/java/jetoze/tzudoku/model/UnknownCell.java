@@ -1,8 +1,7 @@
 package jetoze.tzudoku.model;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
-import java.awt.Color;
 import java.util.Optional;
 
 import javax.annotation.Nullable;

@@ -2,12 +2,12 @@ package jetoze.tzudoku.ui;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toList;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
-import java.util.stream.Collectors;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
@@ -17,11 +17,9 @@ import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableMap;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
-import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
@@ -41,13 +39,25 @@ public class ControlPanel {
     
     private final ImmutableList<EnterValueAction> valueActions;
     
-    private final ImmutableMap<Position, JButton> valueButtons;
-    
     private final JPanel ui;
 
     public ControlPanel(GridUiModel model) {
         this.model = requireNonNull(model);
-        selectModeButton(model.getEnterValueMode());
+        this.valueActions = Value.ALL.stream()
+                .map(EnterValueAction::new)
+                .collect(toImmutableList());
+        configureValueModeButtons();
+        model.addListener(new GridUiModelListener() {
+
+            @Override
+            public void onNewEnterValueModeSelected(EnterValueMode newMode) {
+                onNewValueMode(newMode);
+            }
+        });
+        this.ui = layoutUi();
+    }
+
+    private void configureValueModeButtons() {
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(normalModeButton);
         buttonGroup.add(cornerPencilMarkModeButton);
@@ -57,30 +67,12 @@ public class ControlPanel {
         UiConstants.makeOverLarge(cornerPencilMarkModeButton);
         UiConstants.makeOverLarge(centerPencilMarkModeButton);
         UiConstants.makeOverLarge(colorModeButton);
-        model.addListener(new GridUiModelListener() {
-
-            @Override
-            public void onNewEnterValueModeSelected(EnterValueMode newMode) {
-                selectModeButton(newMode);
-            }
-        });
-        this.valueActions = Value.ALL.stream()
-                .map(EnterValueAction::new)
-                .collect(toImmutableList());
-        ImmutableMap.Builder<Position, JButton> valueButtonsBuilder = ImmutableMap.builder();
-        for (int r = 1; r <= 3; ++r) {
-            for (int c = 1; c <= 3; ++c) {
-                JButton btn = new JButton();
-                UiConstants.makeOverSmall(btn);
-                valueButtonsBuilder.put(new Position(r, c), btn);
-            }
-        }
-        this.valueButtons = valueButtonsBuilder.build();
-        this.ui = layoutUi();
+        onNewValueMode(model.getEnterValueMode());
     }
 
-    private void selectModeButton(EnterValueMode mode) {
+    private void onNewValueMode(EnterValueMode mode) {
         getValueModeButton(mode).setSelected(true);
+        valueActions.forEach(a -> a.update(mode));
     }
 
     private JToggleButton getValueModeButton(EnterValueMode mode) {
@@ -125,8 +117,9 @@ public class ControlPanel {
 
         
         
-        List<JButton> valueButtons = Value.ALL.stream().map(EnterValueAction::new).map(ControlPanel::smallButton)
-                .collect(Collectors.toList());
+        List<JButton> valueButtons = valueActions.stream()
+                .map(ControlPanel::smallButton)
+                .collect(toList());
         c.gridx = 2;
         c.gridy = 0;
         c.gridwidth = 1;
@@ -216,6 +209,15 @@ public class ControlPanel {
         @Override
         public void actionPerformed(ActionEvent e) {
             UiThread.runLater(() -> model.enterValue(value));
+        }
+        
+        public void update(EnterValueMode mode) {
+            if (mode == EnterValueMode.COLOR) {
+                // TODO: Switch to color icon.
+                putValue(Action.NAME, "C");
+            } else {
+                putValue(Action.NAME, value.toString());
+            }
         }
     }
 
