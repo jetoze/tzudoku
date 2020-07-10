@@ -2,19 +2,19 @@ package jetoze.tzudoku;
 
 import java.awt.BorderLayout;
 import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
 import javax.swing.JComponent;
 import javax.swing.JFrame;
-import javax.swing.JPanel;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
+import jetoze.tzudoku.ui.ControlPanel;
+import jetoze.tzudoku.ui.GameBoard;
 import jetoze.tzudoku.ui.GridUi;
 import jetoze.tzudoku.ui.GridUiModel;
 
@@ -32,12 +32,9 @@ public class App {
 
             GridUiModel model = new GridUiModel(grid);
             GridUi gridUi = new GridUi(model);
-            JPanel gridWrapper = new JPanel(new FlowLayout());
-            gridWrapper.add(gridUi.board);
-            JPanel controlPanelWrapper = new JPanel(new FlowLayout());
-            controlPanelWrapper.add(gridUi.controlPanel.getUi());
-            frame.getContentPane().add(gridWrapper, BorderLayout.WEST);
-            frame.getContentPane().add(controlPanelWrapper, BorderLayout.EAST);
+            ControlPanel controlPanel = new ControlPanel(model);
+            GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
+            frame.getContentPane().add(gameBoard.getUi(), BorderLayout.CENTER);
 
             gridUi.registerActions(frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW),
                     frame.getRootPane().getActionMap());
@@ -62,7 +59,7 @@ public class App {
     }
 
     private static Grid loadGrid() throws IOException {
-        File file = new File("/Users/torgil/tmp/tzudoku_input.json");
+        File file = new File("/Users/torgil/coding/data/tzudoku/the_daily/the_daily_sudoku_2020-07-09.json");
         String json = Files.readString(file.toPath());
         GridState state = GridState.fromJson(json);
         return state.restoreGrid();

@@ -9,7 +9,7 @@ import com.google.gson.Gson;
 public class GridState {
     private List<String> given;
     private List<String> entered;
-    private List<AdditionalCellState> pencilMarks;
+    private List<AdditionalCellState> cellStates;
 
     @SuppressWarnings("unused")
     private GridState() {
@@ -21,13 +21,13 @@ public class GridState {
         // the field is overwritten with null by the deserializer. :/
         given = new ArrayList<>();
         entered = new ArrayList<>();
-        pencilMarks = new ArrayList<>();
+        cellStates = new ArrayList<>();
     }
 
     public GridState(Grid grid) {
         given = new ArrayList<>();
         entered = new ArrayList<>();
-        pencilMarks = new ArrayList<>();
+        cellStates = new ArrayList<>();
         for (int r = 1; r <= 9; ++r) {
             StringBuilder givenValuesInRow = new StringBuilder();
             StringBuilder enteredValuesInRow = new StringBuilder();
@@ -42,7 +42,7 @@ public class GridState {
                     givenValuesInRow.append("x");
                     PencilMarks pm = ((UnknownCell) cell).getPencilMarks();
                     if (!pm.isEmpty()) {
-                        pencilMarks.add(new AdditionalCellState(p, pm));
+                        cellStates.add(new AdditionalCellState(p, pm));
                     }
                 }
             }
@@ -64,7 +64,7 @@ public class GridState {
             }
         }
         Grid grid = new Grid(cells);
-        pencilMarks.forEach(pm -> pm.restore(grid));
+        cellStates.forEach(s -> s.restore(grid));
         return grid;
     }
 
@@ -116,19 +116,5 @@ public class GridState {
         private Stream<Value> toValues(String s) {
             return s.chars().map(c -> c - 48).mapToObj(Value::of);
         }
-    }
-
-    public static void main(String[] args) {
-        Grid grid = Grid.exampleOfUnsolvedGrid();
-        ((UnknownCell) grid.cellAt(new Position(3, 1))).setValue(Value.SEVEN);
-        GridState state = new GridState(grid);
-        String json = state.toJson();
-        System.out.println(json);
-
-        GridState state2 = GridState.fromJson(json);
-        String json2 = state2.toJson();
-        System.out.println(json2);
-
-        System.out.println(json.equals(json2));
     }
 }

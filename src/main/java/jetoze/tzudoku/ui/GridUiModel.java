@@ -120,6 +120,8 @@ public class GridUiModel {
                 .map(UnknownCell.class::cast);
     }
 
+    // TODO: Rename me. We are not clearing the selection, we are clearing the
+    // content of selected cells.
     public void clearSelectedCells() {
         List<UnknownCell> cells = getSelectedUnknownCells()
                 .filter(Predicate.not(UnknownCell::isEmpty))
@@ -143,6 +145,16 @@ public class GridUiModel {
             undoRedoState.add(action);
             action.perform();
         }
+    }
+    
+    public void clearSelection() {
+        boolean hasSelectedCells = cellUis.values().stream()
+                .anyMatch(CellUi::isSelected);
+        if (!hasSelectedCells) {
+            return;
+        }
+        cellUis.values().forEach(c -> c.setSelected(false));
+        notifyListeners(GridUiModelListener::onCellStateChanged);
     }
 
     public void undo() {

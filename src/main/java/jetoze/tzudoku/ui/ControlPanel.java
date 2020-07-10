@@ -31,6 +31,8 @@ public class ControlPanel {
 
     private final JToggleButton centerPencilMarkModeButton = new JToggleButton(
             new SetEnterValueModeAction(EnterValueMode.CENTER_PENCIL_MARK, "Center"));
+    
+    private final JPanel ui;
 
     public ControlPanel(GridUiModel model) {
         this.model = requireNonNull(model);
@@ -49,6 +51,7 @@ public class ControlPanel {
                 selectModeButton(newMode);
             }
         });
+        this.ui = layoutUi();
     }
 
     private void selectModeButton(EnterValueMode mode) {
@@ -68,6 +71,10 @@ public class ControlPanel {
     }
 
     public JPanel getUi() {
+        return ui;
+    }
+    
+    private JPanel layoutUi() {
         JPanel top = new JPanel(new GridBagLayout());
         GridBagConstraints c = new GridBagConstraints();
         c.fill = GridBagConstraints.BOTH;

@@ -16,6 +16,7 @@ import java.util.function.UnaryOperator;
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
 import javax.swing.event.MouseInputAdapter;
@@ -27,8 +28,7 @@ import jetoze.tzudoku.model.Value;
 public class GridUi {
     private final GridUiModel model;
     private final MouseHandler mouseHandler = new MouseHandler();
-    public final Board board = new Board();
-    public final ControlPanel controlPanel;
+    private final Board board = new Board();
 
     public GridUi(GridUiModel model) {
         this.model = requireNonNull(model);
@@ -40,7 +40,6 @@ public class GridUi {
         });
         board.setBounds(0, 0, UiConstants.BOARD_SIZE, UiConstants.BOARD_SIZE);
         board.setBorder(UiConstants.getBoardBorder());
-        controlPanel = new ControlPanel(model);
         model.addListener(new GridUiModelListener() {
 
             @Override
@@ -48,6 +47,14 @@ public class GridUi {
                 board.repaint();
             }
         });
+    }
+    
+    public JComponent getUi() {
+        return board;
+    }
+    
+    public void clearSelection() {
+        model.clearSelection();
     }
 
     public void registerActions(InputMap inputMap, ActionMap actionMap) {
