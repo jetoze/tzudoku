@@ -2,11 +2,8 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.EventQueue;
-import java.awt.FlowLayout;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Toolkit;
@@ -14,23 +11,15 @@ import java.awt.event.ActionEvent;
 import java.awt.event.InputEvent;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
 import java.util.function.UnaryOperator;
 
 import javax.swing.AbstractAction;
 import javax.swing.ActionMap;
 import javax.swing.InputMap;
-import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.KeyStroke;
-import javax.swing.UIManager;
-import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.event.MouseInputAdapter;
 
-import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
@@ -38,8 +27,8 @@ import jetoze.tzudoku.model.Value;
 public class GridUi {
 	private final GridUiModel model;
 	private final MouseHandler mouseHandler = new MouseHandler();
-	private final Board board = new Board();
-	private final ControlPanel controlPanel;
+	public final Board board = new Board();
+	public final ControlPanel controlPanel;
 	
 	public GridUi(GridUiModel model) {
 		this.model = requireNonNull(model);
@@ -218,54 +207,5 @@ public class GridUi {
 			return new Dimension(UiConstants.BOARD_SIZE, UiConstants.BOARD_SIZE);
 		}
 	}
-	
-	
-	public static void main(String[] args) throws IOException {
-		System.setProperty("awt.useSystemAAFontSettings","on");
-		System.setProperty("swing.aatext", "true");
-		Grid grid = loadGrid();
-		EventQueue.invokeLater(() -> {
-			installNimbus();
-			
-			JFrame frame = new JFrame("tzudoku");
-			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			
-			GridUiModel model = new GridUiModel(grid);
-			GridUi gridUi = new GridUi(model);
-			JPanel gridWrapper = new JPanel(new FlowLayout());
-			gridWrapper.add(gridUi.board);
-			JPanel controlPanelWrapper = new JPanel(new FlowLayout());
-			controlPanelWrapper.add(gridUi.controlPanel.getUi());
-			frame.getContentPane().add(gridWrapper, BorderLayout.WEST);
-			frame.getContentPane().add(controlPanelWrapper, BorderLayout.EAST);
-			
-			gridUi.registerActions(frame.getRootPane().getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW), 
-					frame.getRootPane().getActionMap());
-			
-			frame.pack();
-			frame.setVisible(true);
-			frame.requestFocusInWindow();
-		});
-	}
 
-	private static void installNimbus() {
-		try {
-			for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
-				if ("Nimbus".equals(info.getName())) {
-					UIManager.setLookAndFeel(info.getClassName());
-					break;
-				}
-			}
-		} catch (Exception e) {
-			// If Nimbus is not available, you can set the GUI to another look and feel.
-		}
-	}
-	
-	private static Grid loadGrid() throws IOException {
-		File file = new File("/Users/torgil/tmp/tzudoku_input_solved.json");
-		String json = Files.readString(file.toPath());
-		GridState state = GridState.fromJson(json);
-		return state.restoreGrid();
-	}
-	
 }

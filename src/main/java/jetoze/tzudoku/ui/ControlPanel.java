@@ -20,7 +20,7 @@ import javax.swing.JToggleButton;
 
 import jetoze.tzudoku.model.Value;
 
-class ControlPanel {
+public class ControlPanel {
 	private final GridUiModel model;
 	
 	private final JToggleButton normalModeButton = new JToggleButton(

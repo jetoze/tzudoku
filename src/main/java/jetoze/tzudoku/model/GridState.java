@@ -5,13 +5,27 @@ import java.util.List;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
 public class GridState {
-	private List<String> given = new ArrayList<>();
-	private List<String> entered = new ArrayList<>();
-	private List<AdditionalCellState> pencilMarks = new ArrayList<>();
+	private List<String> given;
+	private List<String> entered;
+	private List<AdditionalCellState> pencilMarks;
+	
+	private GridState() {
+		// XXX: This is necessary to satisfy Gson when deserializing input that doesn't
+		// have e.g. PencilMarks. Initializing these fields at declaration is not enough,
+		// trial and error shows it has to be done inside a default constructor, otherwise
+		// the field is overwritten with null by the deserializer. :/
+		given = new ArrayList<>();
+		entered = new ArrayList<>();
+		pencilMarks = new ArrayList<>();
+	}
 	
 	public GridState(Grid grid) {
+		given = new ArrayList<>();
+		entered = new ArrayList<>();
+		pencilMarks = new ArrayList<>();
 		for (int r = 1; r <= 9; ++r) {
 			StringBuilder givenValuesInRow = new StringBuilder();
 			StringBuilder enteredValuesInRow = new StringBuilder();
@@ -41,7 +55,9 @@ public class GridState {
 		List<Cell> cells = new ArrayList<>();
 		for (int row = 1; row <= 9; ++row) {
 			String givenValues = given.get(row - 1);
-			String enteredValues = entered.get(row - 1);
+			String enteredValues = entered.isEmpty()
+					? "x".repeat(9) // Allows us to leave out this field in JSON
+					: entered.get(row - 1); 
 			for (int col = 1; col <= 9; ++col) {
 				Cell cell = restoreCell(givenValues, enteredValues, col);
 				cells.add(cell);
