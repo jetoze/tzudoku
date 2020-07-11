@@ -1,18 +1,23 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.Multimap;
 
 public final class Grid {
     private final ImmutableMap<Position, Cell> cells;
@@ -126,14 +131,31 @@ public final class Grid {
         return Position.positionsInBox(n).stream().map(cells::get);
     }
 
-    public static void main(String[] args) {
-        Grid grid = exampleOfSolvedGrid();
+    public ValidationResult validate() {
+        Set<Position> invalidPositions = new HashSet<>();
+        // Empty cells
+        cells.entrySet().stream()
+            .filter(e -> !e.getValue().hasValue())
+            .map(Entry::getKey)
+            .forEach(invalidPositions::add);
+        // Duplicates in rows, columns, and boxes
         for (int n = 1; n <= 9; ++n) {
-            grid.getRow(n).map(Cell::getValue).flatMap(Optional::stream).map(v -> v.toInt() + " ")
-                    .forEach(System.out::print);
-            System.out.println();
+            collectDuplicates(Position.positionsInRow(n), invalidPositions);
+            collectDuplicates(Position.positionsInColumn(n), invalidPositions);
+            collectDuplicates(Position.positionsInRow(n), invalidPositions);
         }
-        System.out.println(grid.isSolved());
+        return new ValidationResult(invalidPositions);
     }
-
+    
+    private void collectDuplicates(Collection<Position> positions, Set<Position> bin) {
+        Multimap<Value, Position> mm = HashMultimap.create();
+        positions.forEach(p -> {
+            Cell c = cells.get(p);
+            c.getValue().ifPresent(v -> mm.put(v, p));
+        });
+        mm.asMap().values().stream()
+            .filter(c -> c.size() > 1)
+            .flatMap(Collection::stream)
+            .forEach(bin::add);
+    }
 }
