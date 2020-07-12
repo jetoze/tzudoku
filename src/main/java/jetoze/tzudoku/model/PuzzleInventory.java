@@ -14,9 +14,9 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableList;
 
-import tzeth.exceptions.NotImplementedYetException;
-
 public class PuzzleInventory {
+    // TODO: Add method for marking a puzzle as completed.
+    // TODO: Add utilities for cleaning up old progress files.
     private static final String FILE_EXTENSION = ".json";
     private static final String PROPERTIES_FILE = ".properties";
     private static final String PROGRESS_FOLDER = "progress";
@@ -80,6 +80,8 @@ public class PuzzleInventory {
     }
     
     public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
+        // TODO: If Puzzle is in PROGRESS state, load it from the
+        // progress folder instead.
         File file = new File(directory, info.getName() + FILE_EXTENSION);
         String json = Files.readString(file.toPath());
         GridState gridState = GridState.fromJson(json);
@@ -95,6 +97,8 @@ public class PuzzleInventory {
     }
 
     private void savePuzzleProgressToDisk(Puzzle puzzle) throws IOException {
+        // TODO: Do not overwrite previous saves. For example, append timestamp to
+        // the file name. Then add utilities for loading an earlier save.
         GridState gridState = new GridState(puzzle.getGrid());
         String json = gridState.toJson();
         File progressFolder = new File(directory, PROGRESS_FOLDER);
