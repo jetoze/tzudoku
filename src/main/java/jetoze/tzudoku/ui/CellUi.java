@@ -14,8 +14,7 @@ class CellUi extends JComponent {
     private final Position position;
     private final Cell cell;
     private boolean selected;
-
-    // TODO: Background color.
+    private boolean invalid;
 
     public CellUi(Position position, Cell cell) {
         this.position = position;
@@ -39,11 +38,19 @@ class CellUi extends JComponent {
         this.selected = selected;
     }
 
+    public boolean isInvalid() {
+        return invalid;
+    }
+
+    public void setInvalid(boolean invalid) {
+        this.invalid = invalid;
+    }
+
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        UiConstants.fillCellBackground(g2, cell.getColor(), selected);
+        UiConstants.fillCellBackground(g2, cell.getColor(), selected, invalid);
         cell.getValue().ifPresentOrElse(value -> renderValue(g2, value), () -> renderPencilMarks(g2));
     }
 

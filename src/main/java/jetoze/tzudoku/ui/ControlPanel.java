@@ -14,6 +14,7 @@ import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
@@ -22,6 +23,7 @@ import com.google.common.collect.ImmutableList;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.CellColor;
+import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
@@ -159,9 +161,17 @@ public class ControlPanel {
     }
 
     private void checkSolution() {
-        boolean solved = model.getGrid().isSolved();
-        // TODO: add a UI for this
-        System.out.println(solved ? "Solved! :)" : "Not solved :(");
+        UiThread.offload(model.getGrid()::validate, this::displayResult);
+    }
+    
+    private void displayResult(ValidationResult result) {
+        if (result.isSolved()) {
+            JOptionPane.showMessageDialog(ui, "Looks good to me! :)", "Solved", JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            model.decorateInvalidCells(result);
+            JOptionPane.showMessageDialog(ui, "Hmm, that doesn't look right. :(", "Not solved", JOptionPane.ERROR_MESSAGE);
+            model.removeInvalidCellsDecoration();
+        }
     }
 
     private static JButton largeButton(String text, Runnable work) {

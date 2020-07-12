@@ -1,5 +1,7 @@
 package jetoze.tzudoku.model;
 
+import static java.util.Objects.*;
+
 import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
@@ -16,8 +18,16 @@ public class ValidationResult {
         return invalidPositions.isEmpty();
     }
 
-    public ImmutableSet<Position> getInvalidPositions() {
-        return invalidPositions;
+    public boolean isInvalid(Position p) {
+        requireNonNull(p);
+        return invalidPositions.contains(p);
+    }
+
+    @Override
+    public String toString() {
+        return isSolved()
+                ? "Solved"
+                : "Invalid positions: " + invalidPositions;
     }
     
 }

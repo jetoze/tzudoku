@@ -28,6 +28,7 @@ import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.model.Value;
 
 public class GridUiModel {
@@ -150,6 +151,7 @@ public class GridUiModel {
                 .filter(Cell::hasNewInformation)
                 .collect(toList());
         clearCellsImpl(cells, true);
+        removeInvalidCellsDecoration();
     }
 
     private void clearCellsImpl(List<Cell> cells, boolean reset) {
@@ -167,6 +169,16 @@ public class GridUiModel {
             return;
         }
         cellUis.values().forEach(c -> c.setSelected(false));
+        notifyListeners(GridUiModelListener::onCellStateChanged);
+    }
+    
+    public void decorateInvalidCells(ValidationResult validationResult) {
+        cellUis.forEach((p, c) -> c.setInvalid(validationResult.isInvalid(p)));
+        notifyListeners(GridUiModelListener::onCellStateChanged);
+    }
+    
+    public void removeInvalidCellsDecoration() {
+        cellUis.values().forEach(c -> c.setInvalid(false));
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
 

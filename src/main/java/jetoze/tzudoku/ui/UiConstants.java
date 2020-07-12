@@ -40,6 +40,8 @@ final class UiConstants {
             ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 8/* thin borders */ * THIN_BORDER_WIDTH;
 
     private static final Color SELECTION_COLOR = new Color(0xff, 0xea, 0x97);
+    
+    private static final Color INVALID_CELL_COLOR = new Color(0xd8, 0x9d, 0x9e);
 
     private static final Color BORDER_COLOR = Color.BLACK;
 
@@ -136,14 +138,24 @@ final class UiConstants {
         g.setStroke(originalStroke);
     }
 
-    static void fillCellBackground(Graphics2D g, CellColor cellColor, boolean selected) {
+    static void fillCellBackground(Graphics2D g, CellColor cellColor, boolean selected, boolean invalid) {
         Color originalColor = g.getColor();
 
-        Color bg = selected ? SELECTION_COLOR : getColorOfCell(cellColor);
+        Color bg = getCellBackground(cellColor, selected, invalid);
         g.setColor(bg);
         g.fillRect(0, 0, CELL_SIZE, CELL_SIZE);
 
         g.setColor(originalColor);
+    }
+
+    private static Color getCellBackground(CellColor cellColor, boolean selected, boolean invalid) {
+        if (selected) {
+            return SELECTION_COLOR;
+        } else if (invalid) {
+            return INVALID_CELL_COLOR;
+        } else {
+            return getColorOfCell(cellColor);
+        }
     }
 
     static void drawValue(Graphics2D g, Value value, boolean isGiven) {
