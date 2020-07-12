@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.io.File;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Properties;
@@ -78,17 +79,45 @@ public class PuzzleInventory {
         }
     }
     
-    public Puzzle loadPuzzle(PuzzleInfo info) {
-        throw new NotImplementedYetException();
+    public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
+        File file = new File(directory, info.getName() + FILE_EXTENSION);
+        String json = Files.readString(file.toPath());
+        GridState gridState = GridState.fromJson(json);
+        Grid grid = gridState.restoreGrid();
+        return new Puzzle(info.getName(), grid);
     }
     
     public void saveProgress(Puzzle puzzle) throws IOException {
         // TODO: Needs to change once we have more information in the puzzle, e.g.
         // sandwiches, killer cages, and thermos.
+        savePuzzleProgressToDisk(puzzle);
+        updatePuzzleState(puzzle);
+    }
+
+    private void savePuzzleProgressToDisk(Puzzle puzzle) throws IOException {
         GridState gridState = new GridState(puzzle.getGrid());
         String json = gridState.toJson();
         File progressFolder = new File(directory, PROGRESS_FOLDER);
         File progressFile = new File(progressFolder, puzzle.getName() + "_progress" + FILE_EXTENSION);
         Files.writeString(progressFile.toPath(), json);
+    }
+
+    private void updatePuzzleState(Puzzle puzzle) {
+        puzzleProperties.put(puzzle.getName(), PuzzleState.PROGRESS);
+        saveProperties();
+    }
+    
+    private void saveProperties() {
+        File file = new File(directory, PROPERTIES_FILE);
+        if (!file.canWrite()) {
+            return;
+        }
+        try {
+            try (FileWriter fw = new FileWriter(file)) {
+                puzzleProperties.store(fw, "");
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 }
