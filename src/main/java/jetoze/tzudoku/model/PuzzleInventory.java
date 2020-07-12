@@ -16,6 +16,9 @@ import com.google.common.collect.ImmutableList;
 
 public class PuzzleInventory {
     // TODO: Add utilities for cleaning up old progress files.
+    // TODO: Keep track of last update. Store in the properties object.
+    // TODO: Archive function.
+    
     private static final String FILE_EXTENSION = ".json";
     private static final String PROPERTIES_FILE = ".properties";
     private static final String PROGRESS_FOLDER = "progress";
