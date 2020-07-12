@@ -61,7 +61,7 @@ public class App {
     }
 
     private static Grid loadGrid() throws IOException {
-        File file = new File("/Users/torgil/coding/data/tzudoku/the_daily/the_daily_sudoku_2020-07-09.json");
+        File file = new File("/Users/torgil/coding/data/tzudoku/the_daily/the_daily_sudoku_2020-07-11.json");
         String json = Files.readString(file.toPath());
         GridState state = GridState.fromJson(json);
         return state.restoreGrid();

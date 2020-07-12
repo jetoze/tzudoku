@@ -9,25 +9,25 @@ import com.google.gson.Gson;
 public class GridState {
     private List<String> given;
     private List<String> entered;
-    private List<AdditionalCellState> cellStates;
+    private List<PencilMarkState> pencilMarks;
+    private List<ColorState> colors = new ArrayList<>();
 
     @SuppressWarnings("unused")
     private GridState() {
         // XXX: This is necessary to satisfy Gson when deserializing input that doesn't
         // have e.g. PencilMarks. Initializing these fields at declaration is not
-        // enough,
-        // trial and error shows it has to be done inside a default constructor,
-        // otherwise
-        // the field is overwritten with null by the deserializer. :/
+        // enough, trial and error shows it has to be done inside a default constructor,
+        // otherwise the field is overwritten with null by the deserializer. :/
         given = new ArrayList<>();
         entered = new ArrayList<>();
-        cellStates = new ArrayList<>();
+        pencilMarks = new ArrayList<>();
+        colors = new ArrayList<>();
     }
 
     public GridState(Grid grid) {
         given = new ArrayList<>();
         entered = new ArrayList<>();
-        cellStates = new ArrayList<>();
+        pencilMarks = new ArrayList<>();
         for (int r = 1; r <= 9; ++r) {
             StringBuilder givenValuesInRow = new StringBuilder();
             StringBuilder enteredValuesInRow = new StringBuilder();
@@ -53,8 +53,13 @@ public class GridState {
     
     private void storeAdditionalState(Position p, Cell cell) {
         PencilMarks pm = cell.getPencilMarks();
+        if (!pm.isEmpty()) {
+            pencilMarks.add(new PencilMarkState(p, pm));
+        }
         CellColor color = cell.getColor();
-        cellStates.add(new AdditionalCellState(p, pm, color));
+        if (color != CellColor.WHITE) {
+            colors.add(new ColorState(p, color));
+        }
     }
 
     public Grid restoreGrid() {
@@ -70,7 +75,8 @@ public class GridState {
             }
         }
         Grid grid = new Grid(cells);
-        cellStates.forEach(s -> s.restore(grid));
+        pencilMarks.forEach(p -> p.restore(grid));
+        colors.forEach(c -> c.restore(grid));
         return grid;
     }
 
@@ -96,26 +102,21 @@ public class GridState {
         return gson.fromJson(json, GridState.class);
     }
 
-    private static class AdditionalCellState {
+    private static class PencilMarkState {
         private int row;
         private int col;
         private String corner;
         private String center;
-        private CellColor color;
 
-        public AdditionalCellState(Position p, PencilMarks marks, CellColor color) {
+        public PencilMarkState(Position p, PencilMarks marks) {
             this.row = p.getRow();
             this.col = p.getColumn();
             this.corner = marks.cornerAsString();
             this.center = marks.centerAsString();
-            this.color = color;
         }
 
         public void restore(Grid grid) {
             Cell cell = grid.cellAt(new Position(row, col));
-            if (color != null) {
-                cell.setColor(color);
-            }
             if (cell.isGiven()) {
                 return;
             }
@@ -126,6 +127,26 @@ public class GridState {
 
         private Stream<Value> toValues(String s) {
             return s.chars().map(c -> c - 48).mapToObj(Value::of);
+        }
+    }
+    
+    private static class ColorState {
+        private int row;
+        private int col;
+        private String color;
+        
+        public ColorState(Position p, CellColor color) {
+            this.row = p.getRow();
+            this.col = p.getColumn();
+            this.color = color.name();
+        }
+        
+        public void restore(Grid grid) {
+            if (color == null) {
+                return;
+            }
+            Cell cell = grid.cellAt(new Position(row, col));
+            cell.setColor(CellColor.valueOf(color));
         }
     }
 }
