@@ -20,4 +20,8 @@ public class Puzzle {
     public Grid getGrid() {
         return grid;
     }
+    
+    public boolean isSolved() {
+        return grid.isSolved();
+    }
 }

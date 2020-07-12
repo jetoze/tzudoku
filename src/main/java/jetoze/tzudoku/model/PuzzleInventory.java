@@ -15,7 +15,6 @@ import java.util.stream.Stream;
 import com.google.common.collect.ImmutableList;
 
 public class PuzzleInventory {
-    // TODO: Add method for marking a puzzle as completed.
     // TODO: Add utilities for cleaning up old progress files.
     private static final String FILE_EXTENSION = ".json";
     private static final String PROPERTIES_FILE = ".properties";
@@ -80,20 +79,35 @@ public class PuzzleInventory {
     }
     
     public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
-        // TODO: If Puzzle is in PROGRESS state, load it from the
-        // progress folder instead.
-        File file = new File(directory, info.getName() + FILE_EXTENSION);
+        File file = getPuzzleFile(info);
         String json = Files.readString(file.toPath());
         GridState gridState = GridState.fromJson(json);
         Grid grid = gridState.restoreGrid();
         return new Puzzle(info.getName(), grid);
     }
     
+    private File getPuzzleFile(PuzzleInfo info) {
+        if (info.getState() == PuzzleState.PROGRESS) {
+            File file = getProgressFile(info.getName());
+            if (file.canRead()) {
+                return file;
+            }
+        }
+        return new File(directory, info.getName() + FILE_EXTENSION);
+    }
+
+    public void markAsCompleted(Puzzle puzzle) {
+        updatePuzzleState(puzzle, PuzzleState.SOLVED);
+        // TODO: Delete progress file, if one exists?
+    }
+    
     public void saveProgress(Puzzle puzzle) throws IOException {
-        // TODO: Needs to change once we have more information in the puzzle, e.g.
-        // sandwiches, killer cages, and thermos.
-        savePuzzleProgressToDisk(puzzle);
-        updatePuzzleState(puzzle);
+        if (puzzle.isSolved()) {
+            markAsCompleted(puzzle);
+        } else {
+            savePuzzleProgressToDisk(puzzle);
+            updatePuzzleState(puzzle, PuzzleState.PROGRESS);
+        }
     }
 
     private void savePuzzleProgressToDisk(Puzzle puzzle) throws IOException {
@@ -101,13 +115,18 @@ public class PuzzleInventory {
         // the file name. Then add utilities for loading an earlier save.
         GridState gridState = new GridState(puzzle.getGrid());
         String json = gridState.toJson();
-        File progressFolder = new File(directory, PROGRESS_FOLDER);
-        File progressFile = new File(progressFolder, puzzle.getName() + "_progress" + FILE_EXTENSION);
+        File progressFile = getProgressFile(puzzle.getName());
         Files.writeString(progressFile.toPath(), json);
     }
 
-    private void updatePuzzleState(Puzzle puzzle) {
-        puzzleProperties.put(puzzle.getName(), PuzzleState.PROGRESS);
+    private File getProgressFile(String puzzleName) {
+        File progressFolder = new File(directory, PROGRESS_FOLDER);
+        File progressFile = new File(progressFolder, puzzleName + "_progress" + FILE_EXTENSION);
+        return progressFile;
+    }
+
+    private void updatePuzzleState(Puzzle puzzle, PuzzleState state) {
+        puzzleProperties.put(puzzle.getName(), state);
         saveProperties();
     }
     
