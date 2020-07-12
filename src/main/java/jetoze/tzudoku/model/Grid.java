@@ -52,6 +52,11 @@ public final class Grid {
                 "503008000", 
                 "800100207");
     }
+    
+    public static Grid emptyGrid() {
+        return new Grid(IntStream.rangeClosed(1, 81)
+                .mapToObj(i -> Cell.empty()));
+    }
 
     public Grid(String... rows) {
         checkArgument(rows.length == 9, "Must provide 9 rows");

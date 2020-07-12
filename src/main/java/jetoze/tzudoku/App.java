@@ -1,5 +1,7 @@
 package jetoze.tzudoku;
 
+import static java.util.Objects.*;
+
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
@@ -13,10 +15,12 @@ import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
+import jetoze.tzudoku.model.PuzzleInventory;
 import jetoze.tzudoku.ui.ControlPanel;
 import jetoze.tzudoku.ui.GameBoard;
 import jetoze.tzudoku.ui.GridUi;
 import jetoze.tzudoku.ui.GridUiModel;
+import tzeth.exceptions.NotImplementedYetException;
 
 public class App {
 
@@ -65,6 +69,16 @@ public class App {
         String json = Files.readString(file.toPath());
         GridState state = GridState.fromJson(json);
         return state.restoreGrid();
+    }
+    
+    private final PuzzleInventory inventory;
+    
+    public App(PuzzleInventory inventory) {
+        this.inventory = requireNonNull(inventory);
+    }
+    
+    public void start() {
+        throw new NotImplementedYetException();
     }
 
 }
