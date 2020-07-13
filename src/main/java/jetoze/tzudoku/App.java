@@ -1,6 +1,6 @@
 package jetoze.tzudoku;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.io.File;
 import java.io.IOException;
@@ -20,35 +20,42 @@ import jetoze.tzudoku.ui.ControlPanel;
 import jetoze.tzudoku.ui.GameBoard;
 import jetoze.tzudoku.ui.GridUi;
 import jetoze.tzudoku.ui.GridUiModel;
-import tzeth.exceptions.NotImplementedYetException;
+import jetoze.tzudoku.ui.PuzzleUiController;
+import jetoze.tzudoku.ui.PuzzleUiModel;
 
 public class App {
 
     public static void main(String[] args) throws IOException {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
-        Grid grid = loadGrid();
-        UiThread.run(() -> {
-            installNimbus();
+        if ("".isEmpty()) {
+            PuzzleInventory inventory = new PuzzleInventory(new File("/Users/torgil/coding/data/tzudoku"));
+            App app = new App(inventory);
+            UiThread.run(app::start);
+        } else {
+            Grid grid = loadGrid();
+            UiThread.run(() -> {
+                installNimbus();
 
-            JFrame frame = new JFrame("tzudoku");
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+                JFrame frame = new JFrame("tzudoku");
+                frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-            GridUiModel model = new GridUiModel(grid);
-            GridUi gridUi = new GridUi(model);
-            ControlPanel controlPanel = new ControlPanel(model);
-            GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
-            
-            Layouts.border()
-                .center(gameBoard.getUi())
-                .buildAsContent(frame);
+                GridUiModel model = new GridUiModel(grid);
+                GridUi gridUi = new GridUi(model);
+                ControlPanel controlPanel = new ControlPanel(model);
+                GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
+                
+                Layouts.border()
+                    .center(gameBoard.getUi())
+                    .buildAsContent(frame);
 
-            gridUi.registerActions(KeyBindings.whenInFocusedWindow(frame.getRootPane()));
+                gridUi.registerActions(KeyBindings.whenInFocusedWindow(frame.getRootPane()));
 
-            frame.pack();
-            frame.setVisible(true);
-            frame.requestFocusInWindow();
-        });
+                frame.pack();
+                frame.setVisible(true);
+                frame.requestFocusInWindow();
+            });
+        }
     }
 
     private static void installNimbus() {
@@ -78,7 +85,29 @@ public class App {
     }
     
     public void start() {
-        throw new NotImplementedYetException();
+        UiThread.throwIfNotUiThread();
+        installNimbus();
+        
+        PuzzleUiModel model = new PuzzleUiModel(inventory);
+        JFrame frame = new JFrame("tzudoku");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        PuzzleUiController controller = new PuzzleUiController(frame, model);
+        
+        GridUi gridUi = new GridUi(model.getGridModel());
+        ControlPanel controlPanel = new ControlPanel(model.getGridModel());
+        GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
+        
+        Layouts.border()
+            .center(gameBoard.getUi())
+            .buildAsContent(frame);
+
+        gridUi.registerActions(KeyBindings.whenInFocusedWindow(frame.getRootPane()));
+
+        frame.pack();
+        frame.setVisible(true);
+        frame.requestFocusInWindow();
+        
+        controller.openInventoryUi();
     }
 
 }

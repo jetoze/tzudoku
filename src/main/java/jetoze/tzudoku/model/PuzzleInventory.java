@@ -35,7 +35,7 @@ public class PuzzleInventory {
     public PuzzleInventory(File directory) {
         this.directory = requireNonNull(directory);
         checkArgument(directory.isDirectory(), "Not a directory: " + directory.toPath());
-        checkArgument(!directory.exists(), "Directory does not exist: " + directory.toPath());
+        checkArgument(directory.exists(), "Directory does not exist: " + directory.toPath());
         loadProperties();
     }
     

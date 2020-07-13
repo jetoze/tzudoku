@@ -163,4 +163,19 @@ public final class Grid {
             .flatMap(Collection::stream)
             .forEach(bin::add);
     }
+    
+    @Override
+    public String toString() {
+        StringBuilder output = new StringBuilder();
+        for (int row = 1; row <= 9; ++row) {
+            if (row >= 2) {
+                output.append(System.getProperty("line.separator"));
+            }
+            for (Position p : Position.positionsInRow(row)) {
+                Cell cell = cells.get(p);
+                cell.getValue().ifPresentOrElse(output::append, () -> output.append("x"));
+            }
+        }
+        return output.toString();
+    }
 }

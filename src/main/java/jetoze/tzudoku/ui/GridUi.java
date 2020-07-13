@@ -42,6 +42,11 @@ public class GridUi {
             public void onCellStateChanged() {
                 board.repaint();
             }
+
+            @Override
+            public void onNewPuzzleLoaded() {
+                board.repaint();
+            }
         });
     }
     

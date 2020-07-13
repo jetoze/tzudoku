@@ -41,20 +41,19 @@ public class GridUiModel {
     private final List<GridUiModelListener> listeners = new ArrayList<>();
 
     public GridUiModel(Grid grid) {
-        setGridImpl(grid, false);
-    }
-    
-    public void setGrid(Grid grid) {
-        setGridImpl(grid, true);
-    }
-    
-    private void setGridImpl(Grid grid, boolean notifyListeners) {
         this.grid = requireNonNull(grid);
         this.cellUis = grid.getCells().entrySet().stream()
                 .collect(ImmutableMap.toImmutableMap(Entry::getKey, e -> new CellUi(e.getKey(), e.getValue())));
-        if (notifyListeners) {
-            notifyListeners(GridUiModelListener::onCellStateChanged);
-        }
+    }
+    
+    public void setGrid(Grid grid) {
+        this.grid = requireNonNull(grid);
+        cellUis.keySet().forEach(p -> {
+            CellUi cellUi = cellUis.get(p);
+            Cell cell = grid.cellAt(p);
+            cellUi.setCell(cell);
+        });
+        notifyListeners(GridUiModelListener::onNewPuzzleLoaded);
     }
 
     public Grid getGrid() {

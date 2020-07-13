@@ -1,5 +1,7 @@
 package jetoze.tzudoku.ui;
 
+import static java.util.Objects.*;
+
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 
@@ -12,18 +14,22 @@ import jetoze.tzudoku.model.Value;
 
 class CellUi extends JComponent {
     private final Position position;
-    private final Cell cell;
+    private Cell cell;
     private boolean selected;
     private boolean invalid;
 
     public CellUi(Position position, Cell cell) {
-        this.position = position;
-        this.cell = cell;
+        this.position = requireNonNull(position);
+        this.cell = requireNonNull(cell);
         setOpaque(true);
     }
 
     public Cell getCell() {
         return cell;
+    }
+    
+    public void setCell(Cell cell) {
+        this.cell = requireNonNull(cell);
     }
 
     public Position getPosition() {
