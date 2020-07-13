@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
@@ -18,6 +18,12 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.GridState;
+import jetoze.tzudoku.model.Puzzle;
+import jetoze.tzudoku.model.PuzzleInfo;
+import jetoze.tzudoku.model.PuzzleState;
 
 public class PuzzleInventory {
     // TODO: Add utilities for cleaning up old progress files.
@@ -175,6 +181,9 @@ public class PuzzleInventory {
             Path source = new File(directory, puzzleInfo.getName() + FILE_EXTENSION).toPath();
             Path archiveFolder = new File(directory, ARCHIVE_FOLDER).toPath();
             Files.move(source, archiveFolder.resolve(source.getFileName()), StandardCopyOption.REPLACE_EXISTING);
+            puzzleProperties.remove(puzzleInfo.getName() + STATE_PROPERTY);
+            puzzleProperties.remove(puzzleInfo.getName() + LAST_UPDATED_PROPERTY);
+            saveProperties();
         } catch (IOException e) {
             e.printStackTrace();
         }

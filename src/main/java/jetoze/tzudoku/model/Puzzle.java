@@ -27,4 +27,9 @@ public class Puzzle {
     public boolean isSolved() {
         return grid.isSolved();
     }
+    
+    public boolean isEmpty() {
+        // TODO: Check things like sandwiches, killer cages, thermos, etc, hee.
+        return grid.isEmpty();
+    }
 }

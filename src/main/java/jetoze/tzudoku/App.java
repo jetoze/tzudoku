@@ -15,7 +15,6 @@ import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
-import jetoze.tzudoku.model.PuzzleInventory;
 import jetoze.tzudoku.ui.ControlPanel;
 import jetoze.tzudoku.ui.GameBoard;
 import jetoze.tzudoku.ui.GridUi;
@@ -42,7 +41,7 @@ public class App {
 
                 GridUiModel model = new GridUiModel(grid);
                 GridUi gridUi = new GridUi(model);
-                ControlPanel controlPanel = new ControlPanel(model);
+                ControlPanel controlPanel = new ControlPanel(model, null);
                 GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
                 
                 Layouts.border()
@@ -94,7 +93,7 @@ public class App {
         PuzzleUiController controller = new PuzzleUiController(frame, model);
         
         GridUi gridUi = new GridUi(model.getGridModel());
-        ControlPanel controlPanel = new ControlPanel(model.getGridModel());
+        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller);
         GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
         
         Layouts.border()
@@ -107,7 +106,7 @@ public class App {
         frame.setVisible(true);
         frame.requestFocusInWindow();
         
-        controller.openInventoryUi();
+        controller.selectPuzzle();
     }
 
 }

@@ -96,6 +96,10 @@ public final class Grid {
     public Cell cellAt(Position p) {
         return cells.get(requireNonNull(p));
     }
+    
+    public boolean isEmpty() {
+        return cells.values().stream().allMatch(Cell::isEmpty);
+    }
 
     public boolean isSolved() {
         if (!allCellsHaveValues()) {

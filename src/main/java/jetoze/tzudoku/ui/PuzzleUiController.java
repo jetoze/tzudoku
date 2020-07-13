@@ -8,7 +8,9 @@ import javax.swing.JOptionPane;
 import com.google.common.collect.ImmutableList;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
+import jetoze.tzudoku.model.ValidationResult;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
@@ -21,7 +23,7 @@ public class PuzzleUiController {
         this.puzzleModel = requireNonNull(model);
     }
     
-    public void openInventoryUi() {
+    public void selectPuzzle() {
         UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, this::displayInventoryUi);
     }
     
@@ -43,6 +45,43 @@ public class PuzzleUiController {
     }
     
     private void loadPuzzle(PuzzleInfo puzzleInfo) {
-        UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), puzzleModel::setPuzzle);
+        UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), this::puzzleLoaded);
+    }
+    
+    private void puzzleLoaded(Puzzle puzzle) {
+        puzzleModel.setPuzzle(puzzle);
+        appFrame.setTitle(puzzle.getName());
+    }
+    
+    public void saveProgress() {
+        Puzzle puzzle = puzzleModel.getPuzzle();
+        if (!puzzle.isEmpty()) {
+            UiThread.offload(() -> {
+                puzzleModel.getInventory().saveProgress(puzzle);
+                return null;
+            }, v -> {});
+        }
+    }
+    
+    public void checkSolution() {
+        UiThread.offload(puzzleModel::validate, this::displayResult);
+    }
+    
+    private void displayResult(ValidationResult result) {
+        if (result.isSolved()) {
+            JOptionPane.showMessageDialog(
+                    appFrame, 
+                    "Looks good to me! :)", 
+                    "Solved", 
+                    JOptionPane.INFORMATION_MESSAGE);
+        } else {
+            puzzleModel.getGridModel().decorateInvalidCells(result);
+            JOptionPane.showMessageDialog(
+                    appFrame, 
+                    "Hmm, that doesn't look right. :(", 
+                    "Not solved", 
+                    JOptionPane.ERROR_MESSAGE);
+            puzzleModel.getGridModel().removeInvalidCellsDecoration();
+        }
     }
 }

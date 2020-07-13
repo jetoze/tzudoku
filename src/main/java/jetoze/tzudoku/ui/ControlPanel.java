@@ -14,7 +14,6 @@ import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
-import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
@@ -23,11 +22,13 @@ import com.google.common.collect.ImmutableList;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.model.CellColor;
-import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
+    // TODO: Move more things to the controller.
+    
     private final GridUiModel model;
+    private final PuzzleUiController controller;
 
     private final JToggleButton normalModeButton = new JToggleButton(
             new SetEnterValueModeAction(EnterValueMode.NORMAL, "Normal"));
@@ -45,8 +46,9 @@ public class ControlPanel {
     
     private final JPanel ui;
 
-    public ControlPanel(GridUiModel model) {
+    public ControlPanel(GridUiModel model, PuzzleUiController controller) {
         this.model = requireNonNull(model);
+        this.controller = requireNonNull(controller);
         this.valueActions = Value.ALL.stream()
                 .map(EnterValueAction::new)
                 .collect(toImmutableList());
@@ -152,7 +154,13 @@ public class ControlPanel {
         bottom.add(largeButton("Restart", model::reset), c);
         c.gridx = 1;
         c.gridy = 1;
-        bottom.add(largeButton("Check", this::checkSolution), c);
+        bottom.add(largeButton("Check", controller::checkSolution), c);
+        c.gridx = 0;
+        c.gridy = 2;
+        bottom.add(largeButton("Save", controller::saveProgress), c);
+        c.gridx = 1;
+        c.gridy = 2;
+        bottom.add(largeButton("Load", controller::selectPuzzle), c);
         
         return Layouts.border(0, 10)
                 .north(top)
@@ -160,19 +168,6 @@ public class ControlPanel {
                 .build();
     }
 
-    private void checkSolution() {
-        UiThread.offload(model.getGrid()::validate, this::displayResult);
-    }
-    
-    private void displayResult(ValidationResult result) {
-        if (result.isSolved()) {
-            JOptionPane.showMessageDialog(ui, "Looks good to me! :)", "Solved", JOptionPane.INFORMATION_MESSAGE);
-        } else {
-            model.decorateInvalidCells(result);
-            JOptionPane.showMessageDialog(ui, "Hmm, that doesn't look right. :(", "Not solved", JOptionPane.ERROR_MESSAGE);
-            model.removeInvalidCellsDecoration();
-        }
-    }
 
     private static JButton largeButton(String text, Runnable work) {
         JButton b = new JButton(createAction(text, work));
