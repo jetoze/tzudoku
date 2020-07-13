@@ -31,10 +31,10 @@ public class GridUi {
         model.getCells().forEach(c -> {
             c.addMouseListener(mouseHandler);
             c.addMouseMotionListener(mouseHandler);
-            c.setBounds(UiConstants.getCellBounds(c.getPosition()));
+            c.setBounds(model.getSize().getCellBounds(c.getPosition()));
             board.add(c);
         });
-        board.setBounds(0, 0, UiConstants.BOARD_SIZE, UiConstants.BOARD_SIZE);
+        board.setBounds(0, 0, model.getSize().getBoardSize(), model.getSize().getBoardSize());
         board.setBorder(UiConstants.getBoardBorder());
         model.addListener(new GridUiModelListener() {
 
@@ -129,7 +129,7 @@ public class GridUi {
         }
     }
 
-    private static class Board extends JPanel {
+    private class Board extends JPanel {
 
         public Board() {
             super(null);
@@ -140,12 +140,12 @@ public class GridUi {
         protected void paintComponent(Graphics g) {
             g.fillRect(0, 0, getWidth(), getWidth());
             super.paintComponent(g);
-            UiConstants.drawGrid((Graphics2D) g);
+            UiConstants.drawGrid((Graphics2D) g, model.getSize());
         }
 
         @Override
         public Dimension getPreferredSize() {
-            return new Dimension(UiConstants.BOARD_SIZE, UiConstants.BOARD_SIZE);
+            return new Dimension(model.getSize().getBoardSize(), model.getSize().getBoardSize());
         }
     }
 

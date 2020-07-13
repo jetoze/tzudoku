@@ -14,7 +14,7 @@ public class PuzzleUiModel {
     public PuzzleUiModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
         this.puzzle = Puzzle.EMPTY;
-        this.gridModel = new GridUiModel(puzzle.getGrid());
+        this.gridModel = new GridUiModel(puzzle.getGrid(), GridSize.SMALL);
     }
     
     public PuzzleInventory getInventory() {

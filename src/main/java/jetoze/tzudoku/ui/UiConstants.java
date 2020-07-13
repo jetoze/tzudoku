@@ -1,6 +1,7 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
+
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
@@ -10,7 +11,6 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
-import java.awt.Rectangle;
 import java.awt.Stroke;
 
 import javax.swing.AbstractButton;
@@ -24,31 +24,20 @@ import com.google.common.collect.ImmutableMap;
 
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.PencilMarks;
-import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.PuzzleState;
 import jetoze.tzudoku.model.Value;
 
 final class UiConstants {
 
-    static final int CELL_SIZE = 50;
-
-    static final int THICK_BORDER_WIDTH = 4;
+    static final int THICK_BORDER_WIDTH = 3;
 
     static final int THIN_BORDER_WIDTH = 1;
-
-    static final int BOARD_SIZE = 9/* cells */ * CELL_SIZE +
-    // TODO: No idea why this is necessary
-            ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 8/* thin borders */ * THIN_BORDER_WIDTH;
 
     private static final Color SELECTION_COLOR = new Color(0xff, 0xea, 0x97);
     
     private static final Color INVALID_CELL_COLOR = new Color(0xd8, 0x9d, 0x9e);
 
     private static final Color BORDER_COLOR = Color.BLACK;
-
-    private static final int VALUE_FONT_SIZE = (2 * CELL_SIZE) / 3;
-
-    private static final Font VALUE_FONT = new Font("Tahoma", Font.PLAIN, VALUE_FONT_SIZE);
 
     private static final int LARGE_BUTTON_FONT_SIZE = 20;
 
@@ -64,15 +53,11 @@ final class UiConstants {
 
     private static final Color ENTERED_VALUE_COLOR = new Color(0x24, 0x6e, 0xe2);
 
-    private static final int PENCIL_MARK_FONT_SIZE = CELL_SIZE / 4;
-
-    private static final Font PENCIL_MARK_FONT = new Font("Tahoma", Font.PLAIN, PENCIL_MARK_FONT_SIZE);
-
     private static final Color PENCIL_MARK_COLOR = ENTERED_VALUE_COLOR;
     
     private static final int COLOR_SELECTION_ICON_SIZE = 16;
     
-    private static final int PUZZLE_STATE_ICON_SIZE = 8;
+    private static final int PUZZLE_STATE_ICON_SIZE = 12;
     
     private static final ImmutableMap<CellColor, Color> CELL_COLOR_MAP = ImmutableMap.<CellColor, Color>builder()
             .put(CellColor.BLACK, Color.BLACK)
@@ -86,32 +71,11 @@ final class UiConstants {
             .put(CellColor.BLUE, new Color(0x9e, 0xdd, 0xf1))
             .build();
 
-    static Rectangle getCellBounds(Position pos) {
-        Point upperLeft = getUpperLeftCellCorner(pos.getRow(), pos.getColumn());
-        return new Rectangle(upperLeft.x, upperLeft.y, CELL_SIZE, CELL_SIZE);
-    }
-
-    private static Point getUpperLeftCellCorner(int row, int col) {
-        int numOfPrecedingThickBordersToTheLeft = (col - 1) / 3;
-        int numOfPrecedingThinBordersToTheLeft = (col - 1) - numOfPrecedingThickBordersToTheLeft;
-        int x = THICK_BORDER_WIDTH /* left edge */ + (col - 1) * CELL_SIZE /* preceding cells */
-                + numOfPrecedingThickBordersToTheLeft * THICK_BORDER_WIDTH
-                + numOfPrecedingThinBordersToTheLeft * THIN_BORDER_WIDTH;
-
-        int numOfPrecedingThickBordersAbove = (row - 1) / 3;
-        int numOfPrecedingThinBordersAbove = (row - 1) - numOfPrecedingThickBordersAbove;
-        int y = THICK_BORDER_WIDTH /* left edge */ + (row - 1) * CELL_SIZE /* preceding cells */
-                + numOfPrecedingThickBordersAbove * THICK_BORDER_WIDTH
-                + numOfPrecedingThinBordersAbove * THIN_BORDER_WIDTH;
-
-        return new Point(x, y);
-    }
-
     static Border getBoardBorder() {
         return new LineBorder(BORDER_COLOR, THICK_BORDER_WIDTH);
     }
 
-    static void drawGrid(Graphics2D g) {
+    static void drawGrid(Graphics2D g, GridSize gridSize) {
         Color originalColor = g.getColor();
         Stroke originalStroke = g.getStroke();
         g.setColor(BORDER_COLOR);
@@ -120,33 +84,37 @@ final class UiConstants {
         Stroke thickStroke = new BasicStroke(THICK_BORDER_WIDTH * 2);
 
         // The horizontal lines.
-        int y = THICK_BORDER_WIDTH + CELL_SIZE;
+        int y = THICK_BORDER_WIDTH + gridSize.getCellSize();
         for (int n = 1; n < 9; ++n) {
             boolean thick = (n % 3) == 0;
             g.setStroke(thick ? thickStroke : thinStroke);
-            g.drawLine(0, y, BOARD_SIZE, y);
-            y += CELL_SIZE + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
+            g.drawLine(0, y, gridSize.getBoardSize(), y);
+            y += gridSize.getCellSize() + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
         }
 
         // The vertical lines
-        int x = THICK_BORDER_WIDTH + CELL_SIZE;
+        int x = THICK_BORDER_WIDTH + gridSize.getCellSize();
         for (int n = 1; n < 9; ++n) {
             boolean thick = (n % 3) == 0;
             g.setStroke(thick ? thickStroke : thinStroke);
-            g.drawLine(x, 0, x, BOARD_SIZE);
-            x += CELL_SIZE + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
+            g.drawLine(x, 0, x, gridSize.getBoardSize());
+            x += gridSize.getCellSize() + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
         }
 
         g.setColor(originalColor);
         g.setStroke(originalStroke);
     }
 
-    static void fillCellBackground(Graphics2D g, CellColor cellColor, boolean selected, boolean invalid) {
+    static void fillCellBackground(Graphics2D g, 
+                                   int cellSize, 
+                                   CellColor cellColor, 
+                                   boolean selected, 
+                                   boolean invalid) {
         Color originalColor = g.getColor();
 
         Color bg = getCellBackground(cellColor, selected, invalid);
         g.setColor(bg);
-        g.fillRect(0, 0, CELL_SIZE, CELL_SIZE);
+        g.fillRect(0, 0, cellSize, cellSize);
 
         g.setColor(originalColor);
     }
@@ -161,33 +129,33 @@ final class UiConstants {
         }
     }
 
-    static void drawValue(Graphics2D g, Value value, boolean isGiven) {
+    static void drawValue(Graphics2D g, Value value, boolean isGiven, GridSize gridSize) {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
 
-        g.setFont(VALUE_FONT);
+        g.setFont(gridSize.getValueFont());
         g.setColor(isGiven ? GIVEN_VALUE_COLOR : ENTERED_VALUE_COLOR);
 
         String text = Integer.toString(value.toInt());
-        drawTextCentered(g, VALUE_FONT, text);
+        drawTextCentered(g, gridSize.getValueFont(), text, gridSize);
 
         g.setFont(originalFont);
         g.setColor(originalColor);
     }
 
-    private static void drawTextCentered(Graphics2D g, Font font, String text) {
+    private static void drawTextCentered(Graphics2D g, Font font, String text, GridSize gridSize) {
         FontMetrics metrics = g.getFontMetrics(font);
         // Determine the X coordinate for the text
-        int x = (CELL_SIZE - metrics.stringWidth(text)) / 2;
+        int x = (gridSize.getCellSize() - metrics.stringWidth(text)) / 2;
         // Determine the Y coordinate for the text (note we add the ascent, as in java
         // 2d 0 is top of the screen)
-        int y = ((CELL_SIZE - metrics.getHeight()) / 2) + metrics.getAscent();
+        int y = ((gridSize.getCellSize() - metrics.getHeight()) / 2) + metrics.getAscent();
         // Set the font
         // Draw the String
         g.drawString(text, x, y);
     }
 
-    static void drawPencilMarks(Graphics2D g, PencilMarks pencilMarks) {
+    static void drawPencilMarks(Graphics2D g, PencilMarks pencilMarks, GridSize gridSize) {
         if (pencilMarks.isEmpty()) {
             return;
         }
@@ -195,54 +163,27 @@ final class UiConstants {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
 
-        g.setFont(PENCIL_MARK_FONT);
+        g.setFont(gridSize.getPencilMarkFont());
         g.setColor(PENCIL_MARK_COLOR);
 
         if (pencilMarks.hasCornerMarks()) {
             int num = 1;
             for (Value pencilMark : pencilMarks.iterateOverCornerMarks()) {
                 String text = pencilMark.toString();
-                Point p = getCornerPencilMarkLocation(g, text, num);
+                Point p = gridSize.getCornerPencilMarkLocation(g, text, num);
                 g.drawString(text, p.x, p.y);
                 ++num;
             }
         }
         if (pencilMarks.hasCenterMarks()) {
             String text = pencilMarks.centerAsString();
-            drawTextCentered(g, PENCIL_MARK_FONT, text);
+            drawTextCentered(g, gridSize.getPencilMarkFont(), text, gridSize);
         }
 
         g.setFont(originalFont);
         g.setColor(originalColor);
     }
 
-    private static Point getCornerPencilMarkLocation(Graphics2D g, String text, int pencilMarkNo) {
-        FontMetrics metrics = g.getFontMetrics(g.getFont());
-        switch (pencilMarkNo) {
-        case 1:
-        case 9: // yeah, the 9th pencil mark overwrites the first one...
-            return new Point(4, metrics.getHeight());
-        case 2:
-            return new Point(CELL_SIZE - 4 - metrics.stringWidth(text), metrics.getHeight());
-        case 3:
-            return new Point(4, CELL_SIZE - 4 - metrics.getHeight() + metrics.getAscent());
-        case 4:
-            return new Point(CELL_SIZE - 4 - metrics.stringWidth(text),
-                    CELL_SIZE - 4 - metrics.getHeight() + metrics.getAscent());
-        case 5:
-            return new Point((CELL_SIZE - metrics.stringWidth(text)) / 2, metrics.getHeight());
-        case 6:
-            return new Point((CELL_SIZE - metrics.stringWidth(text)) / 2,
-                    CELL_SIZE - 4 - metrics.getHeight() + metrics.getAscent());
-        case 7:
-            return new Point(4, ((CELL_SIZE - metrics.getHeight()) / 2) + metrics.getAscent());
-        case 8:
-            return new Point(CELL_SIZE - 4 - metrics.stringWidth(text),
-                    ((CELL_SIZE - metrics.getHeight()) / 2) + metrics.getAscent());
-        default:
-            throw new RuntimeException("Unexpected number of pencil marks: " + pencilMarkNo);
-        }
-    }
 
     static void makeOverLarge(AbstractButton button) {
         button.setFont(LARGE_BUTTON_FONT);

@@ -33,6 +33,7 @@ import jetoze.tzudoku.model.Value;
 
 public class GridUiModel {
     private Grid grid;
+    private final GridSize size;
     private ImmutableMap<Position, CellUi> cellUis;
     @Nullable
     private CellUi lastSelectedCell;
@@ -40,10 +41,12 @@ public class GridUiModel {
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
 
-    public GridUiModel(Grid grid) {
+    public GridUiModel(Grid grid, GridSize size) {
         this.grid = requireNonNull(grid);
+        this.size = requireNonNull(size);
         this.cellUis = grid.getCells().entrySet().stream()
-                .collect(ImmutableMap.toImmutableMap(Entry::getKey, e -> new CellUi(e.getKey(), e.getValue())));
+                .collect(ImmutableMap.toImmutableMap(Entry::getKey, 
+                        e -> new CellUi(e.getKey(), e.getValue(), size)));
     }
     
     public void setGrid(Grid grid) {
@@ -58,6 +61,10 @@ public class GridUiModel {
 
     public Grid getGrid() {
         return grid;
+    }
+
+    public GridSize getSize() {
+        return size;
     }
 
     public ImmutableCollection<CellUi> getCells() {

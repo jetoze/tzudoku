@@ -17,6 +17,7 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.ui.ControlPanel;
 import jetoze.tzudoku.ui.GameBoard;
+import jetoze.tzudoku.ui.GridSize;
 import jetoze.tzudoku.ui.GridUi;
 import jetoze.tzudoku.ui.GridUiModel;
 import jetoze.tzudoku.ui.PuzzleUiController;
@@ -39,7 +40,7 @@ public class App {
                 JFrame frame = new JFrame("tzudoku");
                 frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
-                GridUiModel model = new GridUiModel(grid);
+                GridUiModel model = new GridUiModel(grid, GridSize.REGULAR);
                 GridUi gridUi = new GridUi(model);
                 ControlPanel controlPanel = new ControlPanel(model, null);
                 GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
