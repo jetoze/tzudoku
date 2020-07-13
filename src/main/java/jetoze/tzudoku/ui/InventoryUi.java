@@ -1,6 +1,9 @@
 package jetoze.tzudoku.ui;
 
 import java.awt.Component;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 
@@ -32,7 +35,18 @@ public final class InventoryUi implements Widget {
                 PuzzleInfo puzzleInfo = (PuzzleInfo) value;
                 setText(puzzleInfo.getName());
                 setIcon(UiConstants.getPuzzleStateIcon(puzzleInfo.getState()));
+                setToolTipText(buildTooltip(puzzleInfo));
                 return this;
+            }
+            
+            private String buildTooltip(PuzzleInfo puzzleInfo) {
+                DateTimeFormatter fmt = DateTimeFormatter.RFC_1123_DATE_TIME
+                        .withZone(ZoneId.systemDefault());
+                String lastUpdated = puzzleInfo.lastUpdated()
+                        .map(fmt::format)
+                        .orElse("");
+                return String.format("<html><b>Name:</b> %s<br><b>State:</b> %s<br><b>Last Updated: </b>%s</html>", 
+                        puzzleInfo.getName(), puzzleInfo.getState(), lastUpdated);
             }
         });
     }

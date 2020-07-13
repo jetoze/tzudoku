@@ -11,7 +11,11 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
-import java.util.Date;
+import java.time.ZoneId;
+import java.time.ZonedDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
+import java.time.temporal.ChronoUnit;
 import java.util.Properties;
 import java.util.stream.Stream;
 
@@ -79,7 +83,7 @@ public class PuzzleInventory {
     
     private PuzzleInfo toPuzzleInfo(String name) {
         PuzzleState state = getPuzzleState(name);
-        Date lastUpdated = getPuzzleLastUpdated(name);
+        ZonedDateTime lastUpdated = getPuzzleLastUpdated(name);
         return new PuzzleInfo(name, state, lastUpdated);
     }
     
@@ -96,13 +100,13 @@ public class PuzzleInventory {
     }
     
     @Nullable
-    private Date getPuzzleLastUpdated(String name) {
+    private ZonedDateTime getPuzzleLastUpdated(String name) {
         String key = name + LAST_UPDATED_PROPERTY;
         if (puzzleProperties.containsKey(key)) {
             try {
                 String value = puzzleProperties.getProperty(key);
-                return new Date(Long.parseLong(value));
-            } catch (NumberFormatException e) {
+                return ZonedDateTime.parse(value, DateTimeFormatter.ISO_DATE_TIME);
+            } catch (DateTimeParseException e) {
                 e.printStackTrace();
             }
         }
@@ -158,7 +162,9 @@ public class PuzzleInventory {
 
     private void updatePuzzleState(Puzzle puzzle, PuzzleState state) {
         puzzleProperties.setProperty(puzzle.getName() + STATE_PROPERTY, state.name());
-        puzzleProperties.setProperty(puzzle.getName() + LAST_UPDATED_PROPERTY, Long.toString(System.currentTimeMillis()));
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
+        puzzleProperties.setProperty(puzzle.getName() + LAST_UPDATED_PROPERTY, 
+                DateTimeFormatter.ISO_DATE_TIME.format(now));
         saveProperties();
     }
     
