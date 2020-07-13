@@ -25,6 +25,7 @@ import com.google.common.collect.ImmutableMap;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.PuzzleState;
 import jetoze.tzudoku.model.Value;
 
 final class UiConstants {
@@ -70,6 +71,8 @@ final class UiConstants {
     private static final Color PENCIL_MARK_COLOR = ENTERED_VALUE_COLOR;
     
     private static final int COLOR_SELECTION_ICON_SIZE = 16;
+    
+    private static final int PUZZLE_STATE_ICON_SIZE = 8;
     
     private static final ImmutableMap<CellColor, Color> CELL_COLOR_MAP = ImmutableMap.<CellColor, Color>builder()
             .put(CellColor.BLACK, Color.BLACK)
@@ -268,6 +271,20 @@ final class UiConstants {
         return new CellColorIcon(getColorOfCell(cellColor));
     }
     
+    static Icon getPuzzleStateIcon(PuzzleState state) {
+        switch (state) {
+        case NEW:
+            return new PuzzleStateIcon(CELL_COLOR_MAP.get(CellColor.BLUE));
+        case PROGRESS:
+            return new PuzzleStateIcon(CELL_COLOR_MAP.get(CellColor.ORANGE));
+        case SOLVED:
+            return new PuzzleStateIcon(CELL_COLOR_MAP.get(CellColor.GREEN));
+        default:
+            throw new RuntimeException("Unknown state: " + state);
+        }
+    }
+    
+    
     private static class CellColorIcon implements Icon {
         private final Color color;
 
@@ -291,6 +308,33 @@ final class UiConstants {
         @Override
         public int getIconHeight() {
             return COLOR_SELECTION_ICON_SIZE;
+        }
+    }
+    
+    
+    private static class PuzzleStateIcon implements Icon {
+        private final Color color;
+
+        public PuzzleStateIcon(Color color) {
+            this.color = requireNonNull(color);
+        }
+
+        @Override
+        public void paintIcon(Component c, Graphics g, int x, int y) {
+            Color originalColor = g.getColor();
+            g.setColor(color);
+            g.fillOval(x, y, getIconWidth(), getIconHeight());
+            g.setColor(originalColor);
+        }
+
+        @Override
+        public int getIconWidth() {
+            return PUZZLE_STATE_ICON_SIZE;
+        }
+
+        @Override
+        public int getIconHeight() {
+            return PUZZLE_STATE_ICON_SIZE;
         }
     }
     

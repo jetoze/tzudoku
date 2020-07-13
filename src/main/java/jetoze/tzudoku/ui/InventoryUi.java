@@ -29,7 +29,9 @@ public final class InventoryUi implements Widget {
             public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected,
                     boolean cellHasFocus) {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                setText(((PuzzleInfo) value).getName());
+                PuzzleInfo puzzleInfo = (PuzzleInfo) value;
+                setText(puzzleInfo.getName());
+                setIcon(UiConstants.getPuzzleStateIcon(puzzleInfo.getState()));
                 return this;
             }
         });
