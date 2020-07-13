@@ -4,6 +4,9 @@ import static tzeth.preconds.MorePreconditions.*;
 import static java.util.Objects.*;
 
 public class Puzzle {
+    
+    public static final Puzzle EMPTY = new Puzzle("[Empty]", Grid.emptyGrid());
+    
     // TODO: Sandwiches, thermos, killer cages, etc.
     private final String name;
     private final Grid grid;

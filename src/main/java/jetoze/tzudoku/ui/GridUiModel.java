@@ -32,8 +32,8 @@ import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.model.Value;
 
 public class GridUiModel {
-    private final Grid grid;
-    private final ImmutableMap<Position, CellUi> cellUis;
+    private Grid grid;
+    private ImmutableMap<Position, CellUi> cellUis;
     @Nullable
     private CellUi lastSelectedCell;
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
@@ -41,9 +41,20 @@ public class GridUiModel {
     private final List<GridUiModelListener> listeners = new ArrayList<>();
 
     public GridUiModel(Grid grid) {
-        this.grid = grid;
+        setGridImpl(grid, false);
+    }
+    
+    public void setGrid(Grid grid) {
+        setGridImpl(grid, true);
+    }
+    
+    private void setGridImpl(Grid grid, boolean notifyListeners) {
+        this.grid = requireNonNull(grid);
         this.cellUis = grid.getCells().entrySet().stream()
                 .collect(ImmutableMap.toImmutableMap(Entry::getKey, e -> new CellUi(e.getKey(), e.getValue())));
+        if (notifyListeners) {
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        }
     }
 
     public Grid getGrid() {

@@ -24,6 +24,11 @@ public class UndoRedoState {
         transition(redoStack, undoStack, UndoableAction::perform);
     }
 
+    public void clear() {
+        undoStack.clear();
+        redoStack.clear();
+    }
+    
     private void transition(Stack<UndoableAction> from, Stack<UndoableAction> to, Consumer<UndoableAction> work) {
         if (from.isEmpty()) {
             return;
