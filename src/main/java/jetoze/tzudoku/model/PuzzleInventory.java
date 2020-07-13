@@ -9,19 +9,25 @@ import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Date;
 import java.util.Properties;
 import java.util.stream.Stream;
+
+import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
 public class PuzzleInventory {
     // TODO: Add utilities for cleaning up old progress files.
-    // TODO: Keep track of last update. Store in the properties object.
-    // TODO: Archive function.
     
     private static final String FILE_EXTENSION = ".json";
     private static final String PROPERTIES_FILE = ".properties";
+    private static final String STATE_PROPERTY = ".state";
+    private static final String LAST_UPDATED_PROPERTY = ".lastUpdated";
     private static final String PROGRESS_FOLDER = "progress";
+    private static final String ARCHIVE_FOLDER = "archive";
     
     private final File directory;
     private final Properties puzzleProperties = new Properties();
@@ -67,18 +73,34 @@ public class PuzzleInventory {
     
     private PuzzleInfo toPuzzleInfo(String name) {
         PuzzleState state = getPuzzleState(name);
-        return new PuzzleInfo(name, state);
+        Date lastUpdated = getPuzzleLastUpdated(name);
+        return new PuzzleInfo(name, state, lastUpdated);
     }
     
     private PuzzleState getPuzzleState(String name) {
+        String key = name + STATE_PROPERTY;
         try {
-            return puzzleProperties.containsKey(name)
-                    ? PuzzleState.valueOf(puzzleProperties.getProperty(name))
+            return puzzleProperties.containsKey(key)
+                    ? PuzzleState.valueOf(puzzleProperties.getProperty(key))
                     : PuzzleState.NEW;
         } catch (Exception e) {
             e.printStackTrace();
             return PuzzleState.NEW;
         }
+    }
+    
+    @Nullable
+    private Date getPuzzleLastUpdated(String name) {
+        String key = name + LAST_UPDATED_PROPERTY;
+        if (puzzleProperties.containsKey(key)) {
+            try {
+                String value = puzzleProperties.getProperty(key);
+                return new Date(Long.parseLong(value));
+            } catch (NumberFormatException e) {
+                e.printStackTrace();
+            }
+        }
+        return null;
     }
     
     public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
@@ -129,7 +151,8 @@ public class PuzzleInventory {
     }
 
     private void updatePuzzleState(Puzzle puzzle, PuzzleState state) {
-        puzzleProperties.put(puzzle.getName(), state);
+        puzzleProperties.setProperty(puzzle.getName() + STATE_PROPERTY, state.name());
+        puzzleProperties.setProperty(puzzle.getName() + LAST_UPDATED_PROPERTY, Long.toString(System.currentTimeMillis()));
         saveProperties();
     }
     
@@ -142,6 +165,16 @@ public class PuzzleInventory {
             try (FileWriter fw = new FileWriter(file)) {
                 puzzleProperties.store(fw, "");
             }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+    public void archive(PuzzleInfo puzzleInfo) {
+        try {
+            Path source = new File(directory, puzzleInfo.getName() + FILE_EXTENSION).toPath();
+            Path archiveFolder = new File(directory, ARCHIVE_FOLDER).toPath();
+            Files.move(source, archiveFolder.resolve(source.getFileName()), StandardCopyOption.REPLACE_EXISTING);
         } catch (IOException e) {
             e.printStackTrace();
         }
