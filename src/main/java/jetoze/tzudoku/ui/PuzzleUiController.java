@@ -64,7 +64,15 @@ public class PuzzleUiController {
     }
     
     public void checkSolution() {
-        UiThread.offload(puzzleModel::validate, this::displayResult);
+        UiThread.offload(this::validatePuzzle, this::displayResult);
+    }
+    
+    private ValidationResult validatePuzzle() {
+        ValidationResult result = puzzleModel.validate();
+        if (result.isSolved()) {
+            puzzleModel.getInventory().markAsCompleted(puzzleModel.getPuzzle());
+        }
+        return result;
     }
     
     private void displayResult(ValidationResult result) {
