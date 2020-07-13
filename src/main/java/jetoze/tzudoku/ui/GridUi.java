@@ -17,11 +17,12 @@ import javax.swing.event.MouseInputAdapter;
 
 import jetoze.gunga.KeyBindings;
 import jetoze.gunga.KeyStrokes;
+import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class GridUi {
+public class GridUi implements Widget {
     private final GridUiModel model;
     private final MouseHandler mouseHandler = new MouseHandler();
     private final Board board = new Board();
@@ -50,10 +51,16 @@ public class GridUi {
         });
     }
     
+    @Override
     public JComponent getUi() {
         return board;
     }
     
+    @Override
+    public void requestFocus() {
+        model.getCell(new Position(1, 1)).requestFocusInWindow();
+    }
+
     public void clearSelection() {
         model.clearSelection();
     }

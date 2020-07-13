@@ -28,6 +28,21 @@ public class PuzzleUiController {
         UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, this::displayInventoryUi);
     }
     
+    private void displaySelectNewPuzzleUi(ImmutableList<PuzzleInfo> puzzleInfos) {
+        InventoryUi inventoryUi = new InventoryUi(puzzleInfos);
+        CreateNewPuzzleUi createPuzzleUi = new CreateNewPuzzleUi();
+        SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi, createPuzzleUi);
+        int option = JOptionPane.showConfirmDialog(
+                appFrame,
+                selectPuzzleUi.getUi(),
+                "Select a Puzzle",
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+        if (option == JOptionPane.OK_OPTION) {
+            // TODO: Implement me.
+        }
+    }
+    
     private void displayInventoryUi(ImmutableList<PuzzleInfo> puzzleInfos) {
         InventoryUi inventoryUi = new InventoryUi(puzzleInfos);
         // TODO: Use a fancier dialog here. For example, we want:
