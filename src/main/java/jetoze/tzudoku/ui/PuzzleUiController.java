@@ -17,10 +17,12 @@ public class PuzzleUiController {
     
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
+    private final StatusPanel statusPanel;
     
-    public PuzzleUiController(JFrame appFrame, PuzzleUiModel model) {
+    public PuzzleUiController(JFrame appFrame, PuzzleUiModel model, StatusPanel statusPanel) {
         this.appFrame = requireNonNull(appFrame);
         this.puzzleModel = requireNonNull(model);
+        this.statusPanel = requireNonNull(statusPanel);
     }
     
     public void selectPuzzle() {
@@ -68,7 +70,7 @@ public class PuzzleUiController {
             UiThread.offload(() -> {
                 puzzleModel.getInventory().saveProgress(puzzle);
                 return null;
-            }, v -> {});
+            }, v -> statusPanel.setStatus("Puzzle was saved."));
         }
     }
     
