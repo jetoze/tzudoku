@@ -17,6 +17,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 public final class Grid {
@@ -129,15 +130,15 @@ public final class Grid {
     }
 
     public Stream<Cell> getRow(int n) {
-        return Position.positionsInRow(n).stream().map(cells::get);
+        return Position.positionsInRow(n).map(cells::get);
     }
 
     public Stream<Cell> getColumn(int n) {
-        return Position.positionsInColumn(n).stream().map(cells::get);
+        return Position.positionsInColumn(n).map(cells::get);
     }
 
     private Stream<Cell> getBox(int n) {
-        return Position.positionsInBox(n).stream().map(cells::get);
+        return Position.positionsInBox(n).map(cells::get);
     }
 
     public ValidationResult validate() {
@@ -147,16 +148,21 @@ public final class Grid {
             .filter(e -> !e.getValue().hasValue())
             .map(Entry::getKey)
             .forEach(invalidPositions::add);
-        // Duplicates in rows, columns, and boxes
-        for (int n = 1; n <= 9; ++n) {
-            collectDuplicates(Position.positionsInRow(n), invalidPositions);
-            collectDuplicates(Position.positionsInColumn(n), invalidPositions);
-            collectDuplicates(Position.positionsInRow(n), invalidPositions);
-        }
+        invalidPositions.addAll(getCellsWithDuplicateValues());
         return new ValidationResult(invalidPositions);
     }
+
+    public ImmutableSet<Position> getCellsWithDuplicateValues() {
+        ImmutableSet.Builder<Position> bin = ImmutableSet.builder();
+        for (int n = 1; n <= 9; ++n) {
+            collectDuplicates(Position.positionsInRow(n), bin);
+            collectDuplicates(Position.positionsInColumn(n), bin);
+            collectDuplicates(Position.positionsInRow(n), bin);
+        }
+        return bin.build();
+    }
     
-    private void collectDuplicates(Collection<Position> positions, Set<Position> bin) {
+    private void collectDuplicates(Stream<Position> positions, ImmutableSet.Builder<Position> bin) {
         Multimap<Value, Position> mm = HashMultimap.create();
         positions.forEach(p -> {
             Cell c = cells.get(p);
@@ -175,10 +181,8 @@ public final class Grid {
             if (row >= 2) {
                 output.append(System.getProperty("line.separator"));
             }
-            for (Position p : Position.positionsInRow(row)) {
-                Cell cell = cells.get(p);
-                cell.getValue().ifPresentOrElse(output::append, () -> output.append("x"));
-            }
+            Position.positionsInRow(row).map(cells::get).map(Cell::getValue)
+                .forEach(v -> v.ifPresentOrElse(output::append, () -> output.append("x")));
         }
         return output.toString();
     }

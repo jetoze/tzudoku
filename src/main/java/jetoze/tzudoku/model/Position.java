@@ -1,11 +1,10 @@
 package jetoze.tzudoku.model;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 import java.util.stream.IntStream;
-
-import com.google.common.collect.ImmutableList;
+import java.util.stream.Stream;
 
 public class Position {
     private final int row;
@@ -76,19 +75,17 @@ public class Position {
         return Objects.hash(row, column);
     }
 
-    public static ImmutableList<Position> positionsInRow(int row) {
+    public static Stream<Position> positionsInRow(int row) {
         checkRow(row);
-        return IntStream.rangeClosed(1, 9).mapToObj(col -> new Position(row, col))
-                .collect(ImmutableList.toImmutableList());
+        return IntStream.rangeClosed(1, 9).mapToObj(col -> new Position(row, col));
     }
 
-    public static ImmutableList<Position> positionsInColumn(int column) {
+    public static Stream<Position> positionsInColumn(int column) {
         checkColumn(column);
-        return IntStream.rangeClosed(1, 9).mapToObj(row -> new Position(row, column))
-                .collect(ImmutableList.toImmutableList());
+        return IntStream.rangeClosed(1, 9).mapToObj(row -> new Position(row, column));
     }
 
-    public static ImmutableList<Position> positionsInBox(int box) {
+    public static Stream<Position> positionsInBox(int box) {
         checkArgument(box > 0 && box <= 9, "box must be in [1,9], was %s", box);
         // 1, 2, 3 --> 1 3 * ((box - 1) / 3) + 1
         // 4, 5, 6 --> 4
@@ -99,7 +96,7 @@ public class Position {
         // 3, 6, 9 --> 7
         int firstRow = 3 * ((box - 1) / 3) + 1;
         int firstCol = 1 + ((box - 1) % 3) * 3;
-        return ImmutableList.of(Position.of(firstRow, firstCol), Position.of(firstRow, firstCol + 1),
+        return Stream.of(Position.of(firstRow, firstCol), Position.of(firstRow, firstCol + 1),
                 Position.of(firstRow, firstCol + 2), Position.of(firstRow + 1, firstCol),
                 Position.of(firstRow + 1, firstCol + 1), Position.of(firstRow + 1, firstCol + 2),
                 Position.of(firstRow + 2, firstCol), Position.of(firstRow + 2, firstCol + 1),

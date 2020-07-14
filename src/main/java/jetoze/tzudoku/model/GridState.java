@@ -31,7 +31,7 @@ public class GridState {
         for (int r = 1; r <= 9; ++r) {
             StringBuilder givenValuesInRow = new StringBuilder();
             StringBuilder enteredValuesInRow = new StringBuilder();
-            for (Position p : Position.positionsInRow(r)) {
+            Position.positionsInRow(r).forEach(p -> {
                 Cell cell = grid.cellAt(p);
                 String value = cell.getValue().map(Object::toString).orElse("x");
                 if (cell.isGiven()) {
@@ -40,12 +40,9 @@ public class GridState {
                 } else {
                     enteredValuesInRow.append(value);
                     givenValuesInRow.append("x");
-                    storeAdditionalState(p, cell);
                 }
-                if (cell.hasNewInformation()) {
-                    
-                }
-            }
+                storeAdditionalState(p, cell);
+            });
             given.add(givenValuesInRow.toString());
             entered.add(enteredValuesInRow.toString());
         }
