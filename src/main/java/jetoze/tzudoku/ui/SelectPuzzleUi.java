@@ -1,11 +1,13 @@
 package jetoze.tzudoku.ui;
 
+import static com.google.common.base.Preconditions.checkState;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.event.ItemEvent;
 import java.awt.event.ItemListener;
+import java.util.Optional;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
@@ -13,9 +15,17 @@ import javax.swing.JPanel;
 import javax.swing.JRadioButton;
 
 import jetoze.gunga.widget.Widget;
+import jetoze.tzudoku.model.Puzzle;
+import jetoze.tzudoku.model.PuzzleInfo;
 
 final class SelectPuzzleUi implements Widget {
-    // TODO: Disable the option that is not currently selected.
+    
+    // TODO: Validation
+    
+    static enum Mode {
+        EXISTING,
+        NEW
+    }
     
     private JRadioButton selectExistingPuzzleOption = new JRadioButton("Select existing puzzle", true);
     private JRadioButton createNewPuzzleOption = new JRadioButton("Create new puzzle");
@@ -30,22 +40,43 @@ final class SelectPuzzleUi implements Widget {
         buttonGroup.add(createNewPuzzleOption);
         ItemListener itemListener = e -> {
             if (e.getStateChange() == ItemEvent.SELECTED) {
-                Object source = e.getSource();
-                if (source == selectExistingPuzzleOption) {
-                    createPuzzleUi.setEnabled(false);
-                    inventoryUi.setEnabled(true);
-                    inventoryUi.requestFocus();
-                } else {
-                    inventoryUi.setEnabled(false);
-                    createPuzzleUi.setEnabled(true);
-                    createPuzzleUi.requestFocus();
-                }
+                updateOptionStates();
             }
         };
         selectExistingPuzzleOption.addItemListener(itemListener);
         createNewPuzzleOption.addItemListener(itemListener);
+        updateOptionStates();
+    }
+    
+    private void updateOptionStates() {
+        if (getMode() == Mode.EXISTING) {
+            createPuzzleUi.setEnabled(false);
+            inventoryUi.setEnabled(true);
+            inventoryUi.requestFocus();
+        } else {
+            inventoryUi.setEnabled(false);
+            createPuzzleUi.setEnabled(true);
+            createPuzzleUi.requestFocus();
+        }
     }
 
+    public Mode getMode() {
+        return selectExistingPuzzleOption.isSelected()
+                ? Mode.EXISTING
+                : Mode.NEW;
+    }
+    
+    
+    public Optional<PuzzleInfo> getSelectedExistingPuzzle() {
+        checkState(getMode() == Mode.EXISTING);
+        return inventoryUi.getSelectedPuzzle();
+    }
+    
+    public Puzzle getNewPuzzleTemplate() {
+        checkState(getMode() == Mode.NEW);
+        return createPuzzleUi.getPuzzle();
+    }
+    
     @Override
     public JComponent getUi() {
         JPanel p = new JPanel(new GridBagLayout());

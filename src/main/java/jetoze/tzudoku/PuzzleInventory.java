@@ -113,6 +113,18 @@ public class PuzzleInventory {
         return null;
     }
     
+    public void addNewPuzzle(Puzzle puzzle) throws IOException {
+        File file = getPuzzleFile(puzzle.getName());
+        if (file.exists()) {
+            throw new IllegalArgumentException("A puzzle with the same name already exists: " + puzzle.getName());
+        }
+        GridState gridState = new GridState(puzzle.getGrid());
+        String json = gridState.toJson();
+        Files.writeString(file.toPath(), json);
+        puzzleProperties.setProperty(puzzle.getName() + STATE_PROPERTY, PuzzleState.NEW.name());
+        saveProperties();
+    }
+    
     public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
         File file = getPuzzleFile(info);
         String json = Files.readString(file.toPath());
@@ -128,7 +140,11 @@ public class PuzzleInventory {
                 return file;
             }
         }
-        return new File(directory, info.getName() + FILE_EXTENSION);
+        return getPuzzleFile(info.getName());
+    }
+
+    private File getPuzzleFile(String name) {
+        return new File(directory, name + FILE_EXTENSION);
     }
 
     public void markAsCompleted(Puzzle puzzle) {

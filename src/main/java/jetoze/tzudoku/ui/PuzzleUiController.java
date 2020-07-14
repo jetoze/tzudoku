@@ -1,6 +1,6 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
@@ -32,15 +32,8 @@ public class PuzzleUiController {
         InventoryUi inventoryUi = new InventoryUi(puzzleInfos);
         CreateNewPuzzleUi createPuzzleUi = new CreateNewPuzzleUi();
         SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi, createPuzzleUi);
-        int option = JOptionPane.showConfirmDialog(
-                appFrame,
-                selectPuzzleUi.getUi(),
-                "Select a Puzzle",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
-        if (option == JOptionPane.OK_OPTION) {
-            // TODO: Implement me.
-        }
+        SelectPuzzleController controller = new SelectPuzzleController(appFrame, puzzleModel, selectPuzzleUi);
+        controller.openUi();
     }
     
     private void displayInventoryUi(ImmutableList<PuzzleInfo> puzzleInfos) {

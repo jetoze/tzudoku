@@ -9,6 +9,7 @@ import jetoze.gunga.KeyBindings;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Puzzle;
 
 final class CreateNewPuzzleUi implements Widget {
 
@@ -39,6 +40,16 @@ final class CreateNewPuzzleUi implements Widget {
                 .build();
         gridUi.registerActions(KeyBindings.whenAncestorOfFocusedComponent(ui));
         return ui;
+    }
+    
+    public Puzzle getPuzzle() {
+        // TODO: This will throw a RuntimeException if the name is blank.
+        // We need validation.
+        // TODO: Name validation. We use the name as a filename, so it can't contain
+        // certain characters or have certain values. (This is unfortunate. We shouldn't tie
+        // the name of the puzzle to the name of the file we store the puzzle in.)
+        String name = nameField.getText().strip().replace(' ', '_');
+        return new Puzzle(name, model.getGrid());
     }
 
     @Override

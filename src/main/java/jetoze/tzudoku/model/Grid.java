@@ -9,6 +9,7 @@ import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -88,6 +89,11 @@ public final class Grid {
             }
         }
         this.cells = mapBuilder.build();
+    }
+    
+    public Grid(Map<Position, Cell> cells) {
+        checkArgument(cells.size() == 81, "Must provide 81 cells");
+        this.cells = ImmutableMap.copyOf(cells);
     }
 
     public ImmutableMap<Position, Cell> getCells() {
