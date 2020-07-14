@@ -1,9 +1,11 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.awt.Graphics;
 import java.awt.Graphics2D;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import javax.swing.JComponent;
 
@@ -24,6 +26,14 @@ class CellUi extends JComponent {
         this.cell = requireNonNull(cell);
         this.gridSize = requireNonNull(gridSize);
         setOpaque(true);
+        setFocusable(true);
+        addMouseListener(new MouseAdapter() {
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                requestFocusInWindow();
+            }
+        });
     }
 
     public Cell getCell() {
