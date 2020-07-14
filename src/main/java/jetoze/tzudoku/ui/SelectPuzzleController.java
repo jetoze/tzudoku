@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -84,6 +85,7 @@ public class SelectPuzzleController {
         UiThread.offload(() -> createPuzzleFromTemplate(template), this::puzzleLoaded);
     }
     
+    @Nullable
     private Puzzle createPuzzleFromTemplate(Puzzle template) {
         // The template contains only user-inputted values. We must convert it to
         // a grid of given values.

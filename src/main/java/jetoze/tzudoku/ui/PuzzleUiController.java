@@ -70,7 +70,7 @@ public class PuzzleUiController {
             UiThread.offload(() -> {
                 puzzleModel.getInventory().saveProgress(puzzle);
                 return null;
-            }, v -> statusPanel.setStatus("Puzzle was saved."));
+            }, v -> statusPanel.setStatus("Puzzle was saved."), true);
         }
     }
     
