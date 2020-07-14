@@ -30,6 +30,7 @@ final class CreateNewPuzzleUi implements Widget {
 
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
+        gridUi.setEnabled(false);
         
         JPanel ui = Layouts.border()
                 .withVerticalGap(8)
@@ -43,6 +44,11 @@ final class CreateNewPuzzleUi implements Widget {
     @Override
     public void requestFocus() {
         gridUi.requestFocus();
+    }
+    
+    public void setEnabled(boolean enabled) {
+        gridUi.setEnabled(enabled);
+        nameField.setEnabled(enabled);
     }
 
 }

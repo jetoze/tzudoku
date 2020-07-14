@@ -38,6 +38,8 @@ final class UiConstants {
     private static final Color INVALID_CELL_COLOR = new Color(0xd8, 0x9d, 0x9e);
 
     private static final Color BORDER_COLOR = Color.BLACK;
+    
+    private static final Color DISABLED_BORDER_COLOR = Color.GRAY;
 
     private static final int LARGE_BUTTON_FONT_SIZE = 20;
 
@@ -52,6 +54,8 @@ final class UiConstants {
     private static final Color GIVEN_VALUE_COLOR = Color.BLACK;
 
     private static final Color ENTERED_VALUE_COLOR = new Color(0x24, 0x6e, 0xe2);
+    
+    private static final Color DISABLED_VALUE_COLOR = Color.GRAY;
 
     private static final Color PENCIL_MARK_COLOR = ENTERED_VALUE_COLOR;
     
@@ -71,14 +75,14 @@ final class UiConstants {
             .put(CellColor.BLUE, new Color(0x9e, 0xdd, 0xf1))
             .build();
 
-    static Border getBoardBorder() {
-        return new LineBorder(BORDER_COLOR, THICK_BORDER_WIDTH);
+    static Border getBoardBorder(boolean enabled) {
+        return new LineBorder(enabled ? BORDER_COLOR : DISABLED_BORDER_COLOR, THICK_BORDER_WIDTH);
     }
 
-    static void drawGrid(Graphics2D g, GridSize gridSize) {
+    static void drawGrid(Graphics2D g, GridSize gridSize, boolean enabled) {
         Color originalColor = g.getColor();
         Stroke originalStroke = g.getStroke();
-        g.setColor(BORDER_COLOR);
+        g.setColor(enabled ? BORDER_COLOR : DISABLED_BORDER_COLOR);
 
         Stroke thinStroke = new BasicStroke(THIN_BORDER_WIDTH * 2);
         Stroke thickStroke = new BasicStroke(THICK_BORDER_WIDTH * 2);
@@ -129,12 +133,16 @@ final class UiConstants {
         }
     }
 
-    static void drawValue(Graphics2D g, Value value, boolean isGiven, GridSize gridSize) {
+    static void drawValue(Graphics2D g, Value value, boolean given, boolean enabled, GridSize gridSize) {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
 
         g.setFont(gridSize.getValueFont());
-        g.setColor(isGiven ? GIVEN_VALUE_COLOR : ENTERED_VALUE_COLOR);
+        if (enabled) {
+            g.setColor(given ? GIVEN_VALUE_COLOR : ENTERED_VALUE_COLOR);
+        } else {
+            g.setColor(DISABLED_VALUE_COLOR);
+        }
 
         String text = Integer.toString(value.toInt());
         drawTextCentered(g, gridSize.getValueFont(), text, gridSize);

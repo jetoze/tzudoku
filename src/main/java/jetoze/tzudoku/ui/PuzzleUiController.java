@@ -25,7 +25,7 @@ public class PuzzleUiController {
     
     public void selectPuzzle() {
         // TODO: Allow input of a new Puzzle, using a Grid of size SMALL.
-        UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, this::displayInventoryUi);
+        UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, this::displaySelectNewPuzzleUi);
     }
     
     private void displaySelectNewPuzzleUi(ImmutableList<PuzzleInfo> puzzleInfos) {

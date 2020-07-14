@@ -4,6 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.event.ItemEvent;
+import java.awt.event.ItemListener;
 
 import javax.swing.ButtonGroup;
 import javax.swing.JComponent;
@@ -26,6 +28,22 @@ final class SelectPuzzleUi implements Widget {
         ButtonGroup buttonGroup = new ButtonGroup();
         buttonGroup.add(selectExistingPuzzleOption);
         buttonGroup.add(createNewPuzzleOption);
+        ItemListener itemListener = e -> {
+            if (e.getStateChange() == ItemEvent.SELECTED) {
+                Object source = e.getSource();
+                if (source == selectExistingPuzzleOption) {
+                    createPuzzleUi.setEnabled(false);
+                    inventoryUi.setEnabled(true);
+                    inventoryUi.requestFocus();
+                } else {
+                    inventoryUi.setEnabled(false);
+                    createPuzzleUi.setEnabled(true);
+                    createPuzzleUi.requestFocus();
+                }
+            }
+        };
+        selectExistingPuzzleOption.addItemListener(itemListener);
+        createNewPuzzleOption.addItemListener(itemListener);
     }
 
     @Override

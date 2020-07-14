@@ -66,4 +66,8 @@ public final class InventoryUi implements Widget {
     public void requestFocus() {
         list.requestFocus();
     }
+    
+    public void setEnabled(boolean enabled) {
+        list.setEnabled(enabled);
+    }
 }
