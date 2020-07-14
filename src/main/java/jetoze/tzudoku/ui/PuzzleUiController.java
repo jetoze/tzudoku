@@ -2,6 +2,9 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.util.concurrent.Callable;
+import java.util.function.Consumer;
+
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -15,6 +18,8 @@ import jetoze.tzudoku.model.ValidationResult;
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
     
+    private static final boolean ALLOW_CREATING_NEW_PUZZLE_FROM_OPENING_DIALOG = true;
+    
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
     private final StatusPanel statusPanel;
@@ -27,7 +32,10 @@ public class PuzzleUiController {
     
     public void selectPuzzle() {
         // TODO: Allow input of a new Puzzle, using a Grid of size SMALL.
-        UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, this::displaySelectNewPuzzleUi);
+        Consumer<? super ImmutableList<PuzzleInfo>> uiPublisher = ALLOW_CREATING_NEW_PUZZLE_FROM_OPENING_DIALOG
+                ? this::displaySelectNewPuzzleUi
+                : this::displayInventoryUi;
+        UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, uiPublisher);
     }
     
     private void displaySelectNewPuzzleUi(ImmutableList<PuzzleInfo> puzzleInfos) {
@@ -66,12 +74,19 @@ public class PuzzleUiController {
     
     public void saveProgress() {
         Puzzle puzzle = puzzleModel.getPuzzle();
-        if (!puzzle.isEmpty()) {
-            UiThread.offload(() -> {
-                puzzleModel.getInventory().saveProgress(puzzle);
-                return null;
-            }, v -> statusPanel.setStatus("Puzzle was saved."), true);
+        if (puzzle.isEmpty()) {
+            return;
         }
+        Callable<Void> work = () -> {
+            puzzleModel.getInventory().saveProgress(puzzle);
+            return null;
+        };
+        Consumer<? super Void> whenDone = v -> statusPanel.setStatus("Puzzle was saved.");
+        Consumer<? super Throwable> exceptionHandler = e -> {
+            String errorMessage = "Failed to save the puzzle: " + e.getMessage();
+            statusPanel.setStatus(errorMessage, 10);
+        };
+        UiThread.offload(work,  whenDone, true, exceptionHandler);
     }
     
     public void checkSolution() {
