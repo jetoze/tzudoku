@@ -35,7 +35,7 @@ public class GridUi implements Widget {
             board.add(c);
         });
         board.setBounds(0, 0, model.getSize().getBoardSize(), model.getSize().getBoardSize());
-        board.setBorder(UiConstants.getBoardBorder(true));
+        board.setBorder(UiLook.getBoardBorder(true));
         model.addListener(new GridUiModelListener() {
 
             @Override
@@ -62,7 +62,7 @@ public class GridUi implements Widget {
     
     public void setEnabled(boolean enabled) {
         board.setEnabled(enabled);
-        board.setBorder(UiConstants.getBoardBorder(enabled));
+        board.setBorder(UiLook.getBoardBorder(enabled));
         board.setFocusable(false);
         model.getCells().forEach(c -> {
             c.setEnabled(enabled);
@@ -149,7 +149,7 @@ public class GridUi implements Widget {
         protected void paintComponent(Graphics g) {
             g.fillRect(0, 0, getWidth(), getWidth());
             super.paintComponent(g);
-            UiConstants.drawGrid((Graphics2D) g, model.getSize(), isEnabled());
+            UiLook.drawGrid((Graphics2D) g, model.getSize(), isEnabled());
         }
 
         @Override

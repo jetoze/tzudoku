@@ -1,6 +1,6 @@
 package jetoze.tzudoku.ui;
 
-import static jetoze.tzudoku.ui.UiConstants.*;
+import static jetoze.tzudoku.ui.UiLook.*;
 
 import java.awt.Font;
 import java.awt.FontMetrics;

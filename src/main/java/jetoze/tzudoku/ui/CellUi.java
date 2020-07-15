@@ -68,18 +68,18 @@ class CellUi extends JComponent {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        UiConstants.fillCellBackground(g2, gridSize.getCellSize(), cell.getColor(), selected, invalid);
+        UiLook.fillCellBackground(g2, gridSize.getCellSize(), cell.getColor(), selected, invalid);
         cell.getValue().ifPresentOrElse(value -> renderValue(g2, value), () -> renderPencilMarks(g2));
     }
 
     private void renderValue(Graphics2D g, Value value) {
-        UiConstants.drawValue(g, value, cell.isGiven(), isEnabled(), gridSize);
+        UiLook.drawValue(g, value, cell.isGiven(), isEnabled(), gridSize);
     }
 
     private void renderPencilMarks(Graphics2D g) {
         PencilMarks marks = cell.getPencilMarks();
         if (!marks.isEmpty()) {
-            UiConstants.drawPencilMarks(g, marks, gridSize);
+            UiLook.drawPencilMarks(g, marks, gridSize);
         }
     }
 }

@@ -17,17 +17,20 @@ import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.UIManager;
+import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 import com.google.common.collect.ImmutableMap;
 
+import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.PuzzleState;
 import jetoze.tzudoku.model.Value;
 
-final class UiConstants {
+public final class UiLook {
 
     static final int THICK_BORDER_WIDTH = 3;
 
@@ -76,6 +79,20 @@ final class UiConstants {
             .put(CellColor.RED, new Color(0xf1, 0x94, 0x94))
             .put(CellColor.BLUE, new Color(0x9e, 0xdd, 0xf1))
             .build();
+    
+    public static void installNimbus() {
+        UiThread.throwIfNotUiThread();
+        try {
+            for (LookAndFeelInfo info : UIManager.getInstalledLookAndFeels()) {
+                if ("Nimbus".equals(info.getName())) {
+                    UIManager.setLookAndFeel(info.getClassName());
+                    break;
+                }
+            }
+        } catch (Exception e) {
+            // If Nimbus is not available, you can set the GUI to another look and feel.
+        }
+    }
 
     static Border getBoardBorder(boolean enabled) {
         return new LineBorder(enabled ? BORDER_COLOR : DISABLED_BORDER_COLOR, THICK_BORDER_WIDTH);
@@ -295,6 +312,6 @@ final class UiConstants {
     
     
 
-    private UiConstants() {/**/}
+    private UiLook() {/**/}
 
 }

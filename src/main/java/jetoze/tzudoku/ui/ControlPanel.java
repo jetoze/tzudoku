@@ -69,10 +69,10 @@ public class ControlPanel {
         buttonGroup.add(cornerPencilMarkModeButton);
         buttonGroup.add(centerPencilMarkModeButton);
         buttonGroup.add(colorModeButton);
-        UiConstants.makeOverLarge(normalModeButton);
-        UiConstants.makeOverLarge(cornerPencilMarkModeButton);
-        UiConstants.makeOverLarge(centerPencilMarkModeButton);
-        UiConstants.makeOverLarge(colorModeButton);
+        UiLook.makeOverLarge(normalModeButton);
+        UiLook.makeOverLarge(cornerPencilMarkModeButton);
+        UiLook.makeOverLarge(centerPencilMarkModeButton);
+        UiLook.makeOverLarge(colorModeButton);
         onNewValueMode(model.getEnterValueMode());
     }
 
@@ -124,7 +124,7 @@ public class ControlPanel {
         
         
         List<JButton> valueButtons = valueActions.stream()
-                .map(UiConstants::createValueButton)
+                .map(UiLook::createValueButton)
                 .collect(toList());
         c.gridx = 2;
         c.gridy = 0;
@@ -171,7 +171,7 @@ public class ControlPanel {
 
     private static JButton largeButton(String text, Runnable work) {
         JButton b = new JButton(createAction(text, work));
-        UiConstants.makeOverLarge(b);
+        UiLook.makeOverLarge(b);
         return b;
     }
 
@@ -215,7 +215,7 @@ public class ControlPanel {
         public void update(EnterValueMode mode) {
             if (mode == EnterValueMode.COLOR) {
                 CellColor cellColor = CellColor.fromValue(value);
-                Icon icon = UiConstants.getCellColorSelectionIcon(cellColor);
+                Icon icon = UiLook.getCellColorSelectionIcon(cellColor);
                 putValue(Action.NAME, null);
                 putValue(Action.SMALL_ICON, icon);
             } else {

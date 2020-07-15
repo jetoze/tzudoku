@@ -33,7 +33,7 @@ public final class InventoryUi implements Widget {
                 super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                 PuzzleInfo puzzleInfo = (PuzzleInfo) value;
                 setText(puzzleInfo.getName());
-                setIcon(UiConstants.getPuzzleStateIcon(puzzleInfo.getState()));
+                setIcon(UiLook.getPuzzleStateIcon(puzzleInfo.getState()));
                 setToolTipText(buildTooltip(puzzleInfo));
                 return this;
             }
