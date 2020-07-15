@@ -83,12 +83,22 @@ public class PuzzleInventory {
     public void addNewPuzzle(Puzzle puzzle) throws IOException {
         checkArgument(!puzzleInfos.containsKey(puzzle.getName()),
                 "A puzzle with the same name already exists: %s", puzzle.getName());
-        File file = getPuzzleFile(puzzle.getName());
+        String id = getPuzzleId(puzzle.getName());
+        File file = getPuzzleFile(id);
+        savePuzzleToDisk(puzzle, file);
+        puzzleInfos.put(puzzle.getName(), new PuzzleInfo(puzzle.getName(), PuzzleState.NEW, null));
+        puzzleProperties.addPuzzle(puzzle, id);
+        puzzleProperties.save();
+    }
+    
+    private String getPuzzleId(String puzzleName) {
+        return puzzleName.replace(' ', '_');
+    }
+
+    private void savePuzzleToDisk(Puzzle puzzle, File target) throws IOException {
         PuzzleStorageRepresentation gridState = new PuzzleStorageRepresentation(puzzle);
         String json = gridState.toJson();
-        Files.writeString(file.toPath(), json);
-        puzzleProperties.addPuzzle(puzzle, getPuzzleId(file));
-        puzzleProperties.save();
+        Files.writeString(target.toPath(), json);
     }
     
     public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
@@ -99,22 +109,23 @@ public class PuzzleInventory {
     }
     
     private File getPuzzleFile(PuzzleInfo info) {
+        String id = getPuzzleId(info.getName());
         if (info.getState() == PuzzleState.PROGRESS) {
-            File file = getProgressFile(info.getName());
+            File file = getProgressFile(id);
             if (file.canRead()) {
                 return file;
             }
         }
-        return getPuzzleFile(info.getName());
+        return getPuzzleFile(id);
     }
 
-    private File getPuzzleFile(String name) {
-        String id = getPuzzleId(name);
+    private File getPuzzleFile(String id) {
         return new File(directory, id + FILE_EXTENSION);
     }
 
     public void markAsCompleted(Puzzle puzzle) {
-        updatePuzzleState(puzzle, PuzzleState.SOLVED);
+        String id = getPuzzleId(puzzle.getName());
+        updatePuzzleState(id, PuzzleState.SOLVED);
         // TODO: Delete progress file, if one exists?
     }
     
@@ -122,33 +133,21 @@ public class PuzzleInventory {
         if (puzzle.isSolved()) {
             markAsCompleted(puzzle);
         } else {
-            savePuzzleProgressToDisk(puzzle);
-            updatePuzzleState(puzzle, PuzzleState.PROGRESS);
+            // TODO: Do not overwrite previous saves. For example, append timestamp to
+            // the file name. Then add utilities for loading an earlier save.
+            String id = getPuzzleId(puzzle.getName());
+            File progressFile = getProgressFile(id);
+            savePuzzleToDisk(puzzle, progressFile);
+            updatePuzzleState(id, PuzzleState.PROGRESS);
         }
     }
-    
-    private String getPuzzleId(String puzzleName) {
-        return puzzleName.replace(' ', '_');
-    }
 
-    private void savePuzzleProgressToDisk(Puzzle puzzle) throws IOException {
-        // TODO: Do not overwrite previous saves. For example, append timestamp to
-        // the file name. Then add utilities for loading an earlier save.
-        PuzzleStorageRepresentation p = new PuzzleStorageRepresentation(puzzle);
-        String json = p.toJson();
-        File progressFile = getProgressFile(puzzle.getName());
-        Files.writeString(progressFile.toPath(), json);
-    }
-
-    private File getProgressFile(String puzzleName) {
+    private File getProgressFile(String id) {
         File progressFolder = new File(directory, PROGRESS_FOLDER);
-        // TODO: Translate puzzle name to file name.
-        File progressFile = new File(progressFolder, puzzleName + "_progress" + FILE_EXTENSION);
-        return progressFile;
+        return new File(progressFolder, id + "_progress" + FILE_EXTENSION);
     }
 
-    private void updatePuzzleState(Puzzle puzzle, PuzzleState state) {
-        String id = getPuzzleId(puzzle.getName());
+    private void updatePuzzleState(String id, PuzzleState state) {
         puzzleProperties.setState(id, state);
         puzzleProperties.save();
     }
