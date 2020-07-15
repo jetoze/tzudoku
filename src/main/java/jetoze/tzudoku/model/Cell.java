@@ -1,8 +1,7 @@
 package jetoze.tzudoku.model;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
-import java.util.Objects;
 import java.util.Optional;
 
 import javax.annotation.Nullable;
@@ -102,26 +101,6 @@ public class Cell {
     }
 
     @Override
-    public int hashCode() {
-        return Objects.hash(value, given, color, pencilMarks);
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj instanceof Cell) {
-            Cell that = (Cell) obj;
-            return (this.value == that.value) && 
-                    (this.given == that.given) &&
-                    (this.color == that.color) &&
-                    this.pencilMarks.equals(that.pencilMarks);
-        }
-        return false;
-    }
-
-    @Override
     public String toString() {
         StringBuilder s = new StringBuilder();
         s.append(getValue().map(Value::toString).orElse("x"));
@@ -133,6 +112,4 @@ public class Cell {
         s.append("[").append(color.name()).append("]");
         return s.toString();
     }
-    
-    
 }
