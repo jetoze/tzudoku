@@ -50,10 +50,6 @@ public class PuzzleInventory {
         puzzleProperties.load();
         this.puzzleInfos = load();
     }
-    
-    public ImmutableList<PuzzleInfo> listAvailablePuzzles() {
-        return ImmutableList.copyOf(puzzleInfos.values());
-    }
 
     private Map<String, PuzzleInfo> load() {
         File[] files = directory.listFiles((dir, name) -> name.endsWith(FILE_EXTENSION));
@@ -80,6 +76,10 @@ public class PuzzleInventory {
         return new PuzzleInfo(name, state, lastUpdated);
     }
     
+    public ImmutableList<PuzzleInfo> listAvailablePuzzles() {
+        return ImmutableList.copyOf(puzzleInfos.values());
+    }
+
     public void addNewPuzzle(Puzzle puzzle) throws IOException {
         checkArgument(!puzzleInfos.containsKey(puzzle.getName()),
                 "A puzzle with the same name already exists: %s", puzzle.getName());
@@ -161,6 +161,17 @@ public class PuzzleInventory {
         puzzleProperties.save();
     }
     
+    public String getAvailablePuzzleName(String template) {
+        for(int n = 0; n < Short.MAX_VALUE; ++n) {
+            String name = (n == 0)
+                    ? template
+                    : String.format("%s (%d)", template, n);
+            if (!puzzleInfos.containsKey(name)) {
+                return name;
+            }
+        }
+        throw new RuntimeException("Clean up the inventory, please!");
+    }
     
     
     private static class PuzzleProperties {
