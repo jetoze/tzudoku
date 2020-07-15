@@ -41,6 +41,7 @@ public class PuzzleUiController {
     private void displaySelectNewPuzzleUi(ImmutableList<PuzzleInfo> puzzleInfos) {
         InventoryUi inventoryUi = new InventoryUi(puzzleInfos);
         CreateNewPuzzleUi createPuzzleUi = new CreateNewPuzzleUi();
+        createPuzzleUi.setSuggestedName(puzzleModel.getInventory().getAvailablePuzzleName("New Puzzle"));
         SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi, createPuzzleUi);
         SelectPuzzleController controller = new SelectPuzzleController(appFrame, puzzleModel, selectPuzzleUi);
         controller.openUi();

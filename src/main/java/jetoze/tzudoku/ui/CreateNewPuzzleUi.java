@@ -15,6 +15,7 @@ final class CreateNewPuzzleUi implements Widget {
 
     private final GridUiModel model;
     private final GridUi gridUi;
+    // TODO: Restrict input to valid characters only.
     private final JTextField nameField = new JTextField(30);
     
     public CreateNewPuzzleUi() {
@@ -22,6 +23,10 @@ final class CreateNewPuzzleUi implements Widget {
         model = new GridUiModel(grid, GridSize.SMALL);
         model.setHighlightDuplicateCells(true);
         gridUi = new GridUi(model);
+    }
+    
+    public void setSuggestedName(String name) {
+        nameField.setText(name);
     }
     
     @Override
