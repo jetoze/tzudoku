@@ -81,12 +81,13 @@ public class PuzzleUiController {
             puzzleModel.getInventory().saveProgress(puzzle);
             return null;
         };
-        Consumer<? super Void> whenDone = v -> statusPanel.setStatus("Puzzle was saved.");
+        Runnable whenDone = () -> statusPanel.setStatus("Puzzle was saved.");
         Consumer<? super Throwable> exceptionHandler = e -> {
+            // TODO: Log the exception somewhere.
             String errorMessage = "Failed to save the puzzle: " + e.getMessage();
             statusPanel.setStatus(errorMessage, 10);
         };
-        UiThread.offload(work,  whenDone, true, exceptionHandler);
+        UiThread.offload(work,  whenDone, exceptionHandler);
     }
     
     public void checkSolution() {
