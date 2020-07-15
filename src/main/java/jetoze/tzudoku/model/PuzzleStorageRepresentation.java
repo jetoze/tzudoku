@@ -1,8 +1,8 @@
 package jetoze.tzudoku.model;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -10,6 +10,9 @@ import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import com.google.gson.TypeAdapter;
+import com.google.gson.stream.JsonReader;
+import com.google.gson.stream.JsonWriter;
 
 public class PuzzleStorageRepresentation {
     private static final Comparator<Sandwich> SANDWICH_ORDER = Comparator.comparing(Sandwich::getPosition);
@@ -31,15 +34,15 @@ public class PuzzleStorageRepresentation {
         entered = new ArrayList<>();
         pencilMarks = new ArrayList<>();
         colors = new ArrayList<>();
-        rowSandwiches = new TreeSet<>();
-        columnSandwiches = new HashSet<>();
+        rowSandwiches = new TreeSet<>(SANDWICH_ORDER);
+        columnSandwiches = new TreeSet<>(SANDWICH_ORDER);
     }
 
     public PuzzleStorageRepresentation(Puzzle puzzle) {
         this();
         storeGrid(puzzle);
-        rowSandwiches = puzzle.getSandwiches().getRows();
-        columnSandwiches = puzzle.getSandwiches().getColumns();
+        rowSandwiches.addAll(puzzle.getSandwiches().getRows());
+        columnSandwiches.addAll(puzzle.getSandwiches().getColumns());
     }
 
     private void storeGrid(Puzzle puzzle) {
@@ -112,13 +115,16 @@ public class PuzzleStorageRepresentation {
 
     public String toJson() {
         return new GsonBuilder()
+                .registerTypeAdapter(Sandwich.class, new SandwichAdapter())
                 .setPrettyPrinting()
                 .create()
                 .toJson(this);
     }
 
     public static PuzzleStorageRepresentation fromJson(String json) {
-        Gson gson = new Gson();
+        Gson gson = new GsonBuilder()
+                .registerTypeAdapter(Sandwich.class, new SandwichAdapter())
+                .create();
         return gson.fromJson(json, PuzzleStorageRepresentation.class);
     }
 
@@ -167,6 +173,27 @@ public class PuzzleStorageRepresentation {
             }
             Cell cell = grid.cellAt(new Position(row, col));
             cell.setColor(CellColor.valueOf(color));
+        }
+    }
+    
+    
+    private static class SandwichAdapter extends TypeAdapter<Sandwich> {
+
+        @Override
+        public void write(JsonWriter out, Sandwich value) throws IOException {
+            out.beginArray()
+                .value(value.getPosition())
+                .value(value.getSum())
+                .endArray();
+        }
+
+        @Override
+        public Sandwich read(JsonReader in) throws IOException {
+            in.beginArray();
+            int pos = in.nextInt();
+            int sum = in.nextInt();
+            in.endArray();
+            return new Sandwich(pos, sum);
         }
     }
     
