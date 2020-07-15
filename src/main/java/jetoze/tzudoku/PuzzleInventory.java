@@ -76,7 +76,7 @@ public class PuzzleInventory {
         return new PuzzleInfo(name, state, lastUpdated);
     }
     
-    public ImmutableList<PuzzleInfo> listAvailablePuzzles() {
+    public ImmutableList<PuzzleInfo> listPuzzles() {
         return ImmutableList.copyOf(puzzleInfos.values());
     }
 

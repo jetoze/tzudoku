@@ -11,10 +11,9 @@ public class Puzzle {
     private static final CharMatcher NAME_CHAR_MATCHER = CharMatcher.inRange('a', 'z')
         .or(CharMatcher.inRange('A', 'Z'))
         .or(CharMatcher.inRange('0', '9'))
-        .or(CharMatcher.is('_'))
-        .or(CharMatcher.is('-'));
+        .or(CharMatcher.anyOf("_-()"));
 
-    public static final Puzzle EMPTY = new Puzzle("[Empty]", Grid.emptyGrid());
+    public static final Puzzle EMPTY = new Puzzle("(Empty)", Grid.emptyGrid());
     
     // TODO: Thermos, killer cages, etc.
     private final String name;
@@ -34,7 +33,7 @@ public class Puzzle {
     private static String validateName(String name) {
         checkArgument(!name.isBlank(), "Name cannot be blank");
         // TODO: Error message should say what characters are valid
-        checkArgument(NAME_CHAR_MATCHER.matchesAllOf(name), "Invalid puzzle name character");
+        checkArgument(NAME_CHAR_MATCHER.matchesAllOf(name), "Invalid puzzle name character: %s", name);
         return name;
     }
 

@@ -32,10 +32,10 @@ public class PuzzleUiController {
     
     public void selectPuzzle() {
         // TODO: Allow input of a new Puzzle, using a Grid of size SMALL.
-        Consumer<? super ImmutableList<PuzzleInfo>> uiPublisher = ALLOW_CREATING_NEW_PUZZLE_FROM_OPENING_DIALOG
+        Consumer<ImmutableList<PuzzleInfo>> uiPublisher = ALLOW_CREATING_NEW_PUZZLE_FROM_OPENING_DIALOG
                 ? this::displaySelectNewPuzzleUi
                 : this::displayInventoryUi;
-        UiThread.offload(puzzleModel.getInventory()::listAvailablePuzzles, uiPublisher);
+        uiPublisher.accept(puzzleModel.getInventory().listPuzzles());
     }
     
     private void displaySelectNewPuzzleUi(ImmutableList<PuzzleInfo> puzzleInfos) {
