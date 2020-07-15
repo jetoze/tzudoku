@@ -1,15 +1,19 @@
 package jetoze.tzudoku.model;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
+import java.util.TreeSet;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 
 public class PuzzleStorageRepresentation {
+    private static final Comparator<Sandwich> SANDWICH_ORDER = Comparator.comparing(Sandwich::getPosition);
+    
     // TODO: Look into GSON TypeAdapters and custom serializers.
     private List<String> given;
     private List<String> entered;
@@ -27,7 +31,7 @@ public class PuzzleStorageRepresentation {
         entered = new ArrayList<>();
         pencilMarks = new ArrayList<>();
         colors = new ArrayList<>();
-        rowSandwiches = new HashSet<>();
+        rowSandwiches = new TreeSet<>();
         columnSandwiches = new HashSet<>();
     }
 
@@ -179,9 +183,5 @@ public class PuzzleStorageRepresentation {
         Puzzle p1 = new Puzzle("Test Puzzle", grid, sandwiches);
         String json = new PuzzleStorageRepresentation(p1).toJson();
         System.out.println(json);
-        Puzzle p2 = PuzzleStorageRepresentation.fromJson(json).restorePuzzle("Test Puzzle");
-        System.out.println(p2.getName());
-        System.out.println(p2.getGrid());
-        System.out.println(p2.getSandwiches());
     }
 }

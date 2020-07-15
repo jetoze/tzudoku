@@ -1,10 +1,13 @@
 package jetoze.tzudoku.model;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.TreeMap;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -19,11 +22,20 @@ public class Sandwiches {
         columns = ImmutableSet.of();
     }
     
-    public Sandwiches(Set<Sandwich> rows, Set<Sandwich> columns) {
+    public Sandwiches(Collection<Sandwich> rows, Collection<Sandwich> columns) {
+        checkNoDuplicatePositions(rows, "row sandwiches");
+        checkNoDuplicatePositions(columns, "column sandwiches");
         this.rows = ImmutableSet.copyOf(rows);
         this.columns = ImmutableSet.copyOf(columns);
     }
 
+    private static void checkNoDuplicatePositions(Collection<Sandwich> c, String rowOrColumn) {
+        Set<Integer> positions = new HashSet<>();
+        for (Sandwich s : c) {
+            checkArgument(positions.add(s.getPosition()), "Duplicate position in %s: %s", rowOrColumn, s.getPosition());
+        }
+    }
+    
     public ImmutableSet<Sandwich> getRows() {
         return rows;
     }
@@ -63,27 +75,27 @@ public class Sandwiches {
     
     
     public static class Builder {
-        private final Set<Sandwich> rows = new HashSet<>();
-        private final Set<Sandwich> columns = new HashSet<>();
+        private final Map<Integer, Sandwich> rows = new TreeMap<>();
+        private final Map<Integer, Sandwich> columns = new TreeMap<>();
         
         public Builder row(int row, int sum) {
+            checkArgument(!rows.containsKey(row), "A sandwich already exists for row %s", row);
             Sandwich s = new Sandwich(row, sum);
-            checkArgument(!rows.contains(s), "A sandwich already exists for row %s", row);
-            rows.add(s);
+            rows.put(row, s);
             return this;
         }
         
         public Builder column(int col, int sum) {
+            checkArgument(!columns.containsKey(col), "A sandwich already exists for column %s", col);
             Sandwich s = new Sandwich(col, sum);
-            checkArgument(!columns.contains(s), "A sandwich already exists for column %s", col);
-            columns.add(s);
+            columns.put(col, s);
             return this;
         }
         
         public Sandwiches build() {
             return (rows.isEmpty() && columns.isEmpty())
                     ? EMPTY
-                    : new Sandwiches(rows, columns);
+                    : new Sandwiches(rows.values(), columns.values());
         }
     }
 }
