@@ -8,8 +8,6 @@ import java.util.function.Consumer;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import com.google.common.collect.ImmutableList;
-
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
@@ -17,8 +15,6 @@ import jetoze.tzudoku.model.ValidationResult;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
-    
-    private static final boolean ALLOW_CREATING_NEW_PUZZLE_FROM_OPENING_DIALOG = true;
     
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
@@ -31,24 +27,7 @@ public class PuzzleUiController {
     }
     
     public void selectPuzzle() {
-        // TODO: Allow input of a new Puzzle, using a Grid of size SMALL.
-        Consumer<ImmutableList<PuzzleInfo>> uiPublisher = ALLOW_CREATING_NEW_PUZZLE_FROM_OPENING_DIALOG
-                ? this::displaySelectNewPuzzleUi
-                : this::displayInventoryUi;
-        uiPublisher.accept(puzzleModel.getInventory().listPuzzles());
-    }
-    
-    private void displaySelectNewPuzzleUi(ImmutableList<PuzzleInfo> puzzleInfos) {
-        InventoryUi inventoryUi = new InventoryUi(puzzleInfos);
-        CreateNewPuzzleUi createPuzzleUi = new CreateNewPuzzleUi();
-        createPuzzleUi.setSuggestedName(puzzleModel.getInventory().getAvailablePuzzleName("New Puzzle"));
-        SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi, createPuzzleUi);
-        SelectPuzzleController controller = new SelectPuzzleController(appFrame, puzzleModel, selectPuzzleUi);
-        controller.openUi();
-    }
-    
-    private void displayInventoryUi(ImmutableList<PuzzleInfo> puzzleInfos) {
-        InventoryUi inventoryUi = new InventoryUi(puzzleInfos);
+        InventoryUi inventoryUi = new InventoryUi(puzzleModel.getInventory().listPuzzles());
         // TODO: Use a fancier dialog here. For example, we want:
         //   + The ok button to be disabled unless a puzzle is selected
         //   + Double-click in the list should select the puzzle
