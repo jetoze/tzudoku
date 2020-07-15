@@ -11,7 +11,7 @@ public class Puzzle {
     private static final CharMatcher NAME_CHAR_MATCHER = CharMatcher.inRange('a', 'z')
         .or(CharMatcher.inRange('A', 'Z'))
         .or(CharMatcher.inRange('0', '9'))
-        .or(CharMatcher.anyOf("_-()"));
+        .or(CharMatcher.anyOf(" _-()"));
 
     public static final Puzzle EMPTY = new Puzzle("(Empty)", Grid.emptyGrid());
     
