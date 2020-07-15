@@ -20,6 +20,7 @@ final class CreateNewPuzzleUi implements Widget {
     public CreateNewPuzzleUi() {
         Grid grid = Grid.emptyGrid();
         model = new GridUiModel(grid, GridSize.SMALL);
+        model.setHighlightDuplicateCells(true);
         gridUi = new GridUi(model);
     }
     

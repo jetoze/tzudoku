@@ -37,6 +37,7 @@ public class GridUiModel {
     private ImmutableMap<Position, CellUi> cellUis;
     @Nullable
     private CellUi lastSelectedCell;
+    private boolean highlightDuplicateCells;
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
@@ -90,6 +91,29 @@ public class GridUiModel {
         if (changed) {
             notifyListeners(GridUiModelListener::onCellStateChanged);
         }
+    }
+    
+    public void setHighlightDuplicateCells(boolean b) {
+        if (b == this.highlightDuplicateCells) {
+            return;
+        }
+        // TODO: What if we are also currently displaying a ValidationResult?
+        // See decorateInvalidCells(). --> Perhaps let that mode take precedence, 
+        // and do the decoration here only if we're not currently displaying a 
+        // validation result?
+
+        this.highlightDuplicateCells = b;
+        if (b) {
+            highlightDuplicateCells();
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        } else {
+            removeInvalidCellsDecoration();
+        }
+    }
+    
+    private void highlightDuplicateCells() {
+        ImmutableSet<Position> duplicates = grid.getCellsWithDuplicateValues();
+        cellUis.forEach((p, c) -> c.setInvalid(duplicates.contains(p)));
     }
 
     public EnterValueMode getEnterValueMode() {
@@ -238,6 +262,9 @@ public class GridUiModel {
         @Override
         public void perform() {
             cellsAndTheirOldValues.keySet().forEach(c -> c.setValue(value));
+            if (highlightDuplicateCells) {
+                highlightDuplicateCells();
+            }
             notifyListeners(GridUiModelListener::onCellStateChanged);
         }
 
