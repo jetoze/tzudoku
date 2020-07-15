@@ -124,8 +124,10 @@ public class PuzzleInventory {
     }
 
     public void markAsCompleted(Puzzle puzzle) {
+        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
         String id = getPuzzleId(puzzle.getName());
-        updatePuzzleState(id, PuzzleState.SOLVED);
+        updatePuzzleState(id, PuzzleState.SOLVED, now);
+        puzzleInfos.put(puzzle.getName(), new PuzzleInfo(puzzle.getName(), PuzzleState.SOLVED, now));
         // TODO: Delete progress file, if one exists?
     }
     
@@ -135,10 +137,12 @@ public class PuzzleInventory {
         } else {
             // TODO: Do not overwrite previous saves. For example, append timestamp to
             // the file name. Then add utilities for loading an earlier save.
+            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
             String id = getPuzzleId(puzzle.getName());
             File progressFile = getProgressFile(id);
             savePuzzleToDisk(puzzle, progressFile);
-            updatePuzzleState(id, PuzzleState.PROGRESS);
+            updatePuzzleState(id, PuzzleState.PROGRESS, now);
+            puzzleInfos.put(puzzle.getName(), new PuzzleInfo(puzzle.getName(), PuzzleState.PROGRESS, now));
         }
     }
 
@@ -147,8 +151,9 @@ public class PuzzleInventory {
         return new File(progressFolder, id + "_progress" + FILE_EXTENSION);
     }
 
-    private void updatePuzzleState(String id, PuzzleState state) {
+    private void updatePuzzleState(String id, PuzzleState state, ZonedDateTime lastUpdated) {
         puzzleProperties.setState(id, state);
+        puzzleProperties.setLastUpdated(id, lastUpdated);
         puzzleProperties.save();
     }
     
@@ -197,9 +202,11 @@ public class PuzzleInventory {
         
         public void setState(String id, PuzzleState state) {
             properties.setProperty(id + STATE_PROPERTY, state.name());
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
+        }
+        
+        public void setLastUpdated(String id, ZonedDateTime dt) {
             properties.setProperty(id + LAST_UPDATED_PROPERTY, 
-                    DateTimeFormatter.ISO_DATE_TIME.format(now));
+                    DateTimeFormatter.ISO_DATE_TIME.format(dt));
         }
         
         public PuzzleState getState(String id) {
