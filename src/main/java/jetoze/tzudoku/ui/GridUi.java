@@ -18,7 +18,6 @@ import javax.swing.event.MouseInputAdapter;
 import jetoze.gunga.KeyBindings;
 import jetoze.gunga.KeyStrokes;
 import jetoze.gunga.widget.Widget;
-import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -93,7 +92,6 @@ public class GridUi implements Widget {
                 () -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
         keyBindings.add(KeyStrokes.commandDown(KeyEvent.VK_Z), "undo", model::undo);
         keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_Z), "redo", model::redo);
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_J), "dump-json", this::dumpJson);
     }
 
     private void registerSelectionActions(KeyBindings keyBindings, int keyCode, UnaryOperator<Position> nextPosition) {
@@ -101,12 +99,6 @@ public class GridUi implements Widget {
                 () -> selectNext(nextPosition, false));
         keyBindings.add(KeyStrokes.commandDown(keyCode), keyCode + "-multi-select",
                 () -> selectNext(nextPosition, true));
-    }
-
-    private void dumpJson() {
-        GridState state = new GridState(model.getGrid());
-        String json = state.toJson();
-        System.out.println(json);
     }
 
     private void selectNext(UnaryOperator<Position> nextPosition, boolean isMultiSelect) {

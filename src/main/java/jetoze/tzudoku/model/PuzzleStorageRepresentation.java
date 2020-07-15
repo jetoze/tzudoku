@@ -1,19 +1,24 @@
 package jetoze.tzudoku.model;
 
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 
-public class GridState {
+public class PuzzleStorageRepresentation {
+    // TODO: Look into GSON TypeAdapters and custom serializers.
     private List<String> given;
     private List<String> entered;
     private List<PencilMarkState> pencilMarks;
-    private List<ColorState> colors = new ArrayList<>();
+    private List<ColorState> colors;
+    private Set<Sandwich> rowSandwiches;
+    private Set<Sandwich> columnSandwiches;
 
-    @SuppressWarnings("unused")
-    private GridState() {
+    private PuzzleStorageRepresentation() {
         // XXX: This is necessary to satisfy Gson when deserializing input that doesn't
         // have e.g. PencilMarks. Initializing these fields at declaration is not
         // enough, trial and error shows it has to be done inside a default constructor,
@@ -22,17 +27,23 @@ public class GridState {
         entered = new ArrayList<>();
         pencilMarks = new ArrayList<>();
         colors = new ArrayList<>();
+        rowSandwiches = new HashSet<>();
+        columnSandwiches = new HashSet<>();
     }
 
-    public GridState(Grid grid) {
-        given = new ArrayList<>();
-        entered = new ArrayList<>();
-        pencilMarks = new ArrayList<>();
+    public PuzzleStorageRepresentation(Puzzle puzzle) {
+        this();
+        storeGrid(puzzle);
+        rowSandwiches = puzzle.getSandwiches().getRows();
+        columnSandwiches = puzzle.getSandwiches().getColumns();
+    }
+
+    private void storeGrid(Puzzle puzzle) {
         for (int r = 1; r <= 9; ++r) {
             StringBuilder givenValuesInRow = new StringBuilder();
             StringBuilder enteredValuesInRow = new StringBuilder();
             Position.positionsInRow(r).forEach(p -> {
-                Cell cell = grid.cellAt(p);
+                Cell cell = puzzle.getGrid().cellAt(p);
                 String value = cell.getValue().map(Object::toString).orElse("x");
                 if (cell.isGiven()) {
                     givenValuesInRow.append(value);
@@ -59,7 +70,13 @@ public class GridState {
         }
     }
 
-    public Grid restoreGrid() {
+    public Puzzle restorePuzzle(String name) { // TODO: Include the name in the representation?
+        Grid grid = restoreGrid();
+        Sandwiches sandwiches = new Sandwiches(rowSandwiches, columnSandwiches);
+        return new Puzzle(name, grid, sandwiches);
+    }
+
+    private Grid restoreGrid() {
         List<Cell> cells = new ArrayList<>();
         for (int row = 1; row <= 9; ++row) {
             String givenValues = given.get(row - 1);
@@ -90,13 +107,15 @@ public class GridState {
     }
 
     public String toJson() {
-        Gson gson = new Gson();
-        return gson.toJson(this);
+        return new GsonBuilder()
+                .setPrettyPrinting()
+                .create()
+                .toJson(this);
     }
 
-    public static GridState fromJson(String json) {
+    public static PuzzleStorageRepresentation fromJson(String json) {
         Gson gson = new Gson();
-        return gson.fromJson(json, GridState.class);
+        return gson.fromJson(json, PuzzleStorageRepresentation.class);
     }
 
     private static class PencilMarkState {
@@ -145,5 +164,24 @@ public class GridState {
             Cell cell = grid.cellAt(new Position(row, col));
             cell.setColor(CellColor.valueOf(color));
         }
+    }
+    
+    
+    public static void main(String[] args) {
+        Grid grid = Grid.exampleOfUnsolvedGrid();
+        Sandwiches sandwiches = Sandwiches.builder()
+                .row(1, 12)
+                .row(6, 0)
+                .row(7, 35)
+                .column(2, 9)
+                .column(5, 19)
+                .build();
+        Puzzle p1 = new Puzzle("Test Puzzle", grid, sandwiches);
+        String json = new PuzzleStorageRepresentation(p1).toJson();
+        System.out.println(json);
+        Puzzle p2 = PuzzleStorageRepresentation.fromJson(json).restorePuzzle("Test Puzzle");
+        System.out.println(p2.getName());
+        System.out.println(p2.getGrid());
+        System.out.println(p2.getSandwiches());
     }
 }

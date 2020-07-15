@@ -23,11 +23,10 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableList;
 
-import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.GridState;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.PuzzleState;
+import jetoze.tzudoku.model.PuzzleStorageRepresentation;
 
 public class PuzzleInventory {
     // TODO: Add utilities for cleaning up old progress files.
@@ -118,7 +117,7 @@ public class PuzzleInventory {
         if (file.exists()) {
             throw new IllegalArgumentException("A puzzle with the same name already exists: " + puzzle.getName());
         }
-        GridState gridState = new GridState(puzzle.getGrid());
+        PuzzleStorageRepresentation gridState = new PuzzleStorageRepresentation(puzzle);
         String json = gridState.toJson();
         Files.writeString(file.toPath(), json);
         puzzleProperties.setProperty(puzzle.getName() + STATE_PROPERTY, PuzzleState.NEW.name());
@@ -128,9 +127,8 @@ public class PuzzleInventory {
     public Puzzle loadPuzzle(PuzzleInfo info) throws IOException {
         File file = getPuzzleFile(info);
         String json = Files.readString(file.toPath());
-        GridState gridState = GridState.fromJson(json);
-        Grid grid = gridState.restoreGrid();
-        return new Puzzle(info.getName(), grid);
+        PuzzleStorageRepresentation p = PuzzleStorageRepresentation.fromJson(json);
+        return p.restorePuzzle(info.getName());
     }
     
     private File getPuzzleFile(PuzzleInfo info) {
@@ -164,8 +162,8 @@ public class PuzzleInventory {
     private void savePuzzleProgressToDisk(Puzzle puzzle) throws IOException {
         // TODO: Do not overwrite previous saves. For example, append timestamp to
         // the file name. Then add utilities for loading an earlier save.
-        GridState gridState = new GridState(puzzle.getGrid());
-        String json = gridState.toJson();
+        PuzzleStorageRepresentation p = new PuzzleStorageRepresentation(puzzle);
+        String json = p.toJson();
         File progressFile = getProgressFile(puzzle.getName());
         Files.writeString(progressFile.toPath(), json);
     }

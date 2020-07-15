@@ -22,43 +22,13 @@ import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
 
 public final class Grid {
-    private final ImmutableMap<Position, Cell> cells;
 
-    public static Grid exampleOfSolvedGrid() {
-        return new Grid(IntStream.of(
-                8, 2, 7, 1, 5, 4, 3, 9, 6, 
-                9, 6, 5, 3, 2, 7, 1, 4, 8, 
-                3, 4, 1, 6, 8, 9, 7, 5, 2, 
-                5, 9, 3, 4, 6, 8, 2, 7, 1, 
-                4, 7, 2, 5, 1, 3, 6, 8, 9, 
-                6, 1, 8, 9, 7, 2, 4, 3, 5, 
-                7, 8, 6, 2, 3, 5, 9, 1, 4,
-                1, 5, 4, 7, 9, 6, 8, 2, 3,
-                2, 3, 9, 8, 4, 1, 5, 6, 7)
-                .mapToObj(Grid::toCell));
-    }
-
-    private static Cell toCell(int value) {
-        return (value == 0) ? Cell.empty() : Cell.given(Value.of(value));
-    }
-
-    public static Grid exampleOfUnsolvedGrid() {
-        return new Grid(
-                "605004002", 
-                "000600901", 
-                "000050300", 
-                "001000000", 
-                "300587006", 
-                "000000400", 
-                "004030000",
-                "503008000", 
-                "800100207");
-    }
-    
     public static Grid emptyGrid() {
         return new Grid(IntStream.rangeClosed(1, 81)
                 .mapToObj(i -> Cell.empty()));
     }
+
+    private final ImmutableMap<Position, Cell> cells;
 
     public Grid(String... rows) {
         checkArgument(rows.length == 9, "Must provide 9 rows");
@@ -191,5 +161,47 @@ public final class Grid {
                 .forEach(v -> v.ifPresentOrElse(output::append, () -> output.append("x")));
         }
         return output.toString();
+    }
+
+    @Override
+    public int hashCode() {
+        return cells.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        return (obj == this) || ((obj instanceof Grid) && this.cells.equals(((Grid) obj).cells));
+    }
+    
+
+    public static Grid exampleOfSolvedGrid() {
+        return new Grid(IntStream.of(
+                8, 2, 7, 1, 5, 4, 3, 9, 6, 
+                9, 6, 5, 3, 2, 7, 1, 4, 8, 
+                3, 4, 1, 6, 8, 9, 7, 5, 2, 
+                5, 9, 3, 4, 6, 8, 2, 7, 1, 
+                4, 7, 2, 5, 1, 3, 6, 8, 9, 
+                6, 1, 8, 9, 7, 2, 4, 3, 5, 
+                7, 8, 6, 2, 3, 5, 9, 1, 4,
+                1, 5, 4, 7, 9, 6, 8, 2, 3,
+                2, 3, 9, 8, 4, 1, 5, 6, 7)
+                .mapToObj(Grid::toCell));
+    }
+
+    private static Cell toCell(int value) {
+        return (value == 0) ? Cell.empty() : Cell.given(Value.of(value));
+    }
+
+    public static Grid exampleOfUnsolvedGrid() {
+        return new Grid(
+                "605004002", 
+                "000600901", 
+                "000050300", 
+                "001000000", 
+                "300587006", 
+                "000000400", 
+                "004030000",
+                "503008000", 
+                "800100207");
     }
 }

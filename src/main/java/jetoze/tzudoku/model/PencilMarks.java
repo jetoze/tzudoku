@@ -4,6 +4,7 @@ import static java.util.Objects.*;
 
 import java.util.Collections;
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class PencilMarks {
@@ -27,9 +28,9 @@ public abstract class PencilMarks {
 
     public abstract boolean hasCenterMarks();
 
-    public abstract void toggleCorner(Value value);
+    public abstract PencilMarks toggleCorner(Value value);
 
-    public abstract void toggleCenter(Value value);
+    public abstract PencilMarks toggleCenter(Value value);
 
     public abstract void clear();
 
@@ -40,8 +41,26 @@ public abstract class PencilMarks {
     public abstract String cornerAsString();
 
     public abstract String centerAsString();
-
     
+    @Override
+    public int hashCode() {
+        return Objects.hash(cornerAsString(), centerAsString());
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof PencilMarks) {
+            PencilMarks that = (PencilMarks) obj;
+            return this.cornerAsString().equals(that.cornerAsString()) &&
+                    this.centerAsString().equals(that.centerAsString());
+        }
+        return false;
+    }
+
+
     private static class NoPencilMarks extends PencilMarks {
 
         @Override
@@ -55,12 +74,12 @@ public abstract class PencilMarks {
         }
 
         @Override
-        public void toggleCorner(Value value) {
+        public PencilMarks toggleCorner(Value value) {
             throw new UnsupportedOperationException();
         }
 
         @Override
-        public void toggleCenter(Value value) {
+        public PencilMarks toggleCenter(Value value) {
             throw new UnsupportedOperationException();
         }
 
@@ -107,13 +126,15 @@ public abstract class PencilMarks {
         }
 
         @Override
-        public void toggleCorner(Value value) {
+        public PencilMarks toggleCorner(Value value) {
             toggle(value, corner);
+            return this;
         }
 
         @Override
-        public void toggleCenter(Value value) {
+        public PencilMarks toggleCenter(Value value) {
             toggle(value, center);
+            return this;
         }
 
         @Override
