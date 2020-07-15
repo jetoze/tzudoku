@@ -40,6 +40,8 @@ final class UiConstants {
     private static final Color BORDER_COLOR = Color.BLACK;
     
     private static final Color DISABLED_BORDER_COLOR = Color.GRAY;
+    
+    private static final Color ICON_BORDER_COLOR = new Color(0x30, 0x30, 0x30);
 
     private static final int LARGE_BUTTON_FONT_SIZE = 20;
 
@@ -246,6 +248,8 @@ final class UiConstants {
             Color originalColor = g.getColor();
             g.setColor(color);
             g.fillRect(x, y, getIconWidth(), getIconHeight());
+            g.setColor(ICON_BORDER_COLOR);
+            g.drawRect(x, y, getIconWidth(), getIconHeight());
             g.setColor(originalColor);
         }
 
@@ -273,6 +277,8 @@ final class UiConstants {
             Color originalColor = g.getColor();
             g.setColor(color);
             g.fillOval(x, y, getIconWidth(), getIconHeight());
+            g.setColor(ICON_BORDER_COLOR);
+            g.drawOval(x, y, getIconWidth(), getIconHeight());
             g.setColor(originalColor);
         }
 
