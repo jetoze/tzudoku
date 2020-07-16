@@ -203,6 +203,12 @@ public final class UiLook {
         g.setColor(originalColor);
     }
 
+    static JButton makeLargeButton(String text, Runnable action) {
+        JButton b = new JButton(text);
+        b.addActionListener(e -> UiThread.runLater(action));
+        makeOverLarge(b);
+        return b;
+    }
 
     static void makeOverLarge(AbstractButton button) {
         button.setFont(LARGE_BUTTON_FONT);

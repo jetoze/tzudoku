@@ -21,18 +21,21 @@ import jetoze.tzudoku.model.Puzzle;
 public class PuzzleBuilderController {
     private final JFrame appFrame;
     private final PuzzleBuilderModel model;
-    private final PuzzleBuilderUi ui;
     
     public PuzzleBuilderController(JFrame appFrame, PuzzleBuilderModel model, PuzzleBuilderUi ui) {
         this.appFrame = requireNonNull(appFrame);
         this.model = requireNonNull(model);
-        this.ui = requireNonNull(ui);
         ui.setSaveAction(this::createPuzzle);
     }
     
     public boolean isExitAllowed() {
         // TODO: Implement me. If there are unsaved changes, prompt the user to save them.
         return true;
+    }
+    
+    public void reset() {
+        // TODO: Check for unsaved changes.
+        model.reset();
     }
     
     public void createPuzzle() {
@@ -42,7 +45,7 @@ public class PuzzleBuilderController {
             return;
         }
         // TODO: Wait indication.
-        UiThread.offload(() -> createPuzzleFromTemplate(name), () -> {});
+        UiThread.offload(() -> createPuzzleFromTemplate(name), this::reset);
     }
     
     private void createPuzzleFromTemplate(String name) {
@@ -74,7 +77,8 @@ public class PuzzleBuilderController {
             // TODO: Log the exception
             UiThread.run(() -> showErrorMessage("Could not save the puzzle: " + e.getMessage()));
         }
-        // Now what?
+        UiThread.runLater(this::showPuzzleSavedMessage);
+        // TODO: Offer to automatically launch the tzudoku app with the new puzzle.
     }
     
     private void showErrorMessage(String message) {
@@ -82,6 +86,14 @@ public class PuzzleBuilderController {
                 appFrame, 
                 message, 
                 "Invalid puzzle", 
+                JOptionPane.ERROR_MESSAGE);
+    }
+    
+    private void showPuzzleSavedMessage() {
+        JOptionPane.showMessageDialog(
+                appFrame, 
+                "The puzzle was saved and is ready to play.", 
+                "Puzzle Saved", 
                 JOptionPane.ERROR_MESSAGE);
     }
 

@@ -2,16 +2,15 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.event.ActionEvent;
+import java.awt.GridLayout;
 
-import javax.swing.AbstractAction;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.border.EmptyBorder;
 
 import jetoze.gunga.KeyBindings;
-import jetoze.gunga.UiThread;
 import jetoze.gunga.binding.TextBinding;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.TextFieldWidget;
@@ -25,6 +24,7 @@ public final class PuzzleBuilderUi implements Widget {
     // TODO: Restrict input to valid characters only.
     private final TextFieldWidget nameField = new TextFieldWidget(25);
     private Runnable saveAction = () -> {};
+    private Runnable resetAction = () -> {};
     
     public PuzzleBuilderUi(PuzzleBuilderModel model) {
         this.model = requireNonNull(model);
@@ -39,6 +39,10 @@ public final class PuzzleBuilderUi implements Widget {
         this.saveAction = requireNonNull(action);
     }
     
+    public void setResetAction(Runnable action) {
+        this.resetAction = requireNonNull(action);
+    }
+    
     @Override
     public JComponent getUi() {
         JPanel nameFieldPanel = new JPanel();
@@ -48,16 +52,12 @@ public final class PuzzleBuilderUi implements Widget {
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
         
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));
         // TODO: Bind the save action to the valid state of the model?
-        JButton save = new JButton(new AbstractAction("Save") {
-            
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                UiThread.runLater(saveAction);
-            }
-        });
-        buttonPanel.add(save);
+        JButton saveButton = UiLook.makeLargeButton("Save", saveAction);
+        buttonPanel.add(saveButton);
+        JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
+        buttonPanel.add(resetButton);
         
         JPanel ui = Layouts.border()
                 .withVerticalGap(8)
@@ -65,6 +65,7 @@ public final class PuzzleBuilderUi implements Widget {
                 .center(gridWrapper)
                 .south(buttonPanel)
                 .build();
+        ui.setBorder(new EmptyBorder(5, 5, 5, 5));
         gridUi.registerActions(KeyBindings.whenAncestorOfFocusedComponent(ui));
         return ui;
     }

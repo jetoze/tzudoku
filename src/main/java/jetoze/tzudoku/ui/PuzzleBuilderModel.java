@@ -40,4 +40,9 @@ public class PuzzleBuilderModel {
         return puzzleNameProperty;
     }
     
+    public void reset() {
+        setPuzzleName(inventory.getAvailablePuzzleName("New Puzzle"));
+        gridModel.setGrid(Grid.emptyGrid());
+    }
+    
 }
