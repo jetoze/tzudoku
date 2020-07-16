@@ -66,7 +66,7 @@ public final class PuzzleBuilderUi implements Widget {
                 .south(buttonPanel)
                 .build();
         ui.setBorder(new EmptyBorder(5, 5, 5, 5));
-        gridUi.registerActions(KeyBindings.whenAncestorOfFocusedComponent(ui));
+        gridUi.registerDefaultActions(KeyBindings.whenAncestorOfFocusedComponent(ui));
         return ui;
     }
     

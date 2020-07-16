@@ -62,7 +62,9 @@ public class TzudokuApp {
             .south(statusPanel)
             .buildAsContent(frame);
 
-        gridUi.registerActions(KeyBindings.whenInFocusedWindow(frame.getRootPane()));
+        KeyBindings keyBindings = KeyBindings.whenInFocusedWindow(frame.getRootPane());
+        gridUi.registerDefaultActions(keyBindings);
+        gridUi.registerValueModeActions(keyBindings);
 
         frame.pack();
         frame.setVisible(true);

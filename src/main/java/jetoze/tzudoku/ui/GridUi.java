@@ -64,7 +64,7 @@ public class GridUi implements Widget {
         model.clearSelection();
     }
 
-    public void registerActions(KeyBindings keyBindings) {
+    public void registerDefaultActions(KeyBindings keyBindings) {
         for (Value v : Value.values()) {
             keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_0 + v.toInt()), "enter-" + v, 
                     () -> model.enterValue(v));
@@ -74,14 +74,17 @@ public class GridUi implements Widget {
         registerSelectionActions(keyBindings, KeyEvent.VK_RIGHT, Position::right);
         registerSelectionActions(keyBindings, KeyEvent.VK_UP, Position::up);
         registerSelectionActions(keyBindings, KeyEvent.VK_DOWN, Position::down);
+        keyBindings.add(KeyStrokes.commandDown(KeyEvent.VK_Z), "undo", model::undo);
+        keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_Z), "redo", model::redo);
+    }
+
+    public void registerValueModeActions(KeyBindings keyBindings) {    
         keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_N), "normal-value-mode",
                 () -> model.setEnterValueMode(EnterValueMode.NORMAL));
         keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_R), "corner-value-mode",
                 () -> model.setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
         keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_C), "center-value-mode",
                 () -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
-        keyBindings.add(KeyStrokes.commandDown(KeyEvent.VK_Z), "undo", model::undo);
-        keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_Z), "redo", model::redo);
     }
 
     private void registerSelectionActions(KeyBindings keyBindings, int keyCode, UnaryOperator<Position> nextPosition) {
