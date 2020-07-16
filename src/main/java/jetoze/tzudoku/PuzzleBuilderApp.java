@@ -2,10 +2,18 @@ package jetoze.tzudoku;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.BorderLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.IOException;
 
+import javax.swing.JFrame;
+
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.ui.PuzzleBuilderController;
+import jetoze.tzudoku.ui.PuzzleBuilderModel;
+import jetoze.tzudoku.ui.PuzzleBuilderUi;
 import jetoze.tzudoku.ui.UiLook;
 
 public class PuzzleBuilderApp {
@@ -26,7 +34,32 @@ public class PuzzleBuilderApp {
     
     public void start() {
         UiLook.installNimbus();
-        // TODO: Implement me.
+        JFrame appFrame = new JFrame("tzudoku puzzle builder");
+        appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
+        
+        PuzzleBuilderModel model = new PuzzleBuilderModel(inventory);
+        PuzzleBuilderUi ui = new PuzzleBuilderUi(model);
+        PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model, ui);
+        controller.prepareUi();
+        
+        appFrame.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowOpened(WindowEvent e) {
+                UiThread.runLater(ui::requestFocus);
+            }
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                if (controller.isExitAllowed()) {
+                    appFrame.dispose();
+                }
+            }
+        });
+        appFrame.getContentPane().add(ui.getUi(), BorderLayout.CENTER);
+        appFrame.pack();
+        
+        appFrame.setVisible(true);
     }
 
 }

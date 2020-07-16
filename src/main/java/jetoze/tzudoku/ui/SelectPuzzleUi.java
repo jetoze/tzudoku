@@ -18,6 +18,7 @@ import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 
+@Deprecated
 final class SelectPuzzleUi implements Widget {
     
     // TODO: Validation
@@ -30,9 +31,9 @@ final class SelectPuzzleUi implements Widget {
     private JRadioButton selectExistingPuzzleOption = new JRadioButton("Select existing puzzle", true);
     private JRadioButton createNewPuzzleOption = new JRadioButton("Create new puzzle");
     private final InventoryUi inventoryUi;
-    private final CreateNewPuzzleUi createPuzzleUi;
+    private final PuzzleBuilderUi createPuzzleUi;
     
-    public SelectPuzzleUi(InventoryUi inventoryUi, CreateNewPuzzleUi createPuzzleUi) {
+    public SelectPuzzleUi(InventoryUi inventoryUi, PuzzleBuilderUi createPuzzleUi) {
         this.inventoryUi = requireNonNull(inventoryUi);
         this.createPuzzleUi = requireNonNull(createPuzzleUi);
         ButtonGroup buttonGroup = new ButtonGroup();
@@ -50,12 +51,10 @@ final class SelectPuzzleUi implements Widget {
     
     private void updateOptionStates() {
         if (getMode() == Mode.EXISTING) {
-            createPuzzleUi.setEnabled(false);
             inventoryUi.setEnabled(true);
             inventoryUi.requestFocus();
         } else {
             inventoryUi.setEnabled(false);
-            createPuzzleUi.setEnabled(true);
             createPuzzleUi.requestFocus();
         }
     }

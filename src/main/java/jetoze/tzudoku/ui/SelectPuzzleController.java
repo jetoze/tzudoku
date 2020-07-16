@@ -20,6 +20,7 @@ import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 
+@Deprecated
 public class SelectPuzzleController {
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
