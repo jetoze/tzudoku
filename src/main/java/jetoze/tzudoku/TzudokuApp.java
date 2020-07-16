@@ -5,11 +5,13 @@ import static java.util.Objects.requireNonNull;
 import java.io.File;
 import java.io.IOException;
 
+import javax.annotation.Nullable;
 import javax.swing.JFrame;
 
 import jetoze.gunga.KeyBindings;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
+import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.ui.ControlPanel;
 import jetoze.tzudoku.ui.GameBoard;
 import jetoze.tzudoku.ui.GridUi;
@@ -29,9 +31,16 @@ public class TzudokuApp {
     }
     
     private final PuzzleInventory inventory;
+    @Nullable
+    private final Puzzle puzzle;
     
     public TzudokuApp(PuzzleInventory inventory) {
+        this(inventory, null);
+    }
+    
+    public TzudokuApp(PuzzleInventory inventory, @Nullable Puzzle puzzle) {
         this.inventory = requireNonNull(inventory);
+        this.puzzle = puzzle;
     }
     
     public void start() {
@@ -59,7 +68,11 @@ public class TzudokuApp {
         frame.setVisible(true);
         frame.requestFocusInWindow();
         
-        controller.selectPuzzle();
+        if (puzzle != null) {
+            controller.loadPuzzle(puzzle);
+        } else {
+            controller.selectPuzzle();
+        }
     }
 
 }

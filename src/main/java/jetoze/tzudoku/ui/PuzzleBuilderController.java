@@ -13,6 +13,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.TzudokuApp;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
@@ -77,8 +78,7 @@ public class PuzzleBuilderController {
             // TODO: Log the exception
             UiThread.run(() -> showErrorMessage("Could not save the puzzle: " + e.getMessage()));
         }
-        UiThread.runLater(this::showPuzzleSavedMessage);
-        // TODO: Offer to automatically launch the tzudoku app with the new puzzle.
+        UiThread.runLater(() -> showPuzzleSavedMessage(puzzle));
     }
     
     private void showErrorMessage(String message) {
@@ -89,12 +89,24 @@ public class PuzzleBuilderController {
                 JOptionPane.ERROR_MESSAGE);
     }
     
-    private void showPuzzleSavedMessage() {
-        JOptionPane.showMessageDialog(
+    private void showPuzzleSavedMessage(Puzzle puzzle) {
+        int option = JOptionPane.showConfirmDialog(
                 appFrame, 
-                "The puzzle was saved and is ready to play.", 
+                "The puzzle has been created. Do you want to solve it?", 
                 "Puzzle Saved", 
-                JOptionPane.ERROR_MESSAGE);
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.INFORMATION_MESSAGE);
+        if (option == JOptionPane.YES_OPTION) {
+            UiThread.runLater(() -> launchTzudokuApp(puzzle));
+        }
     }
-
+    
+    private void launchTzudokuApp(Puzzle puzzle) {
+        appFrame.dispose();
+        TzudokuApp tzudoku = new TzudokuApp(model.getInventory(), puzzle);
+        tzudoku.start();
+        // TODO: Interesting dilemma, in that as far as the OS is concerned,
+        // it is still the Puzzle Builder App that is running (as seen e.g. in
+        // the OSX menu bar).
+    }
 }

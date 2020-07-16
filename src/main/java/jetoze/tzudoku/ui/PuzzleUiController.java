@@ -44,10 +44,10 @@ public class PuzzleUiController {
     }
     
     private void loadPuzzle(PuzzleInfo puzzleInfo) {
-        UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), this::puzzleLoaded);
+        UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), this::loadPuzzle);
     }
     
-    private void puzzleLoaded(Puzzle puzzle) {
+    public void loadPuzzle(Puzzle puzzle) {
         puzzleModel.setPuzzle(puzzle);
         appFrame.setTitle(puzzle.getName());
     }
