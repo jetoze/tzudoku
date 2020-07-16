@@ -73,7 +73,7 @@ class CellUi extends JComponent {
     }
 
     private void renderValue(Graphics2D g, Value value) {
-        UiLook.drawValue(g, value, cell.isGiven(), isEnabled(), gridSize);
+        UiLook.drawValue(g, value, cell.isGiven(), gridSize);
     }
 
     private void renderPencilMarks(Graphics2D g) {

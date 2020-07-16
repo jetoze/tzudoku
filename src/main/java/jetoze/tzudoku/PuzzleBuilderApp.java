@@ -40,7 +40,6 @@ public class PuzzleBuilderApp {
         PuzzleBuilderModel model = new PuzzleBuilderModel(inventory);
         PuzzleBuilderUi ui = new PuzzleBuilderUi(model);
         PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model, ui);
-        controller.prepareUi();
         
         appFrame.addWindowListener(new WindowAdapter() {
 

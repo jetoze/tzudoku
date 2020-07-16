@@ -2,13 +2,19 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.event.ActionEvent;
+
+import javax.swing.AbstractAction;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.JTextField;
 
 import jetoze.gunga.KeyBindings;
+import jetoze.gunga.UiThread;
+import jetoze.gunga.binding.TextBinding;
 import jetoze.gunga.layout.Layouts;
+import jetoze.gunga.widget.TextFieldWidget;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.Puzzle;
 
@@ -17,32 +23,47 @@ public final class PuzzleBuilderUi implements Widget {
     private final PuzzleBuilderModel model;
     private final GridUi gridUi;
     // TODO: Restrict input to valid characters only.
-    private final JTextField nameField = new JTextField(30);
+    private final TextFieldWidget nameField = new TextFieldWidget(25);
+    private Runnable saveAction = () -> {};
     
     public PuzzleBuilderUi(PuzzleBuilderModel model) {
         this.model = requireNonNull(model);
         this.gridUi = new GridUi(model.getGridModel());
-        this.gridUi.setEnabled(true);
+        nameField.selectAllWhenFocused();
+        // TODO: Do we need to dispose the binding at some point? What is the 
+        // lifetime of the model compared to the UI?
+        TextBinding.bindAndSyncUi(model.getPuzzleNameProperty(), nameField);
     }
     
-    public void setSuggestedName(String name) {
-        nameField.setText(name);
+    public void setSaveAction(Runnable action) {
+        this.saveAction = requireNonNull(action);
     }
     
     @Override
     public JComponent getUi() {
         JPanel nameFieldPanel = new JPanel();
         nameFieldPanel.add(new JLabel("Name:"));
-        nameFieldPanel.add(nameField);
+        nameFieldPanel.add(nameField.getUi());
 
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
-        gridUi.setEnabled(false);
+        
+        JPanel buttonPanel = new JPanel();
+        // TODO: Bind the save action to the valid state of the model?
+        JButton save = new JButton(new AbstractAction("Save") {
+            
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                UiThread.runLater(saveAction);
+            }
+        });
+        buttonPanel.add(save);
         
         JPanel ui = Layouts.border()
                 .withVerticalGap(8)
                 .north(nameFieldPanel)
                 .center(gridWrapper)
+                .south(buttonPanel)
                 .build();
         gridUi.registerActions(KeyBindings.whenAncestorOfFocusedComponent(ui));
         return ui;
