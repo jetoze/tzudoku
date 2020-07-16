@@ -133,7 +133,7 @@ public final class Grid {
         for (int n = 1; n <= 9; ++n) {
             collectDuplicates(Position.positionsInRow(n), bin);
             collectDuplicates(Position.positionsInColumn(n), bin);
-            collectDuplicates(Position.positionsInRow(n), bin);
+            collectDuplicates(Position.positionsInBox(n), bin);
         }
         return bin.build();
     }
