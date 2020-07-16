@@ -163,6 +163,30 @@ public final class Grid {
         return output.toString();
     }
 
+    public boolean isEquivalent(Grid other) {
+        // See comment in areEquivalent below for why we can't implement
+        // equals and hashCode.
+        return cells.keySet()
+                .stream()
+                .allMatch(p -> {
+                    Cell c1 = this.cellAt(p);
+                    Cell c2 = other.cellAt(p);
+                    return areEquivalent(c1, c2);
+                });
+    }
+    
+    private static boolean areEquivalent(Cell c1, Cell c2) {
+        // XXX: We can't implement Cell.equals at the moment, since we use
+        // Cell as Map keys in a few places. We would need to associate
+        // each Cell with its Position, which I'm reluctant to do.
+        // Alternatively, we could stop using Cell as keys in a Map.
+        return c1.getValue().equals(c2.getValue()) && 
+                (c1.isGiven() == c2.isGiven()) &&
+                (c1.getColor() == c2.getColor()) &&
+                c1.getPencilMarks().equals(c2.getPencilMarks());
+
+    }
+    
     @Override
     public int hashCode() {
         return cells.hashCode();

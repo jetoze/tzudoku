@@ -30,7 +30,7 @@ public class PuzzleStorageRepresentationTest {
         
         // Assert
         assertEquals(puzzleName, p2.getName(), "Wrong name");
-        assertEquals(grid, p2.getGrid(), "Wrong grid");
+        assertTrue(grid.isEquivalent(p2.getGrid()), "Wrong grid");
         assertEquals(sandwiches, p2.getSandwiches(), "Wrong sandwiches");
     }
 
@@ -47,7 +47,7 @@ public class PuzzleStorageRepresentationTest {
         
         // Assert
         assertEquals(puzzleName, p2.getName(), "Wrong name");
-        assertEquals(grid, p2.getGrid(), "Wrong grid");
+        assertTrue(grid.isEquivalent(p2.getGrid()), "Wrong grid");
         assertEquals(Sandwiches.EMPTY, p2.getSandwiches(), "Wrong sandwiches");
     }
     
@@ -81,7 +81,7 @@ public class PuzzleStorageRepresentationTest {
         
         // Assert
         assertEquals(puzzleName, p2.getName(), "Wrong name");
-        assertEquals(grid, p2.getGrid(), "Wrong grid");
+        assertTrue(grid.isEquivalent(p2.getGrid()), "Wrong grid");
         assertEquals(Sandwiches.EMPTY, p2.getSandwiches(), "Wrong sandwiches");
     }
     
