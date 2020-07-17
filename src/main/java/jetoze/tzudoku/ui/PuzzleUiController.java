@@ -27,7 +27,8 @@ public class PuzzleUiController {
     }
     
     public void selectPuzzle() {
-        InventoryUi inventoryUi = new InventoryUi(puzzleModel.getInventory().listPuzzles());
+        InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
+        InventoryUi inventoryUi = new InventoryUi(model);
         // TODO: Use a fancier dialog here. For example, we want:
         //   + The ok button to be disabled unless a puzzle is selected
         //   + Double-click in the list should select the puzzle

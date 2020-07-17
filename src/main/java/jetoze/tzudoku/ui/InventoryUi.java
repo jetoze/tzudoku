@@ -3,13 +3,13 @@ package jetoze.tzudoku.ui;
 import java.awt.Component;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 import java.util.Optional;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 
+import jetoze.gunga.binding.ListBinding;
 import jetoze.gunga.selection.Selection;
 import jetoze.gunga.widget.ListWidget;
 import jetoze.gunga.widget.ListWidget.SelectionMode;
@@ -21,9 +21,9 @@ public final class InventoryUi implements Widget {
     // TODO: Add status panel, that displays name and lastUpdated date of the selected puzzle.
     private final ListWidget<PuzzleInfo> list;
     
-    public InventoryUi(List<PuzzleInfo> puzzles) {
-        list = new ListWidget<>(puzzles);
-        list.setVisibleRowCount(8);
+    public InventoryUi(InventoryUiModel model) {
+        list = new ListWidget<>();
+        list.setVisibleRowCount(20);
         list.setSelectionMode(SelectionMode.SINGLE);
         list.setCellRenderer(new DefaultListCellRenderer() {
 
@@ -48,6 +48,8 @@ public final class InventoryUi implements Widget {
                         puzzleInfo.getName(), puzzleInfo.getState(), lastUpdated);
             }
         });
+        ListBinding.bindAndSyncUi(model.getListItems(), list);
+        // TODO: Bind other properties.
     }
     
     public Optional<PuzzleInfo> getSelectedPuzzle() {
