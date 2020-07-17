@@ -9,8 +9,11 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 
+import jetoze.gunga.BooleanBinding;
 import jetoze.gunga.binding.ListBinding;
+import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.selection.Selection;
+import jetoze.gunga.widget.CheckBoxWidget;
 import jetoze.gunga.widget.ListWidget;
 import jetoze.gunga.widget.ListWidget.SelectionMode;
 import jetoze.gunga.widget.Widget;
@@ -20,6 +23,8 @@ public final class InventoryUi implements Widget {
     // TODO: Add filtering controls, such as hiding/displaying completed puzzles, name search field
     // TODO: Add status panel, that displays name and lastUpdated date of the selected puzzle.
     private final ListWidget<PuzzleInfo> list;
+    // FIXME: I think it makes more sense to have this be "Show completed puzzles"
+    private final CheckBoxWidget hideCompletedPuzzlesCheckBox = new CheckBoxWidget("Hide completed puzzles");
     
     public InventoryUi(InventoryUiModel model) {
         list = new ListWidget<>();
@@ -49,6 +54,7 @@ public final class InventoryUi implements Widget {
             }
         });
         ListBinding.bindAndSyncUi(model.getListItems(), list);
+        BooleanBinding.bindAndSyncUi(model.getHideCompletedPuzzles(), hideCompletedPuzzlesCheckBox);
         // TODO: Bind other properties.
     }
     
@@ -61,7 +67,10 @@ public final class InventoryUi implements Widget {
     
     @Override
     public JComponent getUi() {
-        return list.getUi();
+        return Layouts.border(0, 8)
+                .center(list)
+                .south(hideCompletedPuzzlesCheckBox)
+                .build();
     }
 
     @Override
