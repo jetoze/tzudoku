@@ -32,6 +32,7 @@ import jetoze.tzudoku.model.PuzzleStorageRepresentation;
 
 public class PuzzleInventory {
     // TODO: Add utilities for cleaning up old progress files.
+    // TODO: I've become messy. I need some cleanup.
     
     private static final String FILE_EXTENSION = ".json";
     private static final String PROPERTIES_FILE = "properties";
@@ -86,8 +87,9 @@ public class PuzzleInventory {
         String id = getPuzzleId(puzzle.getName());
         File file = getPuzzleFile(id);
         savePuzzleToDisk(puzzle, file);
-        puzzleInfos.put(puzzle.getName(), new PuzzleInfo(puzzle.getName(), PuzzleState.NEW, null));
-        puzzleProperties.addPuzzle(puzzle, id);
+        ZonedDateTime now = now();
+        puzzleInfos.put(puzzle.getName(), new PuzzleInfo(puzzle.getName(), PuzzleState.NEW, now));
+        puzzleProperties.addPuzzle(puzzle, id, now);
         puzzleProperties.save();
     }
     
@@ -124,11 +126,15 @@ public class PuzzleInventory {
     }
 
     public void markAsCompleted(Puzzle puzzle) {
-        ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
+        ZonedDateTime now = now();
         String id = getPuzzleId(puzzle.getName());
         updatePuzzleState(id, PuzzleState.SOLVED, now);
         puzzleInfos.put(puzzle.getName(), new PuzzleInfo(puzzle.getName(), PuzzleState.SOLVED, now));
         // TODO: Delete progress file, if one exists?
+    }
+
+    private static ZonedDateTime now() {
+        return ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
     }
     
     public void saveProgress(Puzzle puzzle) throws IOException {
@@ -137,7 +143,7 @@ public class PuzzleInventory {
         } else {
             // TODO: Do not overwrite previous saves. For example, append timestamp to
             // the file name. Then add utilities for loading an earlier save.
-            ZonedDateTime now = ZonedDateTime.now(ZoneId.of("UTC")).truncatedTo(ChronoUnit.SECONDS);
+            ZonedDateTime now = now();
             String id = getPuzzleId(puzzle.getName());
             File progressFile = getProgressFile(id);
             savePuzzleToDisk(puzzle, progressFile);
@@ -195,9 +201,10 @@ public class PuzzleInventory {
             return properties.getProperty(id + NAME_PROPERTY, id);
         }
         
-        public void addPuzzle(Puzzle puzzle, String id) {
+        public void addPuzzle(Puzzle puzzle, String id, ZonedDateTime dt) {
             properties.setProperty(id + NAME_PROPERTY, puzzle.getName());
             properties.setProperty(id + STATE_PROPERTY, PuzzleState.NEW.name());
+            setLastUpdated(id, dt);
         }
         
         public void setState(String id, PuzzleState state) {
