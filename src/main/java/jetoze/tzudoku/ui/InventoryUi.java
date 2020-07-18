@@ -9,8 +9,8 @@ import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JList;
 
-import jetoze.gunga.BooleanBinding;
 import jetoze.gunga.binding.Binding;
+import jetoze.gunga.binding.BooleanBinding;
 import jetoze.gunga.binding.ListBinding;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.selection.Selection;
@@ -25,6 +25,8 @@ public final class InventoryUi implements Widget {
     // TODO: Add status panel, that displays name and lastUpdated date of the selected puzzle.
     // TODO: Is there any change the model will outlive this UI? IOW, is it necessary to
     //       dispose the bindings we install? I don't think so, but I'm not sure.
+    // TODO: Should we really be using a table here, with Status and Last Updated columns?
+    //       That would allow for a bit more natural sorting.
     
     private final ListWidget<PuzzleInfo> list;
     private final CheckBoxWidget showCompletedPuzzlesCheckBox = new CheckBoxWidget("Show completed puzzles");
