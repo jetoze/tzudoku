@@ -37,18 +37,20 @@ public class InventoryUiModel {
         }
     }
     
+    private static final Predicate<PuzzleInfo> UNSOLVED_PUZZLES = p -> p.getState() != PuzzleState.SOLVED;
+    
     private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
     
     private final ListProperty<PuzzleInfo> puzzleInfos;
     
-    private final Property<Boolean> hideCompletedPuzzles = Properties.newProperty(
-            "hideCompletedPuzzles", Boolean.TRUE, changeSupport);
+    private final Property<Boolean> showCompletedPuzzles = Properties.newProperty(
+            "showCompletedPuzzles", Boolean.FALSE, changeSupport);
     
     private final Property<SortOrder> sortOrder = Properties.newProperty(
             "sortOrder", SortOrder.LAST_UPDATED, changeSupport);
     
     private final Property<Predicate<PuzzleInfo>> listFilter =
-            Properties.newProperty("listFilter", p -> true, changeSupport);
+            Properties.newProperty("listFilter", UNSOLVED_PUZZLES, changeSupport);
     
     public InventoryUiModel(PuzzleInventory inventory) {
         List<PuzzleInfo> sortedList = new ArrayList<>(inventory.listPuzzles());
@@ -63,11 +65,11 @@ public class InventoryUiModel {
             SortOrder sortOrder = (SortOrder) e.getNewValue();
             sortOrder.sort(puzzleInfos);
         });
-        this.hideCompletedPuzzles.addListener(e -> {
-            boolean hide = (Boolean) e.getNewValue();
-            Predicate<PuzzleInfo> predicate = hide
-                    ? p -> p.getState() != PuzzleState.SOLVED
-                    : p -> true;
+        this.showCompletedPuzzles.addListener(e -> {
+            boolean show = (Boolean) e.getNewValue();
+            Predicate<PuzzleInfo> predicate = show
+                    ? p -> true
+                    : UNSOLVED_PUZZLES;
             listFilter.set(predicate);
         });
     }
@@ -80,8 +82,8 @@ public class InventoryUiModel {
         return listFilter;
     }
     
-    public Property<Boolean> getHideCompletedPuzzles() {
-        return hideCompletedPuzzles;
+    public Property<Boolean> getShowCompletedPuzzles() {
+        return showCompletedPuzzles;
     }
     
     public Property<SortOrder> getSortOrder() {
