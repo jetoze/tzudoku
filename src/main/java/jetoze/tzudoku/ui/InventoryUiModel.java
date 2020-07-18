@@ -56,7 +56,6 @@ public class InventoryUiModel {
         List<PuzzleInfo> sortedList = new ArrayList<>(inventory.listPuzzles());
         SortOrder.LAST_UPDATED.sort(sortedList);
         this.puzzleInfos = Properties.newListProperty("puzzles", sortedList, changeSupport);
-        this.puzzleInfos.setDoDefensiveCopy(false);
         installInternalListeners();
     }
 
