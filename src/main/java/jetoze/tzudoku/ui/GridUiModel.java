@@ -243,6 +243,13 @@ public class GridUiModel {
         listeners.forEach(notification);
     }
 
+    private void onCellValuesChanged() {
+        if (highlightDuplicateCells) {
+            highlightDuplicateCells();
+        }
+        notifyListeners(GridUiModelListener::onCellStateChanged);
+    }
+    
     private class SetValueAction implements UndoableAction {
         private final Value value;
         private final ImmutableMap<Cell, Optional<Value>> cellsAndTheirOldValues;
@@ -262,10 +269,7 @@ public class GridUiModel {
         @Override
         public void perform() {
             cellsAndTheirOldValues.keySet().forEach(c -> c.setValue(value));
-            if (highlightDuplicateCells) {
-                highlightDuplicateCells();
-            }
-            notifyListeners(GridUiModelListener::onCellStateChanged);
+            onCellValuesChanged();
         }
 
         @Override
@@ -275,10 +279,11 @@ public class GridUiModel {
                 Optional<Value> value = e.getValue();
                 value.ifPresentOrElse(cell::setValue, cell::clearContent);
             }
-            notifyListeners(GridUiModelListener::onCellStateChanged);
+            onCellValuesChanged();
         }
     }
 
+    
     private class TogglePencilMarkAction implements UndoableAction {
         private final Value value;
         private final BiConsumer<PencilMarks, Value> pencil;
@@ -369,16 +374,17 @@ public class GridUiModel {
                     c.clearContent();
                 }
             });
-            notifyListeners(GridUiModelListener::onCellStateChanged);
+            onCellValuesChanged();
         }
 
         @Override
         public void undo() {
             cellsAndTheirPreviousState.forEach((c, s) -> s.restore(c));
-            notifyListeners(GridUiModelListener::onCellStateChanged);
+            onCellValuesChanged();
         }
     }
 
+    
     private static class PreviousCellState {
         private final Optional<Value> value;
         private final ImmutableSet<Value> cornerMarks;
