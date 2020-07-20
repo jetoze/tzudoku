@@ -57,7 +57,8 @@ public class PuzzleBuilderApp {
         });
         appFrame.getContentPane().add(ui.getUi(), BorderLayout.CENTER);
         appFrame.pack();
-        
+        appFrame.setLocationRelativeTo(null);
+
         appFrame.setVisible(true);
     }
 
