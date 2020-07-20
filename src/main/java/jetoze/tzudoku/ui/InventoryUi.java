@@ -4,6 +4,7 @@ import java.awt.Component;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.Optional;
+import java.util.function.Consumer;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
@@ -14,6 +15,7 @@ import jetoze.gunga.binding.BooleanBinding;
 import jetoze.gunga.binding.ListBinding;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.selection.Selection;
+import jetoze.gunga.selection.SelectionAction;
 import jetoze.gunga.widget.CheckBoxWidget;
 import jetoze.gunga.widget.ListWidget;
 import jetoze.gunga.widget.ListWidget.SelectionMode;
@@ -68,6 +70,22 @@ public final class InventoryUi implements Widget {
         return selection.isEmpty()
                 ? Optional.empty()
                 : Optional.of(selection.getItems().get(0));
+    }
+
+    public void setPuzzleLoader(Consumer<PuzzleInfo> loader) {
+        SelectionAction<PuzzleInfo> action = SelectionAction.forSingleItem("Load", loader);
+        action.setSelectionSource(list);
+        list.setDefaultAction(action);
+    }
+    
+    public void addValidationListener(Consumer<Boolean> listener) {
+        // TODO: This is a bit clunky. Also, we should probably have a correpsonding remove method.
+        list.addSelectionListener(s -> handleSelection(s, listener));
+        handleSelection(list.getSelection(), listener);
+    }
+    
+    private void handleSelection(Selection<PuzzleInfo> selection, Consumer<Boolean> validationListener) {
+        validationListener.accept(selection.getItems().size() == 1);
     }
     
     @Override

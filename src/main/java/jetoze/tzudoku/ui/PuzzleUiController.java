@@ -2,9 +2,13 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -29,19 +33,35 @@ public class PuzzleUiController {
     public void selectPuzzle() {
         InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
         InventoryUi inventoryUi = new InventoryUi(model);
-        // TODO: Use a fancier dialog here. For example, we want:
-        //   + The ok button to be disabled unless a puzzle is selected
-        //   + Double-click in the list should select the puzzle
-        //   + Request focus to the list when the dialog opens.
-        int option = JOptionPane.showConfirmDialog(
-                appFrame,
-                inventoryUi.getUi(),
-                "Select a Puzzle",
-                JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE);
-        if (option == JOptionPane.OK_OPTION) {
+        // TODO: Use a utility for this.
+        JButton ok = UiLook.createOptionDialogButton("Select", () -> {
             inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
-        }
+        });
+        JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
+        JOptionPane optionPane = new JOptionPane(
+                inventoryUi.getUi(), 
+                JOptionPane.PLAIN_MESSAGE,
+                JOptionPane.YES_NO_OPTION,
+                null, 
+                new JButton[] {ok, cancel}, 
+                ok);
+        JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
+        dialog.setContentPane(optionPane);
+        dialog.pack();
+        dialog.setLocationRelativeTo(appFrame);
+        dialog.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowOpened(WindowEvent e) {
+                inventoryUi.requestFocus();
+            }
+        });
+        inventoryUi.setPuzzleLoader(pi -> {
+            dialog.dispose();
+            loadPuzzle(pi);
+        });
+        inventoryUi.addValidationListener(ok::setEnabled);
+        dialog.setVisible(true);
     }
     
     private void loadPuzzle(PuzzleInfo puzzleInfo) {

@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Dialog;
 import java.awt.Dimension;
 import java.awt.Font;
 import java.awt.FontMetrics;
@@ -12,11 +13,13 @@ import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
 import java.awt.Stroke;
+import java.awt.Window;
 
 import javax.swing.AbstractButton;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
 import javax.swing.border.Border;
@@ -226,6 +229,24 @@ public final class UiLook {
         btn.setMargin(null);
         btn.setFont(SMALL_BUTTON_FONT);
         return btn;
+    }
+    
+    static JButton createOptionDialogButton(String text, Runnable job) {
+        JButton button = new JButton(text) {
+
+            @Override
+            public String toString() {
+                return getText();
+            }
+        };
+        button.addActionListener(e -> {
+            Window window = SwingUtilities.getWindowAncestor(button);
+            if (window instanceof Dialog) {
+                window.dispose();
+            }
+            job.run();
+        });
+        return button;
     }
     
     static Color getColorOfCell(CellColor cellColor) {
