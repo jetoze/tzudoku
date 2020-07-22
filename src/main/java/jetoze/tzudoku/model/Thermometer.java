@@ -20,8 +20,14 @@ public class Thermometer {
     private static void validateInput(List<Position> positions) {
         checkArgument(positions.stream().allMatch(Objects::nonNull), 
                 "The thermometer must not contain null positions (%s)", positions);
-        checkArgument(positions.size() > 1 && positions.size() <= 9,
-                "The thermometer must contain 2-9 positions (had %s)", positions.size());
+        // XXX: A thermometer should really contain at least two cells - a one cell
+        // thermometer in a puzzle is pointless. However, allowing a one cell thermometer
+        // allows us to build thermometers progressively in the puzzle builder.
+        // We can add validation in the puzzle itself that all its thermos are
+        // two cells or more.
+        // That said, this situation is unfortunate. Can we come up with something better?
+        checkArgument(positions.size() >= 1 && positions.size() <= 9,
+                "The thermometer must contain 1-9 positions (had %s)", positions.size());
         // Each position must be a King's move away from the previous one.
         for (int n = 1; n < positions.size(); ++n) {
             Position p1 = positions.get(n - 1);

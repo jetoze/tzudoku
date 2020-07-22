@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Collection;
+import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -148,6 +149,21 @@ public final class Grid {
             .filter(c -> c.size() > 1)
             .flatMap(Collection::stream)
             .forEach(bin::add);
+    }
+    
+    public void showRemainingCandidates() {
+        Position.all().forEach(this::showRemainingCandidates);
+    }
+    
+    private void showRemainingCandidates(Position p) {
+        Cell cell = cells.get(p);
+        if (cell.hasValue()) {
+            return;
+        }
+        Set<Value> candidates = EnumSet.allOf(Value.class);
+        p.seenBy().map(cells::get).map(Cell::getValue).flatMap(Optional::stream).forEach(candidates::remove);
+        cell.getPencilMarks().setCenterMarks(candidates);
+        
     }
     
     @Override

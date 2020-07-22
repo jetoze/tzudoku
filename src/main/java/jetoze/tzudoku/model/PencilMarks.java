@@ -1,10 +1,11 @@
 package jetoze.tzudoku.model;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 public abstract class PencilMarks {
@@ -31,6 +32,8 @@ public abstract class PencilMarks {
     public abstract PencilMarks toggleCorner(Value value);
 
     public abstract PencilMarks toggleCenter(Value value);
+    
+    public abstract PencilMarks setCenterMarks(Set<Value> values);
 
     public abstract void clear();
 
@@ -80,6 +83,11 @@ public abstract class PencilMarks {
 
         @Override
         public PencilMarks toggleCenter(Value value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public PencilMarks setCenterMarks(Set<Value> values) {
             throw new UnsupportedOperationException();
         }
 
@@ -134,6 +142,13 @@ public abstract class PencilMarks {
         @Override
         public PencilMarks toggleCenter(Value value) {
             toggle(value, center);
+            return this;
+        }
+
+        @Override
+        public PencilMarks setCenterMarks(Set<Value> values) {
+            center.clear();
+            center.addAll(values);
             return this;
         }
 

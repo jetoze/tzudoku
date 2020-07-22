@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
@@ -222,6 +223,22 @@ public class GridUiModel {
         cellUis.values().forEach(c -> c.setInvalid(false));
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
+    
+    public void showRemainingCandidates() {
+        // TODO: Ideally, the work to collect the candidates should be performed in
+        // a background thread. That shouldn't be the responsibility of the model,
+        // however, and it's also not immediately clear how to get undo/redo work.
+        List<Cell> emptyCells = cellUis.values().stream()
+                .map(CellUi::getCell)
+                .filter(Predicate.not(Cell::hasValue))
+                .collect(toImmutableList());
+        if (emptyCells.isEmpty()) {
+            return;
+        }
+        UndoableAction action = new ShowRemainingCandidatesAction(emptyCells);
+        undoRedoState.add(action);
+        action.perform();
+    }
 
     public void undo() {
         undoRedoState.undo();
@@ -249,6 +266,7 @@ public class GridUiModel {
         }
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
+    
     
     private class SetValueAction implements UndoableAction {
         private final Value value;
@@ -381,6 +399,34 @@ public class GridUiModel {
         public void undo() {
             cellsAndTheirPreviousState.forEach((c, s) -> s.restore(c));
             onCellValuesChanged();
+        }
+    }
+    
+    
+    private class ShowRemainingCandidatesAction implements UndoableAction {
+        private final ImmutableMap<Cell, ? extends Set<Value>> emptyCellsAndTheirPreviousState;
+
+        public ShowRemainingCandidatesAction(List<Cell> emptyCells) {
+            assert !emptyCells.isEmpty();
+            emptyCellsAndTheirPreviousState = emptyCells.stream().collect(toImmutableMap(
+                    c -> c, c -> ImmutableSet.copyOf(c.getPencilMarks().iterateOverCenterMarks())));
+        }
+
+        @Override
+        public void perform() {
+            grid.showRemainingCandidates();
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        }
+        
+        @Override
+        public void undo() {
+            emptyCellsAndTheirPreviousState.forEach((c, s) -> c.getPencilMarks().setCenterMarks(s));
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        }
+
+        @Override
+        public boolean isNoOp() {
+            return false;
         }
     }
 

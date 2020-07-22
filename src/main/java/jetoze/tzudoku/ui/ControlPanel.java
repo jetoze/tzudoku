@@ -6,6 +6,7 @@ import static java.util.stream.Collectors.toList;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
+import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.List;
 
@@ -14,6 +15,7 @@ import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
@@ -138,29 +140,17 @@ public class ControlPanel {
             }
         }
 
-        JPanel bottom = new JPanel(new GridBagLayout());
-        c = new GridBagConstraints();
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weightx = 0.5;
-
-        c.gridx = 0;
-        c.gridy = 0;
-        bottom.add(largeButton("Undo", model::undo), c);
-        c.gridx = 1;
-        c.gridy = 0;
-        bottom.add(largeButton("Redo", model::redo), c);
-        c.gridx = 0;
-        c.gridy = 1;
-        bottom.add(largeButton("Restart", model::reset), c);
-        c.gridx = 1;
-        c.gridy = 1;
-        bottom.add(largeButton("Check", controller::checkSolution), c);
-        c.gridx = 0;
-        c.gridy = 2;
-        bottom.add(largeButton("Save", controller::saveProgress), c);
-        c.gridx = 1;
-        c.gridy = 2;
-        bottom.add(largeButton("Load", controller::selectPuzzle), c);
+        JPanel bottom = new JPanel(new GridLayout(0, 2));
+        bottom.add(largeButton("Undo", model::undo));
+        bottom.add(largeButton("Redo", model::redo));
+        bottom.add(largeButton("Restart", model::reset));
+        bottom.add(largeButton("Check", controller::checkSolution));
+        bottom.add(new JLabel("")/*empty space*/);
+        // TODO: I'd rather make the Show Remaining Candidates functionality to 
+        // be less visible. Hide under some general Options or Filters menu?
+        bottom.add(largeButton("Candidates", model::showRemainingCandidates));
+        bottom.add(largeButton("Save", controller::saveProgress));
+        bottom.add(largeButton("Load", controller::selectPuzzle));
         
         return Layouts.border(0, 10)
                 .north(top)
