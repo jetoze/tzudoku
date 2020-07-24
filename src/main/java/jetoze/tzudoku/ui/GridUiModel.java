@@ -52,6 +52,7 @@ public class GridUiModel {
         this.cellUis = grid.getCells().entrySet().stream()
                 .collect(ImmutableMap.toImmutableMap(Entry::getKey, 
                         e -> new CellUi(e.getKey(), e.getValue(), size)));
+        this.highlightDuplicateCells.addListener(e -> onHighlightDuplicateCellsSelectionChanged());
     }
     
     public void setGrid(Grid grid) {
@@ -101,13 +102,16 @@ public class GridUiModel {
         if (b == this.highlightDuplicateCells.get()) {
             return;
         }
+        this.highlightDuplicateCells.set(b);
+        onHighlightDuplicateCellsSelectionChanged();
+    }
+    
+    private void onHighlightDuplicateCellsSelectionChanged() {
         // TODO: What if we are also currently displaying a ValidationResult?
         // See decorateInvalidCells(). --> Perhaps let that mode take precedence, 
         // and do the decoration here only if we're not currently displaying a 
         // validation result?
-
-        this.highlightDuplicateCells.set(b);
-        if (b) {
+        if (highlightDuplicateCells.get()) {
             highlightDuplicateCells();
             notifyListeners(GridUiModelListener::onCellStateChanged);
         } else {
