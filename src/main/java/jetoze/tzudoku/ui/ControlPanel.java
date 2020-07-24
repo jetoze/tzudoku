@@ -8,6 +8,7 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -15,14 +16,19 @@ import javax.swing.Action;
 import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
+import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
 
 import com.google.common.collect.ImmutableList;
 
 import jetoze.gunga.UiThread;
+import jetoze.gunga.binding.BooleanBinding;
 import jetoze.gunga.layout.Layouts;
+import jetoze.gunga.widget.PopupMenuButton;
+import jetoze.gunga.widget.Selectable;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Value;
 
@@ -146,9 +152,14 @@ public class ControlPanel {
         bottom.add(largeButton("Restart", model::reset));
         bottom.add(largeButton("Check", controller::checkSolution));
         bottom.add(new JLabel("")/*empty space*/);
-        // TODO: I'd rather make the Show Remaining Candidates functionality to 
-        // be less visible. Hide under some general Options or Filters menu?
-        bottom.add(largeButton("Candidates", model::showRemainingCandidates));
+        JCheckBoxMenuItem highlightDuplicatesChoice = new JCheckBoxMenuItem("Highlight Duplicates");
+        BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
+                Selectable.of(highlightDuplicatesChoice));
+        PopupMenuButton filtersButton = new PopupMenuButton("Filters...", Arrays.asList(
+                highlightDuplicatesChoice,
+                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates))));
+        UiLook.makeOverLarge(filtersButton);
+        bottom.add(filtersButton.getUi());
         bottom.add(largeButton("Save", controller::saveProgress));
         bottom.add(largeButton("Load", controller::selectPuzzle));
         

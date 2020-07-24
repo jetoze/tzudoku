@@ -24,6 +24,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
+import jetoze.attribut.Properties;
+import jetoze.attribut.Property;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
@@ -38,7 +40,8 @@ public class GridUiModel {
     private ImmutableMap<Position, CellUi> cellUis;
     @Nullable
     private CellUi lastSelectedCell;
-    private boolean highlightDuplicateCells;
+    private final Property<Boolean> highlightDuplicateCells = Properties.newProperty(
+            "highlightDuplicateCells", Boolean.FALSE);
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
@@ -95,7 +98,7 @@ public class GridUiModel {
     }
     
     public void setHighlightDuplicateCells(boolean b) {
-        if (b == this.highlightDuplicateCells) {
+        if (b == this.highlightDuplicateCells.get()) {
             return;
         }
         // TODO: What if we are also currently displaying a ValidationResult?
@@ -103,7 +106,7 @@ public class GridUiModel {
         // and do the decoration here only if we're not currently displaying a 
         // validation result?
 
-        this.highlightDuplicateCells = b;
+        this.highlightDuplicateCells.set(b);
         if (b) {
             highlightDuplicateCells();
             notifyListeners(GridUiModelListener::onCellStateChanged);
@@ -239,6 +242,10 @@ public class GridUiModel {
         undoRedoState.add(action);
         action.perform();
     }
+    
+    public Property<Boolean> getHighlightDuplicateCellsProperty() {
+        return highlightDuplicateCells;
+    }
 
     public void undo() {
         undoRedoState.undo();
@@ -261,7 +268,7 @@ public class GridUiModel {
     }
 
     private void onCellValuesChanged() {
-        if (highlightDuplicateCells) {
+        if (highlightDuplicateCells.get()) {
             highlightDuplicateCells();
         }
         notifyListeners(GridUiModelListener::onCellStateChanged);

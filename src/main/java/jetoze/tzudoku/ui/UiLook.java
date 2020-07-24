@@ -28,6 +28,7 @@ import javax.swing.border.LineBorder;
 import com.google.common.collect.ImmutableMap;
 
 import jetoze.gunga.UiThread;
+import jetoze.gunga.widget.PopupMenuButton;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.PuzzleState;
@@ -214,6 +215,10 @@ public final class UiLook {
     }
 
     static void makeOverLarge(AbstractButton button) {
+        button.setFont(LARGE_BUTTON_FONT);
+    }
+    
+    static void makeOverLarge(PopupMenuButton button) {
         button.setFont(LARGE_BUTTON_FONT);
     }
     
