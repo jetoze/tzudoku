@@ -35,7 +35,7 @@ public class PuzzleInventory {
     // TODO: I've become messy. I need some cleanup.
     
     private static final String FILE_EXTENSION = ".json";
-    private static final String PROPERTIES_FILE = "properties";
+    private static final String PROPERTIES_FILE = "puzzles.properties";
     private static final String PROGRESS_FOLDER = "progress";
     private static final String ARCHIVE_FOLDER = "archive";
     
