@@ -159,12 +159,13 @@ public class ControlPanel {
         JCheckBoxMenuItem eliminateCandidatesChoice = new JCheckBoxMenuItem("Eliminate Candidates");
         BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
                 Selectable.of(eliminateCandidatesChoice));
-        PopupMenuButton filtersButton = new PopupMenuButton("Filters...", Arrays.asList(
+        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", Arrays.asList(
                 highlightDuplicatesChoice,
                 eliminateCandidatesChoice,
-                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates))));
-        UiLook.makeOverLarge(filtersButton);
-        bottom.add(filtersButton.getUi());
+                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
+                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing))));
+        UiLook.makeOverLarge(hintsButton);
+        bottom.add(hintsButton.getUi());
         
         bottom.add(largeButton("Save", controller::saveProgress));
         bottom.add(largeButton("Load", controller::selectPuzzle));

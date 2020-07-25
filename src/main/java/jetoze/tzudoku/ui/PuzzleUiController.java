@@ -4,18 +4,21 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
+import jetoze.tzudoku.model.XyWing;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
@@ -91,6 +94,24 @@ public class PuzzleUiController {
         UiThread.offload(work,  whenDone, exceptionHandler);
     }
     
+    public void lookForXyWing() {
+        Callable<Optional<XyWing>> producer = () -> XyWing.findNext(puzzleModel.getGridModel().getGrid());
+        Consumer<Optional<XyWing>> consumer = o -> {
+            o.ifPresentOrElse(this::showXyWingInfo, 
+                    () -> JOptionPane.showMessageDialog(appFrame, "Did not find any XY-wings :("));
+        };
+        UiThread.offload(producer, consumer);
+    }
+    
+    private void showXyWingInfo(XyWing xyWing) {
+        StringBuilder s = new StringBuilder("<html>Found an XY-wing:<br>");
+        s.append(xyWing.getCenter());
+        xyWing.getWings().forEach(w -> s.append("<br>").append(w));
+        s.append("</html>");
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        
+    }
+
     public void checkSolution() {
         UiThread.offload(this::validatePuzzle, this::displayResult);
     }
