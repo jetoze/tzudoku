@@ -20,11 +20,20 @@ import com.google.common.collect.Sets;
 public class XyWing {
     private final Position center;
     private final ImmutableSet<Position> wings;
+    private final Value valueThatCanBeEliminated;
+    private final ImmutableSet<Position> targets;
 
-    private XyWing(Position center, ImmutableSet<Position> wings) {
+    private XyWing(Position center, 
+                   ImmutableSet<Position> wings,
+                   Value valueThatCanBeEliminated,
+                   ImmutableSet<Position> targets) {
         this.center = requireNonNull(center);
         this.wings = requireNonNull(wings);
         checkArgument(!wings.contains(center));
+        this.valueThatCanBeEliminated = requireNonNull(valueThatCanBeEliminated);
+        this.targets = requireNonNull(targets);
+        checkArgument(!targets.contains(center));
+        checkArgument(Sets.intersection(wings, targets).isEmpty());
     }
     
     public Position getCenter() {
@@ -33,6 +42,14 @@ public class XyWing {
     
     public ImmutableSet<Position> getWings() {
         return wings;
+    }
+
+    public Value getValueThatCanBeEliminated() {
+        return valueThatCanBeEliminated;
+    }
+    
+    public ImmutableSet<Position> getTargets() {
+        return targets;
     }
 
     public static Optional<XyWing> findNext(Grid grid) {
@@ -80,35 +97,30 @@ public class XyWing {
             if (wings.size() < 2) {
                 return null;
             }
-            Set<Value> seenSharedValues = new HashSet<>();
-            for (int p = 0; p < (wings.size() - 1); ++p) {
-                Wing w1 = wings.get(p);
+            for (int i = 0; i < (wings.size() - 1); ++i) {
+                Wing w1 = wings.get(i);
                 Value sharedValue = Sets.intersection(candidates0, w1.values).iterator().next();
-                if (!seenSharedValues.add(sharedValue)) {
-                    // We've already processed this value and didn't find anything.
-                    continue;
-                }
                 Value wingValue = Sets.difference(w1.values, Collections.singleton(sharedValue)).iterator().next();
                 Set<Value> otherWingValues = new HashSet<>();
                 otherWingValues.add(wingValue);
                 otherWingValues.addAll(Sets.difference(candidates0, Collections.singleton(sharedValue)));
-                for (int q = p + 1; q < wings.size(); ++q) {
-                    Wing w2 = wings.get(q);
+                for (int j = i + 1; j < wings.size(); ++j) {
+                    Wing w2 = wings.get(j);
                     if (!isInSameRowOrColumn(p0, w1, w2) && w2.values.equals(otherWingValues)) {
                         // Now check if w1 and w2 are both seen by any cells that have wingValue as
                         // a candidate
                         Set<Position> seenByBothWings = Sets.intersection(w1.seenBy(), w2.seenBy());
-                        boolean isXyWing = seenByBothWings.stream()
-                                .map(grid::cellAt)
-                                .anyMatch(cell -> {
+                        ImmutableSet<Position> targets = seenByBothWings.stream()
+                                .filter(px -> {
+                                    Cell cell = grid.cellAt(px);
                                     if (cell.hasValue()) {
                                         return false;
                                     }
                                     Set<Value> candidates = getCandidates(cell);
                                     return candidates.contains(wingValue);
-                                });
-                        if (isXyWing) {
-                            return new XyWing(p0, ImmutableSet.of(w1.position, w2.position));
+                                }).collect(toImmutableSet());
+                        if (!targets.isEmpty()) {
+                            return new XyWing(p0, ImmutableSet.of(w1.position, w2.position), wingValue, targets);
                         }
                     }
                 }

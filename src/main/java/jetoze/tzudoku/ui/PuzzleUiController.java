@@ -104,9 +104,12 @@ public class PuzzleUiController {
     }
     
     private void showXyWingInfo(XyWing xyWing) {
+        // TODO: This can obviously be done in a fancier way.
         StringBuilder s = new StringBuilder("<html>Found an XY-wing:<br>");
         s.append(xyWing.getCenter());
         xyWing.getWings().forEach(w -> s.append("<br>").append(w));
+        s.append("<br>").append(xyWing.getValueThatCanBeEliminated().toInt()).append(" can be eliminated from ")
+            .append(xyWing.getTargets().size()).append(" cell(s).");
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
         
