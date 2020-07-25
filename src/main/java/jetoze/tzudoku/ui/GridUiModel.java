@@ -2,12 +2,12 @@ package jetoze.tzudoku.ui;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
@@ -290,32 +290,48 @@ public class GridUiModel {
     
     private class SetValueAction implements UndoableAction {
         private final Value value;
-        private final ImmutableMap<Cell, Optional<Value>> cellsAndTheirOldValues;
+        private final ImmutableSet<Cell> selectedCells;
+        private final ImmutableSet<Cell> eliminateCandidatesFrom;
+        private final ImmutableMap<Cell, PreviousCellState> cellsAndTheirPreviousState;
 
         public SetValueAction(Value value, Stream<Position> positions) {
             this.value = requireNonNull(value);
-            this.cellsAndTheirOldValues = positions.map(grid::cellAt).collect(
-                    toImmutableMap(Function.identity(), Cell::getValue));
+            ImmutableSet<Position> selectedPositions = positions.collect(toImmutableSet());
+            this.selectedCells = selectedPositions.stream()
+                    .map(grid::cellAt)
+                    .collect(toImmutableSet());
+            if (eliminateCandidates.get()) {
+                eliminateCandidatesFrom = selectedPositions.stream()
+                        .flatMap(Position::seenBy)
+                        .map(grid::cellAt)
+                        .filter(Predicate.not(Cell::isGiven))
+                        .filter(Predicate.not(this.selectedCells::contains))
+                        .collect(toImmutableSet());
+            } else {
+                eliminateCandidatesFrom = ImmutableSet.of();
+            }
+            this.cellsAndTheirPreviousState = Stream.concat(selectedCells.stream(), eliminateCandidatesFrom.stream())
+                    .collect(toImmutableMap(Function.identity(), PreviousCellState::new));
         }
 
         @Override
         public boolean isNoOp() {
-            return cellsAndTheirOldValues.values().stream()
-                    .allMatch(o -> o.isPresent() && o.get() == value);
+            return cellsAndTheirPreviousState.keySet().stream()
+                    .allMatch(c -> c.getValue().orElse(null) == value);
         }
 
         @Override
         public void perform() {
-            cellsAndTheirOldValues.keySet().forEach(c -> c.setValue(value));
+            selectedCells.forEach(c -> c.setValue(value));
+            eliminateCandidatesFrom.stream()
+                .map(Cell::getPencilMarks)
+                .forEach(pm -> pm.remove(value));
+            onCellValuesChanged();
         }
 
         @Override
         public void undo() {
-            for (Map.Entry<Cell, Optional<Value>> e : cellsAndTheirOldValues.entrySet()) {
-                Cell cell = e.getKey();
-                Optional<Value> value = e.getValue();
-                value.ifPresentOrElse(cell::setValue, cell::clearContent);
-            }
+            cellsAndTheirPreviousState.forEach((c, s) -> s.restore(c));
             onCellValuesChanged();
         }
     }
@@ -465,7 +481,7 @@ public class GridUiModel {
         
         public void restore(Cell cell) {
             if (!cell.isGiven()) {
-                value.ifPresent(cell::setValue);
+                value.ifPresentOrElse(cell::setValue, cell::clearContent);
                 PencilMarks pencilMarks = cell.getPencilMarks();
                 pencilMarks.clear();
                 cornerMarks.forEach(pencilMarks::toggleCorner);
