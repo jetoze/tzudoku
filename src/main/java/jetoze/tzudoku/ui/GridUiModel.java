@@ -4,7 +4,7 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.*;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -290,48 +290,54 @@ public class GridUiModel {
     
     private class SetValueAction implements UndoableAction {
         private final Value value;
+        private final ImmutableSet<Position> selectedPositions;
         private final ImmutableSet<Cell> selectedCells;
-        private final ImmutableSet<Cell> eliminateCandidatesFrom;
-        private final ImmutableMap<Cell, PreviousCellState> cellsAndTheirPreviousState;
+        private ImmutableMap<Cell, PreviousCellState> previousStates;
 
         public SetValueAction(Value value, Stream<Position> positions) {
             this.value = requireNonNull(value);
-            ImmutableSet<Position> selectedPositions = positions.collect(toImmutableSet());
+            this.selectedPositions = positions.collect(toImmutableSet());
             this.selectedCells = selectedPositions.stream()
                     .map(grid::cellAt)
                     .collect(toImmutableSet());
-            if (eliminateCandidates.get()) {
-                eliminateCandidatesFrom = selectedPositions.stream()
-                        .flatMap(Position::seenBy)
-                        .map(grid::cellAt)
-                        .filter(Predicate.not(Cell::isGiven))
-                        .filter(Predicate.not(this.selectedCells::contains))
-                        .collect(toImmutableSet());
-            } else {
-                eliminateCandidatesFrom = ImmutableSet.of();
-            }
-            this.cellsAndTheirPreviousState = Stream.concat(selectedCells.stream(), eliminateCandidatesFrom.stream())
-                    .collect(toImmutableMap(Function.identity(), PreviousCellState::new));
         }
 
         @Override
         public boolean isNoOp() {
-            return cellsAndTheirPreviousState.keySet().stream()
-                    .allMatch(c -> c.getValue().orElse(null) == value);
+            return selectedCells.stream()
+                .map(c -> c.getValue().orElse(null))
+                .allMatch(v -> v == value);
         }
 
         @Override
         public void perform() {
-            selectedCells.forEach(c -> c.setValue(value));
-            eliminateCandidatesFrom.stream()
-                .map(Cell::getPencilMarks)
-                .forEach(pm -> pm.remove(value));
+            // We must check the eliminateCandidates flag and rebuild the previous state here 
+            // rather than in the constructor, since the user may change the eliminateCandidates 
+            // flag between undos and redos of this action.
+            ImmutableMap.Builder<Cell, PreviousCellState> previousStatesBuilder = ImmutableMap.builder();
+            selectedCells.forEach(cell -> {
+                previousStatesBuilder.put(cell, new PreviousCellState(cell));
+                cell.setValue(value);
+            });
+            if (eliminateCandidates.get()) {
+                selectedPositions.stream()
+                    .flatMap(Position::seenBy)
+                    .map(grid::cellAt)
+                    .filter(Predicate.not(Cell::isGiven))
+                    .filter(Predicate.not(this.selectedCells::contains))
+                    .distinct()
+                    .forEach(cell -> {
+                        previousStatesBuilder.put(cell, new PreviousCellState(cell));
+                        cell.getPencilMarks().remove(value);
+                    });
+            }
+            previousStates = previousStatesBuilder.build();
             onCellValuesChanged();
         }
 
         @Override
         public void undo() {
-            cellsAndTheirPreviousState.forEach((c, s) -> s.restore(c));
+            previousStates.forEach((c, s) -> s.restore(c));
             onCellValuesChanged();
         }
     }
