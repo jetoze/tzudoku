@@ -94,7 +94,7 @@ public class XyWing {
                 otherWingValues.addAll(Sets.difference(candidates0, Collections.singleton(sharedValue)));
                 for (int q = p + 1; q < wings.size(); ++q) {
                     Wing w2 = wings.get(q);
-                    if (w2.values.equals(otherWingValues)) {
+                    if (!isInSameRowOrColumn(p0, w1, w2) && w2.values.equals(otherWingValues)) {
                         // Now check if w1 and w2 are both seen by any cells that have wingValue as
                         // a candidate
                         Set<Position> seenByBothWings = Sets.intersection(w1.seenBy(), w2.seenBy());
@@ -122,6 +122,11 @@ public class XyWing {
         
         private static boolean sharesExactlyOneElement(Set<Value> s1, Set<Value> s2) {
             return s1.size() == 2 && s2.size() == 2 && Sets.intersection(s1, s2).size() == 1;
+        }
+        
+        private static boolean isInSameRowOrColumn(Position p0, Wing w1, Wing w2) {
+            return (p0.getRow() == w1.position.getRow() && p0.getRow() == w2.position.getRow()) ||
+                    (p0.getColumn() == w1.position.getColumn() && p0.getColumn() == w2.position.getColumn());
         }
         
         
