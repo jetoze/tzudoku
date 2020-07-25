@@ -47,6 +47,10 @@ class CellUi extends JComponent {
     public Position getPosition() {
         return position;
     }
+    
+    public boolean isGiven() {
+        return cell.isGiven();
+    }
 
     public boolean isSelected() {
         return selected;

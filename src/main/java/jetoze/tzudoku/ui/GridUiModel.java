@@ -139,13 +139,13 @@ public class GridUiModel {
     }
 
     public void enterValue(Value value) {
-        ImmutableList<Cell> cells = getSelectedCellsForValueInput().collect(toImmutableList());
-        applyValueToCells(cells, value);
+        Stream<Position> positions = getSelectedPositionsForValueInput();
+        applyValueToCells(positions, value);
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
 
-    private void applyValueToCells(ImmutableList<Cell> cells, Value value) {
-        UndoableAction action = getApplyValueAction(cells, value);
+    private void applyValueToCells(Stream<Position> positions, Value value) {
+        UndoableAction action = getApplyValueAction(positions, value);
         if (action.isNoOp()) {
             return;
         }
@@ -153,31 +153,27 @@ public class GridUiModel {
         action.perform();
     }
 
-    private UndoableAction getApplyValueAction(ImmutableList<Cell> cells, Value value) {
+    private UndoableAction getApplyValueAction(Stream<Position> positions, Value value) {
         switch (enterValueMode) {
         case NORMAL:
-            return new SetValueAction(value, cells);
+            return new SetValueAction(value, positions);
         case CORNER_PENCIL_MARK:
-            return new TogglePencilMarkAction(value, PencilMarks::toggleCorner, cells);
+            return new TogglePencilMarkAction(value, PencilMarks::toggleCorner, positions);
         case CENTER_PENCIL_MARK:
-            return new TogglePencilMarkAction(value, PencilMarks::toggleCenter, cells);
+            return new TogglePencilMarkAction(value, PencilMarks::toggleCenter, positions);
         case COLOR:
             CellColor color = CellColor.fromValue(value);
-            return new SetColorAction(color, cells);
+            return new SetColorAction(color, positions);
         default:
             throw new RuntimeException("Unexpected mode: " + enterValueMode);
         }
     }
     
-    private Stream<Cell> getSelectedCellsForValueInput() {
-        Stream<Cell> selected = getSelectedCells();
-        if (enterValueMode == EnterValueMode.COLOR) {
-            // all cells can have a color
-            return selected;
-        } else {
-            // given cells cannot get a new value or pencil marks
-            return selected.filter(Predicate.not(Cell::isGiven));
-        }
+    private Stream<Position> getSelectedPositionsForValueInput() {
+        Predicate<? super CellUi> condition = (enterValueMode == EnterValueMode.COLOR)
+                ? c -> true // all cells can have a color
+                : Predicate.not(CellUi::isGiven);
+        return getSelectedPositions(condition);
     }
 
     private Stream<Cell> getSelectedCells() {
@@ -185,6 +181,13 @@ public class GridUiModel {
                 .stream()
                 .filter(CellUi::isSelected)
                 .map(CellUi::getCell);
+    }
+    
+    private Stream<Position> getSelectedPositions(Predicate<? super CellUi> condition) {
+        return cellUis.values().stream()
+                .filter(CellUi::isSelected)
+                .filter(condition)
+                .map(CellUi::getPosition);
     }
 
     // TODO: This is not a very good name.
@@ -289,10 +292,10 @@ public class GridUiModel {
         private final Value value;
         private final ImmutableMap<Cell, Optional<Value>> cellsAndTheirOldValues;
 
-        public SetValueAction(Value value, List<Cell> cells) {
+        public SetValueAction(Value value, Stream<Position> positions) {
             this.value = requireNonNull(value);
-            this.cellsAndTheirOldValues = cells.stream()
-                    .collect(toImmutableMap(Function.identity(), Cell::getValue));
+            this.cellsAndTheirOldValues = positions.map(grid::cellAt).collect(
+                    toImmutableMap(Function.identity(), Cell::getValue));
         }
 
         @Override
@@ -304,7 +307,6 @@ public class GridUiModel {
         @Override
         public void perform() {
             cellsAndTheirOldValues.keySet().forEach(c -> c.setValue(value));
-            onCellValuesChanged();
         }
 
         @Override
@@ -325,10 +327,10 @@ public class GridUiModel {
         private final ImmutableList<Cell> cells;
 
         public TogglePencilMarkAction(Value value, BiConsumer<PencilMarks, Value> pencil,
-                ImmutableList<Cell> cells) {
+                Stream<Position> positions) {
             this.value = requireNonNull(value);
             this.pencil = requireNonNull(pencil);
-            this.cells = requireNonNull(cells);
+            this.cells = positions.map(grid::cellAt).collect(toImmutableList());
         }
 
         @Override
@@ -358,9 +360,9 @@ public class GridUiModel {
         private final CellColor color;
         private final ImmutableMap<Cell, CellColor> cellsAndTheirOldColors;
 
-        public SetColorAction(CellColor color, List<Cell> cells) {
+        public SetColorAction(CellColor color, Stream<Position> positions) {
             this.color = requireNonNull(color);
-            this.cellsAndTheirOldColors = cells.stream()
+            this.cellsAndTheirOldColors = positions.map(grid::cellAt)
                     .collect(toImmutableMap(Function.identity(), Cell::getColor));
         }
 
