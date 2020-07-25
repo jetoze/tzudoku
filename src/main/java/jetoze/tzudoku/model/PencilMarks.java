@@ -33,6 +33,8 @@ public abstract class PencilMarks {
 
     public abstract PencilMarks toggleCenter(Value value);
     
+    public abstract void remove(Value value);
+    
     public abstract PencilMarks setCenterMarks(Set<Value> values);
 
     public abstract void clear();
@@ -74,6 +76,11 @@ public abstract class PencilMarks {
         @Override
         public boolean hasCenterMarks() {
             return false;
+        }
+
+        @Override
+        public void remove(Value value) {
+            throw new UnsupportedOperationException();
         }
 
         @Override
@@ -150,6 +157,13 @@ public abstract class PencilMarks {
             center.clear();
             center.addAll(values);
             return this;
+        }
+
+        @Override
+        public void remove(Value value) {
+            requireNonNull(value);
+            corner.remove(value);
+            center.remove(value);
         }
 
         @Override

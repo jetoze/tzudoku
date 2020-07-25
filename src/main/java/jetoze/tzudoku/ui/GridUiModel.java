@@ -42,6 +42,8 @@ public class GridUiModel {
     private CellUi lastSelectedCell;
     private final Property<Boolean> highlightDuplicateCells = Properties.newProperty(
             "highlightDuplicateCells", Boolean.FALSE);
+    private final Property<Boolean> eliminateCandidates = Properties.newProperty(
+            "eliminateDuplicates", Boolean.FALSE);
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
@@ -249,6 +251,10 @@ public class GridUiModel {
     
     public Property<Boolean> getHighlightDuplicateCellsProperty() {
         return highlightDuplicateCells;
+    }
+    
+    public Property<Boolean> getEliminateCandidatesProperty() {
+        return eliminateCandidates;
     }
 
     public void undo() {

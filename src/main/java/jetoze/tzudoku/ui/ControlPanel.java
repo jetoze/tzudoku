@@ -152,14 +152,20 @@ public class ControlPanel {
         bottom.add(largeButton("Restart", model::reset));
         bottom.add(largeButton("Check", controller::checkSolution));
         bottom.add(new JLabel("")/*empty space*/);
+        
         JCheckBoxMenuItem highlightDuplicatesChoice = new JCheckBoxMenuItem("Highlight Duplicates");
         BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
                 Selectable.of(highlightDuplicatesChoice));
+        JCheckBoxMenuItem eliminateCandidatesChoice = new JCheckBoxMenuItem("Eliminate Candidates");
+        BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
+                Selectable.of(eliminateCandidatesChoice));
         PopupMenuButton filtersButton = new PopupMenuButton("Filters...", Arrays.asList(
                 highlightDuplicatesChoice,
+                eliminateCandidatesChoice,
                 new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates))));
         UiLook.makeOverLarge(filtersButton);
         bottom.add(filtersButton.getUi());
+        
         bottom.add(largeButton("Save", controller::saveProgress));
         bottom.add(largeButton("Load", controller::selectPuzzle));
         
