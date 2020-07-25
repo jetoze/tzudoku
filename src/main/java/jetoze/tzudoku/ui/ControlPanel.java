@@ -8,7 +8,6 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
-import java.util.Arrays;
 import java.util.List;
 
 import javax.swing.AbstractAction;
@@ -17,7 +16,6 @@ import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
-import javax.swing.JLabel;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JToggleButton;
@@ -150,21 +148,12 @@ public class ControlPanel {
         bottom.add(largeButton("Undo", model::undo));
         bottom.add(largeButton("Redo", model::redo));
         bottom.add(largeButton("Restart", model::reset));
-        bottom.add(largeButton("Check", controller::checkSolution));
-        bottom.add(new JLabel("")/*empty space*/);
+        bottom.add(largeButton("Check", controller::checkSolution));        
         
-        JCheckBoxMenuItem highlightDuplicatesChoice = new JCheckBoxMenuItem("Highlight Duplicates");
-        BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
-                Selectable.of(highlightDuplicatesChoice));
-        JCheckBoxMenuItem eliminateCandidatesChoice = new JCheckBoxMenuItem("Eliminate Candidates");
-        BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
-                Selectable.of(eliminateCandidatesChoice));
-        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", Arrays.asList(
-                highlightDuplicatesChoice,
-                eliminateCandidatesChoice,
-                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
-                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing))));
-        UiLook.makeOverLarge(hintsButton);
+        PopupMenuButton optionsButton = createOptionsButton();
+        bottom.add(optionsButton.getUi());
+        
+        PopupMenuButton hintsButton = createHintsButton();
         bottom.add(hintsButton.getUi());
         
         bottom.add(largeButton("Save", controller::saveProgress));
@@ -174,6 +163,27 @@ public class ControlPanel {
                 .north(top)
                 .south(bottom)
                 .build();
+    }
+
+    private PopupMenuButton createHintsButton() {
+        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
+                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
+                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)));
+        UiLook.makeOverLarge(hintsButton);
+        return hintsButton;
+    }
+
+    private PopupMenuButton createOptionsButton() {
+        JCheckBoxMenuItem highlightDuplicatesChoice = new JCheckBoxMenuItem("Highlight Duplicates");
+        BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
+                Selectable.of(highlightDuplicatesChoice));
+        JCheckBoxMenuItem eliminateCandidatesChoice = new JCheckBoxMenuItem("Eliminate Candidates");
+        BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
+                Selectable.of(eliminateCandidatesChoice));
+        PopupMenuButton optionsButton = new PopupMenuButton("Options...", 
+                highlightDuplicatesChoice, eliminateCandidatesChoice);
+        UiLook.makeOverLarge(optionsButton);
+        return optionsButton;
     }
 
 
