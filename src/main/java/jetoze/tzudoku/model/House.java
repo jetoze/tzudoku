@@ -68,6 +68,20 @@ public class House {
         checkArgument(number >= 1 && number <= 9, "number must be >= 1 and <=9, but was %s", number);
         this.number = number;
     }
+    
+    /**
+     * Returns the type of this House.
+     */
+    public Type getType() {
+        return type;
+    }
+    
+    /**
+     * Returns a Stream of the positions in this house.
+     */
+    public Stream<Position> getPositions() {
+        return type.positions(number);
+    }
 
     /**
      * Returns a set of the values not yet entered into this house.

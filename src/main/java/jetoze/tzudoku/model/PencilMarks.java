@@ -24,6 +24,8 @@ public abstract class PencilMarks {
     public final boolean isEmpty() {
         return !hasCornerMarks() && !hasCenterMarks();
     }
+    
+    // TODO: This API is becoming very wide and shallow. Revisit it.
 
     public abstract boolean hasCornerMarks();
 
@@ -36,6 +38,8 @@ public abstract class PencilMarks {
     public abstract void remove(Value value);
     
     public abstract PencilMarks setCenterMarks(Set<Value> values);
+    
+    public abstract boolean containsCenterMark(Value value);
 
     public abstract void clear();
 
@@ -99,6 +103,12 @@ public abstract class PencilMarks {
         }
 
         @Override
+        public boolean containsCenterMark(Value value) {
+            requireNonNull(value);
+            return false;
+        }
+
+        @Override
         public void clear() {
             throw new UnsupportedOperationException();
         }
@@ -157,6 +167,12 @@ public abstract class PencilMarks {
             center.clear();
             center.addAll(values);
             return this;
+        }
+
+        @Override
+        public boolean containsCenterMark(Value value) {
+            requireNonNull(value);
+            return center.contains(value);
         }
 
         @Override

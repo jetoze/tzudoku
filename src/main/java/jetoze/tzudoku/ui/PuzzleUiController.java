@@ -15,6 +15,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.model.PointingPair;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
@@ -113,7 +114,21 @@ public class PuzzleUiController {
         xyWing.getTargets().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
-        
+    }
+    
+    public void lookForPointingPair() {
+        Callable<Optional<PointingPair>> producer = () -> PointingPair.findNext(puzzleModel.getGridModel().getGrid());
+        Consumer<Optional<PointingPair>> consumer = o -> {
+            o.ifPresentOrElse(this::showPointingPairInfo, 
+                    () -> JOptionPane.showMessageDialog(appFrame, "Did not find any Pointing Pairs :("));
+        };
+        UiThread.offload(producer, consumer);
+    }
+    
+    private void showPointingPairInfo(PointingPair pointingPair) {
+        // TODO: This can obviously be done in a fancier way.
+        String s = "<html>Found a Pointing Pair:<br>" + pointingPair + "</html>";
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
 
     public void checkSolution() {
