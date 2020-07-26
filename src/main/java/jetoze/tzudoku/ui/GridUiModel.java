@@ -242,7 +242,7 @@ public class GridUiModel {
         // however, and it's also not immediately clear how to get undo/redo work.
         List<Cell> emptyCells = cellUis.values().stream()
                 .map(CellUi::getCell)
-                .filter(Predicate.not(Cell::hasValue))
+                .filter(c -> !c.hasValue() && !c.getPencilMarks().hasCenterMarks())
                 .collect(toImmutableList());
         if (emptyCells.isEmpty()) {
             return;
