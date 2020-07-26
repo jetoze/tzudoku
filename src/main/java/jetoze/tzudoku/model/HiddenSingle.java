@@ -77,7 +77,7 @@ public class HiddenSingle {
                 Set<Position> candidates = house.getPositions()
                         .filter(p -> {
                             Cell cell = grid.cellAt(p);
-                            return cell.getPencilMarks().containsCenterMark(value);
+                            return !cell.hasValue() && cell.getPencilMarks().containsCenterMark(value);
                         }).collect(toSet());
                 if (candidates.size() == 1) {
                     return new HiddenSingle(value, house.getType(), candidates.iterator().next());

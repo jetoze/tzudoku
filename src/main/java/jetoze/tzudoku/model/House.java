@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
 import java.util.EnumSet;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.function.IntFunction;
 import java.util.stream.IntStream;
@@ -98,5 +99,26 @@ public class House {
             .forEach(values::remove);
         return values;
     }
-    
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(type, number);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof House) {
+            House that = (House) obj;
+            return this.type == that.type && this.number == that.number;
+        }
+        return false;
+    }
+
+    @Override
+    public String toString() {
+        return String.format("%s %d", type, number);
+    }
 }
