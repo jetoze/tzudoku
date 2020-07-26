@@ -157,7 +157,7 @@ public final class Grid {
     
     private void showRemainingCandidates(Position p) {
         Cell cell = cells.get(p);
-        if (cell.hasValue()) {
+        if (cell.hasValue() || cell.getPencilMarks().hasCenterMarks()) {
             return;
         }
         Set<Value> candidates = EnumSet.allOf(Value.class);
