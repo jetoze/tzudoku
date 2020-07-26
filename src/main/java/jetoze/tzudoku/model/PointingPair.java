@@ -106,9 +106,9 @@ public class PointingPair {
                 Stream<Position> sameBox = new House(House.Type.BOX, boxNumber).getPositions()
                         .filter(Predicate.not(candidates::contains));
                 
-                
                 boolean targetCellExists = Stream.concat(otherBoxes, sameBox)
                         .map(grid::cellAt)
+                        .filter(Predicate.not(Cell::hasValue))
                         .map(Cell::getPencilMarks)
                         .anyMatch(pm -> pm.containsCenterMark(value));
                 if (targetCellExists) {
