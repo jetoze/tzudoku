@@ -47,6 +47,12 @@ public class Position {
         int minBox = 1 + 3 * ((row - 1) / 3);
         return minBox + (column - 1) / 3;
     }
+    
+    public boolean sees(Position other) {
+        return (this.row == other.row) ||
+                (this.column == other.column) ||
+                (this.getBox() == other.getBox());
+    }
 
     public Position left() {
         return new Position(row, column > 1 ? column - 1 : 9);
