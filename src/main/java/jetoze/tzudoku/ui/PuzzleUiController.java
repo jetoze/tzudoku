@@ -7,6 +7,7 @@ import java.awt.event.WindowEvent;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Function;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -15,6 +16,8 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.HiddenSingle;
 import jetoze.tzudoku.model.PointingPair;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
@@ -96,12 +99,7 @@ public class PuzzleUiController {
     }
     
     public void lookForXyWing() {
-        Callable<Optional<XyWing>> producer = () -> XyWing.findNext(puzzleModel.getGridModel().getGrid());
-        Consumer<Optional<XyWing>> consumer = o -> {
-            o.ifPresentOrElse(this::showXyWingInfo, 
-                    () -> JOptionPane.showMessageDialog(appFrame, "Did not find any XY-wings :("));
-        };
-        UiThread.offload(producer, consumer);
+        runHintCheck(XyWing::findNext, this::showXyWingInfo, "Did not find any XY-wings :(");
     }
     
     private void showXyWingInfo(XyWing xyWing) {
@@ -117,12 +115,7 @@ public class PuzzleUiController {
     }
     
     public void lookForPointingPair() {
-        Callable<Optional<PointingPair>> producer = () -> PointingPair.findNext(puzzleModel.getGridModel().getGrid());
-        Consumer<Optional<PointingPair>> consumer = o -> {
-            o.ifPresentOrElse(this::showPointingPairInfo, 
-                    () -> JOptionPane.showMessageDialog(appFrame, "Did not find any Pointing Pairs :("));
-        };
-        UiThread.offload(producer, consumer);
+        runHintCheck(PointingPair::findNext, this::showPointingPairInfo,  "Did not find any Pointing Pairs :(");
     }
     
     private void showPointingPairInfo(PointingPair pointingPair) {
@@ -130,7 +123,28 @@ public class PuzzleUiController {
         String s = "<html>Found a Pointing Pair:<br>" + pointingPair + "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
+    
+    public void lookForHiddenSingle() {
+        runHintCheck(HiddenSingle::findNext, this::showHiddenSingleInfo, "Did not find any Hidden Singles :(");
+    }
+    
+    private void showHiddenSingleInfo(HiddenSingle hiddenSingle) {
+        // TODO: This can obviously be done in a fancier way.
+        String s = "<html>Found a Hidden Single:<br>" + hiddenSingle.getPosition() + 
+                "<br>Value: " + hiddenSingle.getValue() + "</html>";
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+    }
 
+    private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
+        Callable<Optional<T>> producer = () -> hintChecker.apply(puzzleModel.getGridModel().getGrid());
+        Consumer<? super Optional<T>> consumer = o -> {
+            o.ifPresentOrElse(hintUi, () -> JOptionPane.showMessageDialog(appFrame, messageWhenNotFound));
+        };
+        UiThread.offload(producer, consumer);
+    }
+    
+    
+    
     public void checkSolution() {
         UiThread.offload(this::validatePuzzle, this::displayResult);
     }
