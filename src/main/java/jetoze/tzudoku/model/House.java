@@ -1,6 +1,7 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import java.util.EnumSet;
@@ -91,13 +92,26 @@ public class House {
      * @return an EnumSet of the Values not yet entered
      */
     public EnumSet<Value> getRemainingValues(Grid grid) {
+        requireNonNull(grid);
         EnumSet<Value> values = EnumSet.allOf(Value.class);
-        type.positions(number)
+        getPositions()
             .map(grid::cellAt)
             .map(Cell::getValue)
             .flatMap(Optional::stream)
             .forEach(values::remove);
         return values;
+    }
+    
+    /**
+     * Returns a set of the positions in this house that do not have a
+     * value in the given grid.
+     */
+    public ImmutableSet<Position> getPositionsWithoutValues(Grid grid) {
+        requireNonNull(grid);
+        return getPositions().filter(p -> {
+            Cell cell = grid.cellAt(p);
+            return !cell.hasValue();
+        }).collect(toImmutableSet());
     }
 
     @Override

@@ -18,6 +18,7 @@ import javax.swing.JOptionPane;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.HiddenSingle;
+import jetoze.tzudoku.model.Multiple;
 import jetoze.tzudoku.model.PointingPair;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
@@ -133,6 +134,18 @@ public class PuzzleUiController {
         String s = "<html>Found a Hidden Single:<br>" + hiddenSingle.getPosition() + 
                 "<br>Value: " + hiddenSingle.getValue() + "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+    }
+    
+    public void lookForTriple() {
+        runHintCheck(Multiple::findNextTriple, this::showTripleMultipleInfo, "Dod not find any Triples :(");
+    }
+    
+    private void showTripleMultipleInfo(Multiple multiple) {
+        assert multiple.getPositions().size() == 3;
+        StringBuilder s = new StringBuilder("<html>Found a triple:<br>");
+        multiple.getPositions().forEach(p -> s.append(p).append("<br>"));
+        s.append("Values: ").append(multiple.getValues()).append("</html>");
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
