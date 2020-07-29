@@ -60,17 +60,18 @@ public class PuzzleStorageRepresentationTest {
                 .filter(Predicate.not(Cell::isGiven))
                 .limit(4)
                 .collect(Collectors.toList());
-        cells.get(0).getPencilMarks()
-                .toggleCorner(Value.ONE)
-                .toggleCorner(Value.TWO);
-        cells.get(1).getPencilMarks()
-            .toggleCenter(Value.THREE)
-            .toggleCenter(Value.FOUR);
-        cells.get(2).getPencilMarks()
-            .toggleCorner(Value.FIVE)
-            .toggleCenter(Value.FOUR)
-            .toggleCenter(Value.FIVE)
-            .toggleCenter(Value.SIX);
+        cells.get(0).getCornerMarks()
+                .toggle(Value.ONE)
+                .toggle(Value.TWO);
+        cells.get(1).getCenterMarks()
+            .toggle(Value.THREE)
+            .toggle(Value.FOUR);
+        cells.get(2).getCornerMarks()
+            .toggle(Value.FIVE);
+        cells.get(2).getCenterMarks()
+            .toggle(Value.FOUR)
+            .toggle(Value.FIVE)
+            .toggle(Value.SIX);
         cells.get(2).setColor(CellColor.BLUE);
         cells.get(3).setColor(CellColor.ORANGE);
         Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY);

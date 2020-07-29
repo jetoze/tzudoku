@@ -178,28 +178,24 @@ public final class UiLook {
         g.drawString(text, x, y);
     }
 
-    static void drawPencilMarks(Graphics2D g, PencilMarks pencilMarks, GridSize gridSize) {
-        if (pencilMarks.isEmpty()) {
-            return;
-        }
-
+    static void drawPencilMarks(Graphics2D g, PencilMarks cornerMarks, PencilMarks centerMarks, GridSize gridSize) {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
 
         g.setFont(gridSize.getPencilMarkFont());
         g.setColor(PENCIL_MARK_COLOR);
 
-        if (pencilMarks.hasCornerMarks()) {
+        if (!cornerMarks.isEmpty()) {
             int num = 1;
-            for (Value pencilMark : pencilMarks.iterateOverCornerMarks()) {
+            for (Value pencilMark : cornerMarks.getValues()) {
                 String text = pencilMark.toString();
                 Point p = gridSize.getCornerPencilMarkLocation(g, text, num);
                 g.drawString(text, p.x, p.y);
                 ++num;
             }
         }
-        if (pencilMarks.hasCenterMarks()) {
-            String text = pencilMarks.centerAsString();
+        if (!centerMarks.isEmpty()) {
+            String text = PencilMarks.valuesAsString(centerMarks);
             drawTextCentered(g, gridSize.getPencilMarkFont(), text, gridSize);
         }
 

@@ -4,14 +4,13 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -158,9 +157,9 @@ public class GridUiModel {
         case NORMAL:
             return new SetValueAction(value, positions);
         case CORNER_PENCIL_MARK:
-            return new TogglePencilMarkAction(value, PencilMarks::toggleCorner, positions);
+            return new TogglePencilMarkAction(value, Cell::getCornerMarks, positions);
         case CENTER_PENCIL_MARK:
-            return new TogglePencilMarkAction(value, PencilMarks::toggleCenter, positions);
+            return new TogglePencilMarkAction(value, Cell::getCenterMarks, positions);
         case COLOR:
             CellColor color = CellColor.fromValue(value);
             return new SetColorAction(color, positions);
@@ -242,7 +241,7 @@ public class GridUiModel {
         // however, and it's also not immediately clear how to get undo/redo work.
         List<Cell> emptyCells = cellUis.values().stream()
                 .map(CellUi::getCell)
-                .filter(c -> !c.hasValue() && !c.getPencilMarks().hasCenterMarks())
+                .filter(c -> !c.hasValue() && c.getCenterMarks().isEmpty())
                 .collect(toImmutableList());
         if (emptyCells.isEmpty()) {
             return;
@@ -328,7 +327,8 @@ public class GridUiModel {
                     .distinct()
                     .forEach(cell -> {
                         previousStatesBuilder.put(cell, new PreviousCellState(cell));
-                        cell.getPencilMarks().remove(value);
+                        cell.getCornerMarks().remove(value);
+                        cell.getCenterMarks().remove(value);
                     });
             }
             previousStates = previousStatesBuilder.build();
@@ -345,13 +345,13 @@ public class GridUiModel {
     
     private class TogglePencilMarkAction implements UndoableAction {
         private final Value value;
-        private final BiConsumer<PencilMarks, Value> pencil;
+        private final Function<Cell, PencilMarks> pencilMarksSupplier;
         private final ImmutableList<Cell> cells;
 
-        public TogglePencilMarkAction(Value value, BiConsumer<PencilMarks, Value> pencil,
+        public TogglePencilMarkAction(Value value, Function<Cell, PencilMarks> pencil,
                 Stream<Position> positions) {
             this.value = requireNonNull(value);
-            this.pencil = requireNonNull(pencil);
+            this.pencilMarksSupplier = requireNonNull(pencil);
             this.cells = positions.map(grid::cellAt).collect(toImmutableList());
         }
 
@@ -367,7 +367,7 @@ public class GridUiModel {
         }
 
         private void toggle() {
-            cells.forEach(c -> pencil.accept(c.getPencilMarks(), value));
+            cells.stream().map(pencilMarksSupplier).forEach(pm -> pm.toggle(value));
             notifyListeners(GridUiModelListener::onCellStateChanged);
         }
 
@@ -450,7 +450,7 @@ public class GridUiModel {
         public ShowRemainingCandidatesAction(List<Cell> emptyCells) {
             assert !emptyCells.isEmpty();
             emptyCellsAndTheirPreviousState = emptyCells.stream().collect(toImmutableMap(
-                    c -> c, c -> ImmutableSet.copyOf(c.getPencilMarks().iterateOverCenterMarks())));
+                    c -> c, c -> c.getCenterMarks().getValues()));
         }
 
         @Override
@@ -461,7 +461,7 @@ public class GridUiModel {
         
         @Override
         public void undo() {
-            emptyCellsAndTheirPreviousState.forEach((c, s) -> c.getPencilMarks().setCenterMarks(s));
+            emptyCellsAndTheirPreviousState.forEach((c, s) -> c.getCenterMarks().setValues(s));
             notifyListeners(GridUiModelListener::onCellStateChanged);
         }
 
@@ -480,18 +480,16 @@ public class GridUiModel {
         
         public PreviousCellState(Cell cell) {
             this.value = cell.getValue();
-            this.cornerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCornerMarks());
-            this.centerMarks = ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCenterMarks());
+            this.cornerMarks = cell.getCornerMarks().getValues();
+            this.centerMarks = cell.getCenterMarks().getValues();
             this.color = cell.getColor();
         }
         
         public void restore(Cell cell) {
             if (!cell.isGiven()) {
                 value.ifPresentOrElse(cell::setValue, cell::clearContent);
-                PencilMarks pencilMarks = cell.getPencilMarks();
-                pencilMarks.clear();
-                cornerMarks.forEach(pencilMarks::toggleCorner);
-                centerMarks.forEach(pencilMarks::toggleCenter);
+                cell.getCornerMarks().setValues(cornerMarks);
+                cell.getCenterMarks().setValues(centerMarks);
             }
             cell.setColor(color);
         }

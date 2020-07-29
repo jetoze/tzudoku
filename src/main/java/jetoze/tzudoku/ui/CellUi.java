@@ -10,7 +10,6 @@ import java.awt.event.MouseEvent;
 import javax.swing.JComponent;
 
 import jetoze.tzudoku.model.Cell;
-import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -81,9 +80,8 @@ class CellUi extends JComponent {
     }
 
     private void renderPencilMarks(Graphics2D g) {
-        PencilMarks marks = cell.getPencilMarks();
-        if (!marks.isEmpty()) {
-            UiLook.drawPencilMarks(g, marks, gridSize);
+        if (cell.hasPencilMarks()) {
+            UiLook.drawPencilMarks(g, cell.getCornerMarks(), cell.getCenterMarks(), gridSize);
         }
     }
 }
