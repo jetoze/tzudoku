@@ -84,7 +84,7 @@ public class MultipleTest {
     private static Cell cellWithCandidates(Value... candidates) {
         Cell cell = Cell.empty();
         for (Value v : candidates) {
-            cell.getPencilMarks().toggleCenter(v);
+            cell.getCenterMarks().toggle(v);
         }
         return cell;
     }

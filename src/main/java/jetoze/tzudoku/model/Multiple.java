@@ -13,7 +13,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
-import com.google.common.collect.Streams;
 
 public class Multiple {
 
@@ -75,15 +74,16 @@ public class Multiple {
                 Set<Value> allCandidatesInGroup = new HashSet<>();
                 group.stream()
                     .map(grid::cellAt)
-                    .map(cell -> ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCenterMarks()))
+                    .map(Cell::getCenterMarks)
+                    .map(PencilMarks::getValues)
                     .forEach(allCandidatesInGroup::addAll);
                 if (allCandidatesInGroup.size() == size) {
                     // Check if any other cell in the house has a matching candidate value
                     // that can be eliminated.
                     boolean targetCellExists = Sets.difference(emptyCells, group).stream()
                             .map(grid::cellAt)
-                            .map(Cell::getPencilMarks)
-                            .flatMap(pm -> Streams.stream(pm.iterateOverCenterMarks()))
+                            .map(Cell::getCenterMarks)
+                            .flatMap(pm -> pm.getValues().stream())
                             .anyMatch(allCandidatesInGroup::contains);
                     if (targetCellExists) {
                         return new Multiple(group, allCandidatesInGroup);

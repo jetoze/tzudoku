@@ -68,8 +68,8 @@ public class HiddenSingle {
             boolean allCellsHaveCenterPencilMarks = house.getPositions()
                     .map(grid::cellAt)
                     .filter(Predicate.not(Cell::hasValue))
-                    .map(Cell::getPencilMarks)
-                    .allMatch(PencilMarks::hasCenterMarks);
+                    .map(Cell::getCenterMarks)
+                    .noneMatch(PencilMarks::isEmpty);
             if (!allCellsHaveCenterPencilMarks) {
                 return null;
             }
@@ -77,7 +77,7 @@ public class HiddenSingle {
                 Set<Position> candidates = house.getPositions()
                         .filter(p -> {
                             Cell cell = grid.cellAt(p);
-                            return !cell.hasValue() && cell.getPencilMarks().containsCenterMark(value);
+                            return !cell.hasValue() && cell.getCenterMarks().contains(value);
                         }).collect(toSet());
                 if (candidates.size() == 1) {
                     return new HiddenSingle(value, house.getType(), candidates.iterator().next());

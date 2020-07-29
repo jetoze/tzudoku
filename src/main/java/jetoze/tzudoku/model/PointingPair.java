@@ -88,7 +88,7 @@ public class PointingPair {
             ImmutableSet<Position> candidates = house.getPositions()
                     .filter(p -> {
                         Cell cell = grid.cellAt(p);
-                        return !cell.hasValue() && cell.getPencilMarks().containsCenterMark(value);
+                        return !cell.hasValue() && cell.getCenterMarks().contains(value);
                     }).collect(toImmutableSet());
             // Are the candidates in the same line?
             if (!isLine(candidates)) {
@@ -109,8 +109,8 @@ public class PointingPair {
                 boolean targetCellExists = Stream.concat(otherBoxes, sameBox)
                         .map(grid::cellAt)
                         .filter(Predicate.not(Cell::hasValue))
-                        .map(Cell::getPencilMarks)
-                        .anyMatch(pm -> pm.containsCenterMark(value));
+                        .map(Cell::getCenterMarks)
+                        .anyMatch(pm -> pm.contains(value));
                 if (targetCellExists) {
                     Iterator<Position> it = candidates.iterator();
                     return new PointingPair(value, it.next(), it.next());
