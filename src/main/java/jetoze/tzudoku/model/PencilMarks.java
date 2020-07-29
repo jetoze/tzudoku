@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 import com.google.common.collect.ImmutableSet;
 
@@ -19,6 +20,12 @@ public abstract class PencilMarks {
     
     public static PencilMarks forUnknownCell() {
         return new EditablePencilMarks();
+    }
+    
+    public static String valuesAsString(PencilMarks marks) {
+        return (marks == EMPTY)
+                ? ""
+                : ((EditablePencilMarks) marks).values.stream().map(Object::toString).collect(Collectors.joining());
     }
     
     

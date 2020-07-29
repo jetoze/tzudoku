@@ -161,12 +161,12 @@ public final class Grid {
     
     private void showRemainingCandidates(Position p) {
         Cell cell = cells.get(p);
-        if (cell.hasValue() || cell.getPencilMarks().hasCenterMarks()) {
+        if (cell.hasValue() || !cell.getCenterMarks().isEmpty()) {
             return;
         }
         Set<Value> candidates = EnumSet.allOf(Value.class);
         p.seenBy().map(cells::get).map(Cell::getValue).flatMap(Optional::stream).forEach(candidates::remove);
-        cell.getPencilMarks().setCenterMarks(candidates);
+        cell.getCenterMarks().setValues(candidates);
         
     }
     
@@ -203,7 +203,8 @@ public final class Grid {
         return c1.getValue().equals(c2.getValue()) && 
                 (c1.isGiven() == c2.isGiven()) &&
                 (c1.getColor() == c2.getColor()) &&
-                c1.getPencilMarks().equals(c2.getPencilMarks());
+                c1.getCornerMarks().equals(c2.getCornerMarks()) &&
+                c1.getCenterMarks().equals(c2.getCenterMarks());
 
     }
     

@@ -10,27 +10,29 @@ public class Cell {
     @Nullable
     private final boolean given;
     private Value value;
-    private final PencilMarks pencilMarks;
+    private final PencilMarks cornerMarks;
+    private final PencilMarks centerMarks;
     private CellColor color = CellColor.WHITE;
     
     public static Cell given(Value value) {
         requireNonNull(value);
-        return new Cell(true, value, PencilMarks.forGivenCell());
+        return new Cell(true, value, PencilMarks.forGivenCell(), PencilMarks.forGivenCell());
     }
     
     public static Cell empty() {
-        return new Cell(false, null, PencilMarks.forUnknownCell());
+        return new Cell(false, null, PencilMarks.forUnknownCell(), PencilMarks.forUnknownCell());
     }
     
     public static Cell unknownWithValue(Value value) {
         requireNonNull(value);
-        return new Cell(false, value, PencilMarks.forUnknownCell());
+        return new Cell(false, value, PencilMarks.forUnknownCell(), PencilMarks.forUnknownCell());
     }
     
-    private Cell(boolean given, @Nullable Value value, PencilMarks pencilMarks) {
+    private Cell(boolean given, @Nullable Value value, PencilMarks cornerMarks, PencilMarks centerMarks) {
         this.given = given;
         this.value = value;
-        this.pencilMarks = requireNonNull(pencilMarks);
+        this.cornerMarks = requireNonNull(cornerMarks);
+        this.centerMarks = requireNonNull(centerMarks);
     }
 
     public Optional<Value> getValue() {
@@ -55,17 +57,19 @@ public class Cell {
     private void clearContentOfNonGivenCell() {
         if (value != null) {
             value = null;
-        } else if (!pencilMarks.isEmpty()) {
-            pencilMarks.clear();
+        } else if (hasPencilMarks()) {
+            cornerMarks.clear();
+            centerMarks.clear();
         } else {
             color = CellColor.WHITE;
         }
     }
-
+    
     public void reset() {
         if (!given) {
             value = null;
-            pencilMarks.clear();
+            cornerMarks.clear();
+            centerMarks.clear();
         }
         color = CellColor.WHITE;
     }
@@ -87,17 +91,25 @@ public class Cell {
     }
 
     public boolean isEmpty() {
-        return (value == null) && pencilMarks.isEmpty() && (color == CellColor.WHITE);
+        return (value == null) && !hasPencilMarks() && (color == CellColor.WHITE);
     }
 
-    public PencilMarks getPencilMarks() {
-        return pencilMarks;
+    public PencilMarks getCornerMarks() {
+        return cornerMarks;
     }
     
+    public PencilMarks getCenterMarks() {
+        return centerMarks;
+    }
+
+    public boolean hasPencilMarks() {
+        return !cornerMarks.isEmpty() || !centerMarks.isEmpty();
+    }
+
     public boolean hasNewInformation() {
         return given
                 ? color != CellColor.WHITE
-                : (value != null) || !pencilMarks.isEmpty() || color != CellColor.WHITE;
+                : (value != null) || hasPencilMarks() || color != CellColor.WHITE;
     }
 
     @Override
@@ -108,7 +120,7 @@ public class Cell {
             s.append(" (given)");
         }
         s.append(String.format("[cornerMarks: %s, centerMarks: %s]", 
-                pencilMarks.cornerAsString(), pencilMarks.centerAsString()));
+                PencilMarks.valuesAsString(cornerMarks), PencilMarks.valuesAsString(centerMarks)));
         s.append("[").append(color.name()).append("]");
         return s.toString();
     }
