@@ -147,7 +147,7 @@ public class PuzzleStorageRepresentation {
             }
             PencilMarks cornerMarks = cell.getCornerMarks();
             toValues(corner).forEach(cornerMarks::toggle);
-            PencilMarks centerMarks = cell.getCornerMarks();
+            PencilMarks centerMarks = cell.getCenterMarks();
             toValues(center).forEach(centerMarks::toggle);
         }
 
