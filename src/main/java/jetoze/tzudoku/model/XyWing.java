@@ -101,8 +101,7 @@ public class XyWing {
                                         if (cell.hasValue()) {
                                             return false;
                                         }
-                                        Set<Value> candidates = getPossibleValues(cell);
-                                        return candidates.contains(wingValue);
+                                        return cell.getCenterMarks().contains(wingValue);
                                     }).collect(toImmutableSet());
                             if (!targets.isEmpty()) {
                                 return Optional.of(new XyWing(center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
@@ -120,7 +119,7 @@ public class XyWing {
             if (cell.hasValue()) {
                 return null;
             }
-            ImmutableSet<Value> possibleValues = getPossibleValues(cell);
+            ImmutableSet<Value> possibleValues = cell.getCenterMarks().getValues();
             return possibleValues.size() == 2
                     ? new TwoValueCell(p, possibleValues)
                     : null;
@@ -132,10 +131,6 @@ public class XyWing {
                     .filter(c -> (c != center) && center.sees(c) && center.sharesExactlyOneValueWith(c))
                     .collect(toImmutableList());
             
-        }
-
-        private static ImmutableSet<Value> getPossibleValues(Cell cell) {
-            return ImmutableSet.copyOf(cell.getPencilMarks().iterateOverCenterMarks());
         }
         
         private static boolean isInSameRowOrColumn(TwoValueCell center, TwoValueCell w1, TwoValueCell w2) {

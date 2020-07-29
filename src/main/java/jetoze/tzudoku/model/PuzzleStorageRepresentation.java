@@ -67,9 +67,8 @@ public class PuzzleStorageRepresentation {
     }
     
     private void storeAdditionalState(Position p, Cell cell) {
-        PencilMarks pm = cell.getPencilMarks();
-        if (!pm.isEmpty()) {
-            pencilMarks.add(new PencilMarkState(p, pm));
+        if (cell.hasPencilMarks()) {
+            pencilMarks.add(new PencilMarkState(p, cell.getCornerMarks(), cell.getCenterMarks()));
         }
         CellColor color = cell.getColor();
         if (color != CellColor.WHITE) {
@@ -134,11 +133,11 @@ public class PuzzleStorageRepresentation {
         private String corner;
         private String center;
 
-        public PencilMarkState(Position p, PencilMarks marks) {
+        public PencilMarkState(Position p, PencilMarks cornerMarks, PencilMarks centerMarks) {
             this.row = p.getRow();
             this.col = p.getColumn();
-            this.corner = marks.cornerAsString();
-            this.center = marks.centerAsString();
+            this.corner = PencilMarks.valuesAsString(cornerMarks);
+            this.center = PencilMarks.valuesAsString(centerMarks);
         }
 
         public void restore(Grid grid) {
@@ -146,9 +145,10 @@ public class PuzzleStorageRepresentation {
             if (cell.isGiven()) {
                 return;
             }
-            PencilMarks marks = cell.getPencilMarks();
-            toValues(corner).forEach(marks::toggleCorner);
-            toValues(center).forEach(marks::toggleCenter);
+            PencilMarks cornerMarks = cell.getCornerMarks();
+            toValues(corner).forEach(cornerMarks::toggle);
+            PencilMarks centerMarks = cell.getCornerMarks();
+            toValues(center).forEach(centerMarks::toggle);
         }
 
         private Stream<Value> toValues(String s) {
