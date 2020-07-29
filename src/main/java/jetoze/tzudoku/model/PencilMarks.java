@@ -1,12 +1,13 @@
 package jetoze.tzudoku.model;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
+
+import com.google.common.collect.ImmutableSet;
 
 public abstract class PencilMarks {
 
@@ -21,39 +22,23 @@ public abstract class PencilMarks {
     }
     
     
-    public final boolean isEmpty() {
-        return !hasCornerMarks() && !hasCenterMarks();
-    }
+    public abstract boolean isEmpty();
     
-    // TODO: This API is becoming very wide and shallow. Revisit it.
+    public abstract PencilMarks setValues(Set<Value> values);
+    
+    public abstract ImmutableSet<Value> getValues();
 
-    public abstract boolean hasCornerMarks();
-
-    public abstract boolean hasCenterMarks();
-
-    public abstract PencilMarks toggleCorner(Value value);
-
-    public abstract PencilMarks toggleCenter(Value value);
+    public abstract PencilMarks toggle(Value value);
     
     public abstract void remove(Value value);
     
-    public abstract PencilMarks setCenterMarks(Set<Value> values);
-    
-    public abstract boolean containsCenterMark(Value value);
+    public abstract boolean contains(Value value);
 
     public abstract void clear();
-
-    public abstract Iterable<Value> iterateOverCornerMarks();
-
-    public abstract Iterable<Value> iterateOverCenterMarks();
-
-    public abstract String cornerAsString();
-
-    public abstract String centerAsString();
     
     @Override
     public int hashCode() {
-        return Objects.hash(cornerAsString(), centerAsString());
+        return getValues().hashCode();
     }
 
     @Override
@@ -62,9 +47,7 @@ public abstract class PencilMarks {
             return true;
         }
         if (obj instanceof PencilMarks) {
-            PencilMarks that = (PencilMarks) obj;
-            return this.cornerAsString().equals(that.cornerAsString()) &&
-                    this.centerAsString().equals(that.centerAsString());
+            return this.getValues().equals(((PencilMarks) obj).getValues());
         }
         return false;
     }
@@ -73,12 +56,27 @@ public abstract class PencilMarks {
     private static class NoPencilMarks extends PencilMarks {
 
         @Override
-        public boolean hasCornerMarks() {
-            return false;
+        public boolean isEmpty() {
+            return true;
         }
 
         @Override
-        public boolean hasCenterMarks() {
+        public PencilMarks setValues(Set<Value> values) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public ImmutableSet<Value> getValues() {
+            return ImmutableSet.of();
+        }
+
+        @Override
+        public PencilMarks toggle(Value value) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
+        public boolean contains(Value value) {
             return false;
         }
 
@@ -88,138 +86,62 @@ public abstract class PencilMarks {
         }
 
         @Override
-        public PencilMarks toggleCorner(Value value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PencilMarks toggleCenter(Value value) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public PencilMarks setCenterMarks(Set<Value> values) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public boolean containsCenterMark(Value value) {
-            requireNonNull(value);
-            return false;
-        }
-
-        @Override
         public void clear() {
             throw new UnsupportedOperationException();
-        }
-
-        @Override
-        public Iterable<Value> iterateOverCornerMarks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Iterable<Value> iterateOverCenterMarks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public String cornerAsString() {
-            return "";
-        }
-
-        @Override
-        public String centerAsString() {
-            return "";
         }
     }
     
 
     private static class EditablePencilMarks extends PencilMarks {
 
-        private final EnumSet<Value> corner = EnumSet.noneOf(Value.class);
-        private final EnumSet<Value> center = EnumSet.noneOf(Value.class);
+        private final EnumSet<Value> values = EnumSet.noneOf(Value.class);
 
         @Override
-        public boolean hasCornerMarks() {
-            return !corner.isEmpty();
+        public boolean isEmpty() {
+            return values.isEmpty();
         }
 
         @Override
-        public boolean hasCenterMarks() {
-            return !center.isEmpty();
+        public PencilMarks setValues(Set<Value> values) {
+            requireNonNull(values);
+            checkArgument(values.stream().allMatch(Objects::nonNull));
+            this.values.clear();
+            this.values.addAll(values);
+            return null;
         }
 
         @Override
-        public PencilMarks toggleCorner(Value value) {
-            toggle(value, corner);
-            return this;
+        public ImmutableSet<Value> getValues() {
+            return ImmutableSet.copyOf(values);
         }
 
         @Override
-        public PencilMarks toggleCenter(Value value) {
-            toggle(value, center);
-            return this;
-        }
-
-        @Override
-        public PencilMarks setCenterMarks(Set<Value> values) {
-            center.clear();
-            center.addAll(values);
-            return this;
-        }
-
-        @Override
-        public boolean containsCenterMark(Value value) {
+        public PencilMarks toggle(Value value) {
             requireNonNull(value);
-            return center.contains(value);
+            if (values.contains(value)) {
+                values.remove(value);
+            } else {
+                values.add(value);
+            }
+            return this;
+        }
+
+        @Override
+        public boolean contains(Value value) {
+            requireNonNull(value);
+            return values.contains(value);
         }
 
         @Override
         public void remove(Value value) {
             requireNonNull(value);
-            corner.remove(value);
-            center.remove(value);
+            values.remove(value);
         }
 
         @Override
         public void clear() {
-            corner.clear();
-            center.clear();
+            values.clear();
         }
-
-        @Override
-        public String cornerAsString() {
-            return asString(corner);
-        }
-
-        @Override
-        public String centerAsString() {
-            return asString(center);
-        }
-
-        @Override
-        public Iterable<Value> iterateOverCornerMarks() {
-            return corner;
-        }
-
-        @Override
-        public Iterable<Value> iterateOverCenterMarks() {
-            return center;
-        }
-
-        private void toggle(Value value, EnumSet<Value> set) {
-            requireNonNull(value);
-            if (set.contains(value)) {
-                set.remove(value);
-            } else {
-                set.add(value);
-            }
-        }
-
-        private String asString(EnumSet<Value> set) {
-            return set.stream().map(Object::toString).collect(Collectors.joining());
-        }
-
     }
+    
 }
