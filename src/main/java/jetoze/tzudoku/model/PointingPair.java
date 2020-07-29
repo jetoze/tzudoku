@@ -88,7 +88,7 @@ public class PointingPair {
             ImmutableSet<Position> candidates = house.getPositions()
                     .filter(p -> {
                         Cell cell = grid.cellAt(p);
-                        return cell.getPencilMarks().containsCenterMark(value);
+                        return !cell.hasValue() && cell.getPencilMarks().containsCenterMark(value);
                     }).collect(toImmutableSet());
             // Are the candidates in the same line?
             if (!isLine(candidates)) {

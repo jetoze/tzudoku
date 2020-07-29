@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
@@ -12,8 +13,11 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.IntFunction;
+import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -243,5 +247,51 @@ public final class Grid {
                 "004030000",
                 "503008000", 
                 "800100207");
+    }
+    
+    
+    public static Builder builder() {
+        return new Builder();
+    }
+    
+    
+    public static final class Builder {
+        private final Map<Position, Cell> gridCells = Position.all().collect(Collectors.toMap(p -> p, p -> Cell.empty()));
+        
+        public Builder row(int rowNum, List<Cell> cells) {
+            return addCells(rowNum, cells, Position::positionsInRow);
+        }
+        
+        public Builder row(int rowNum, Cell... cells) {
+            return row(rowNum, Arrays.asList(cells));
+        }
+
+        public Builder column(int colNum, List<Cell> cells) {
+            return addCells(colNum, cells, Position::positionsInColumn);
+        }
+        
+        public Builder column(int colNum, Cell... cells) {
+            return column(colNum, Arrays.asList(cells));
+        }
+
+        public Builder box(int boxNum, List<Cell> cells) {
+            return addCells(boxNum, cells, Position::positionsInBox);
+        }
+        
+        public Builder box(int boxNum, Cell... cells) {
+            return box(boxNum, Arrays.asList(cells));
+        }
+
+        private Builder addCells(int houseNumber, List<Cell> cells, IntFunction<Stream<Position>> positionsSupplier) {
+            checkArgument(cells.size() == 9);
+            checkArgument(cells.stream().allMatch(Objects::nonNull));
+            Iterator<Cell> it = cells.iterator();
+            positionsSupplier.apply(houseNumber).forEach(p -> gridCells.put(p, it.next()));
+            return this;
+        }
+        
+        public Grid build() {
+            return new Grid(gridCells);
+        }
     }
 }
