@@ -159,16 +159,16 @@ public final class UiLook {
         Color originalColor = g.getColor();
         
         g.setColor(GIVEN_VALUE_COLOR);
-        g.setFont(boardSize.getValueFont());
+        g.setFont(boardSize.getSandwichFont());
         
         for (Sandwich rowSandwich : sandwiches.getRows()) {
             Rectangle bounds = boardSize.getRowSandwichSumBounds(rowSandwich.getPosition());
-            drawTextCentered(g, boardSize.getValueFont(), Integer.toString(rowSandwich.getSum()), bounds);
+            drawTextCentered(g, boardSize.getSandwichFont(), Integer.toString(rowSandwich.getSum()), bounds);
         }
         
         for (Sandwich columnSandwich : sandwiches.getColumns()) {
             Rectangle bounds = boardSize.getColumnSandwichSumBounds(columnSandwich.getPosition());
-            drawTextCentered(g, boardSize.getValueFont(), Integer.toString(columnSandwich.getSum()), bounds);
+            drawTextCentered(g, boardSize.getSandwichFont(), Integer.toString(columnSandwich.getSum()), bounds);
         }
         
         g.setFont(originalFont);

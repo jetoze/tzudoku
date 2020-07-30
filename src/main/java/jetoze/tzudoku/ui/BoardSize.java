@@ -40,6 +40,7 @@ public enum BoardSize {
     private final int boardSize;
     private final Font valueFont;
     private final Font pencilMarkFont;
+    private final Font sandwichFont;
     
     private BoardSize(int cellSize) {
         this.cellSize = cellSize;        this.gridSize = 9/* cells */ * cellSize +
@@ -50,6 +51,7 @@ public enum BoardSize {
         this.boardSize = gridSize + 2 * sandwichAreaWidth; // surround the board on all sides
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
+        this.sandwichFont = new Font("Tahoma", Font.PLAIN, cellSize / 2);
     }
     
     /**
@@ -88,7 +90,10 @@ public enum BoardSize {
     public Font getPencilMarkFont() {
         return pencilMarkFont;
     }
-    
+
+    public Font getSandwichFont() {
+        return sandwichFont;
+    }
 
     public Rectangle getCellBounds(Position pos) {
         Point upperLeft = getUpperLeftCellCorner(pos.getRow(), pos.getColumn());
