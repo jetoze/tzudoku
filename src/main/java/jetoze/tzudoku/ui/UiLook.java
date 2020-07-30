@@ -158,7 +158,7 @@ public final class UiLook {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
         
-        g.setColor(GIVEN_VALUE_COLOR);
+        g.setColor(GIVEN_VALUE_COLOR.brighter());
         g.setFont(boardSize.getSandwichFont());
         
         for (Sandwich rowSandwich : sandwiches.getRows()) {
@@ -261,9 +261,18 @@ public final class UiLook {
     }
 
     static JButton makeLargeButton(String text, Runnable action) {
+        return makeButton(text, action, LARGE_BUTTON_FONT);
+    }
+    
+    static JButton makeSmallButton(String text, Runnable action) {
+        return makeButton(text, action, SMALL_BUTTON_FONT);
+    }
+    
+    private static JButton makeButton(String text, Runnable action, Font font) {
+        requireNonNull(action);
         JButton b = new JButton(text);
         b.addActionListener(e -> UiThread.runLater(action));
-        makeOverLarge(b);
+        b.setFont(font);
         return b;
     }
 

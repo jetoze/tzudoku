@@ -3,18 +3,15 @@ package jetoze.tzudoku.ui;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.stream.Collectors.toList;
 
-import java.awt.BorderLayout;
 import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.stream.IntStream;
+import java.util.stream.Stream;
 
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JPanel;
@@ -24,7 +21,7 @@ import javax.swing.border.TitledBorder;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
-import jetoze.gunga.UiThread;
+import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.ComboBoxWidget;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.House;
@@ -36,7 +33,6 @@ import jetoze.tzudoku.model.Sandwiches;
  */
 public class SandwichDefinitionsUi implements Widget {
     // TODO: Rewrite me with a model(?)
-    // TODO: Add Reset option.
 
     private static final Integer NO_SANDWICH = -1;
     
@@ -70,10 +66,13 @@ public class SandwichDefinitionsUi implements Widget {
     }
     
     private JComponent layoutUi() {
-        JPanel p = new JPanel(new GridLayout(0, 2, 10, 0));
-        p.add(layoutSumSelectors(House.Type.ROW, rowSandwiches));
-        p.add(layoutSumSelectors(House.Type.COLUMN, columnSandwiches));
-        return p;
+        JPanel top = new JPanel(new GridLayout(0, 2, 10, 0));
+        top.add(layoutSumSelectors(House.Type.ROW, rowSandwiches));
+        top.add(layoutSumSelectors(House.Type.COLUMN, columnSandwiches));
+        
+        JPanel bottom = Layouts.border().west(UiLook.makeSmallButton("Clear", this::clear)).build();
+        
+        return Layouts.border(0, 4).center(top).south(bottom).build();
     }
     
     private static JComponent layoutSumSelectors(House.Type houseType, ImmutableMap<Integer, ComboBoxWidget<Integer>> sumSelectors) {
@@ -100,6 +99,11 @@ public class SandwichDefinitionsUi implements Widget {
             ++c.gridy;
         }
         return p;
+    }
+    
+    private void clear() {
+        Stream.concat(rowSandwiches.values().stream(), columnSandwiches.values().stream())
+            .forEach(w -> w.setSelectedItem(NO_SANDWICH));
     }
     
     /**
@@ -150,33 +154,4 @@ public class SandwichDefinitionsUi implements Widget {
             return delegate.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
         }
     }
-    
-    
-    public static void main(String[] args) {
-        UiThread.run(() -> {
-            UiLook.installNimbus();
-            SandwichDefinitionsUi ui = new SandwichDefinitionsUi();
-            openUi(ui);
-        });
-    }
-
-    private static void openUi(SandwichDefinitionsUi ui) {
-        JFrame frame = new JFrame("Sandwiches");
-        frame.getContentPane().add(ui.getUi(), BorderLayout.CENTER);
-        frame.pack();
-        frame.setLocationRelativeTo(null);
-        frame.addWindowListener(new WindowAdapter() {
-
-            @Override
-            public void windowClosing(WindowEvent e) {
-                Sandwiches sandwiches = ui.getSandwiches();
-                UiThread.runLater(() -> {
-                    SandwichDefinitionsUi ui = new SandwichDefinitionsUi(sandwiches);
-                    openUi(ui);
-                });
-            }
-        });
-        frame.setVisible(true);
-    }
-
 }
