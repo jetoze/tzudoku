@@ -1,6 +1,7 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.*;
 import static java.util.Objects.requireNonNull;
 
 import java.util.EnumSet;
@@ -63,14 +64,20 @@ public class Multiple {
         @Nullable
         public Multiple findNext() {
             EnumSet<Value> remainingValues = house.getRemainingValues(grid);
-            if (remainingValues.size() < size) {
+            if (remainingValues.size() <= size) {
                 return null;
             }
-            ImmutableSet<Position> emptyCells = house.getPositionsWithoutValues(grid);
-            assert emptyCells.size() == remainingValues.size();
+            ImmutableSet<Position> emptyCellsWithPencilMarks = house.getPositionsWithoutValues(grid).stream()
+                    .filter(p -> {
+                        Cell cell = grid.cellAt(p);
+                        return !cell.getCenterMarks().isEmpty();
+                    }).collect(toImmutableSet());
+            if (emptyCellsWithPencilMarks.size() <= size) {
+                return null;
+            }
             // TODO: This brute force approach doesn't scale well with size. There must be
             // a more clever way of doing this.
-            for (Set<Position> group : Sets.combinations(emptyCells, size)) {
+            for (Set<Position> group : Sets.combinations(emptyCellsWithPencilMarks, size)) {
                 Set<Value> allCandidatesInGroup = new HashSet<>();
                 group.stream()
                     .map(grid::cellAt)
@@ -80,7 +87,7 @@ public class Multiple {
                 if (allCandidatesInGroup.size() == size) {
                     // Check if any other cell in the house has a matching candidate value
                     // that can be eliminated.
-                    boolean targetCellExists = Sets.difference(emptyCells, group).stream()
+                    boolean targetCellExists = Sets.difference(emptyCellsWithPencilMarks, group).stream()
                             .map(grid::cellAt)
                             .map(Cell::getCenterMarks)
                             .flatMap(pm -> pm.getValues().stream())
