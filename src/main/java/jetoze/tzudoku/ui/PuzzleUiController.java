@@ -137,10 +137,10 @@ public class PuzzleUiController {
     }
     
     public void lookForTriple() {
-        runHintCheck(Multiple::findNextTriple, this::showTripleMultipleInfo, "Dod not find any Triples :(");
+        runHintCheck(Multiple::findNextTriple, this::showTripleInfo, "Dod not find any Triples :(");
     }
     
-    private void showTripleMultipleInfo(Multiple multiple) {
+    private void showTripleInfo(Multiple multiple) {
         assert multiple.getPositions().size() == 3;
         StringBuilder s = new StringBuilder("<html>Found a triple:<br>");
         multiple.getPositions().forEach(p -> s.append(p).append("<br>"));
