@@ -36,6 +36,7 @@ import jetoze.tzudoku.model.Sandwiches;
  */
 public class SandwichDefinitionsUi implements Widget {
     // TODO: Rewrite me with a model(?)
+    // TODO: Add Reset option.
 
     private static final Integer NO_SANDWICH = -1;
     

@@ -18,6 +18,7 @@ import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
+import jetoze.tzudoku.model.Sandwiches;
 
 public class PuzzleBuilderController {
     private final JFrame appFrame;
@@ -27,6 +28,25 @@ public class PuzzleBuilderController {
         this.appFrame = requireNonNull(appFrame);
         this.model = requireNonNull(model);
         ui.setSaveAction(this::createPuzzle);
+        ui.setResetAction(this::reset);
+        ui.setDefineSandwichesAction(this::defineSandwiches);
+    }
+    
+    public void defineSandwiches() {
+        SandwichDefinitionsUi sandwichDefinitionsUi = new SandwichDefinitionsUi(model.getSandwiches());
+        int option = JOptionPane.showConfirmDialog(
+                appFrame, 
+                sandwichDefinitionsUi.getUi(), 
+                "Define Sandwiches", 
+                JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE);
+        if (option == JOptionPane.OK_OPTION) {
+            UiThread.runLater(() -> {
+                Sandwiches sandwiches = sandwichDefinitionsUi.getSandwiches();
+                model.setSandwiches(sandwiches);
+                // TODO: Must update the UI.
+            });
+        }
     }
     
     public boolean isExitAllowed() {

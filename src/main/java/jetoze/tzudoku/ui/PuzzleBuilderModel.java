@@ -6,10 +6,12 @@ import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Sandwiches;
 
 public class PuzzleBuilderModel {
     private final PuzzleInventory inventory;
     private final GridUiModel gridModel;
+    private Sandwiches sandwiches = Sandwiches.EMPTY;
     private final Property<String> puzzleNameProperty;
     
     public PuzzleBuilderModel(PuzzleInventory inventory) {
@@ -38,6 +40,14 @@ public class PuzzleBuilderModel {
     
     public Property<String> getPuzzleNameProperty() {
         return puzzleNameProperty;
+    }
+    
+    public Sandwiches getSandwiches() {
+        return sandwiches;
+    }
+    
+    public void setSandwiches(Sandwiches sandwiches) {
+        this.sandwiches = requireNonNull(sandwiches);
     }
     
     public void reset() {

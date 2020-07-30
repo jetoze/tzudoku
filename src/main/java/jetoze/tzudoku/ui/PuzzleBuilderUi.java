@@ -25,6 +25,7 @@ public final class PuzzleBuilderUi implements Widget {
     private final TextFieldWidget nameField = new TextFieldWidget(25);
     private Runnable saveAction = () -> {};
     private Runnable resetAction = () -> {};
+    private Runnable defineSandwichesAction = () -> {};
     
     public PuzzleBuilderUi(PuzzleBuilderModel model) {
         this.model = requireNonNull(model);
@@ -43,6 +44,10 @@ public final class PuzzleBuilderUi implements Widget {
         this.resetAction = requireNonNull(action);
     }
     
+    public void setDefineSandwichesAction(Runnable defineSandwichesAction) {
+        this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
+    }
+
     @Override
     public JComponent getUi() {
         JPanel nameFieldPanel = new JPanel();
@@ -53,11 +58,14 @@ public final class PuzzleBuilderUi implements Widget {
         gridWrapper.add(gridUi.getUi());
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));
+        
+        JButton sandwichesButton = UiLook.makeLargeButton("Sandwiches...", defineSandwichesAction);
+        buttonPanel.add(sandwichesButton);
+        JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
+        buttonPanel.add(resetButton);
         // TODO: Bind the save action to the valid state of the model?
         JButton saveButton = UiLook.makeLargeButton("Save", saveAction);
         buttonPanel.add(saveButton);
-        JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
-        buttonPanel.add(resetButton);
         
         JPanel ui = Layouts.border()
                 .withVerticalGap(8)
