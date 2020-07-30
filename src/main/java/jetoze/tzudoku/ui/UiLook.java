@@ -22,6 +22,8 @@ import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.border.Border;
+import javax.swing.border.LineBorder;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -37,6 +39,8 @@ public final class UiLook {
     static final int THICK_BORDER_WIDTH = 3;
 
     static final int THIN_BORDER_WIDTH = 1;
+    
+    static final Border BOARD_BORDER = new LineBorder(Color.BLACK);
 
     private static final Color SELECTION_COLOR = new Color(0xff, 0xea, 0x97);
     
