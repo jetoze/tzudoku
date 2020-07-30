@@ -91,7 +91,7 @@ public class PuzzleBuilderController {
             cells.put(p, cellToUse);
         });
         Grid grid = new Grid(cells);
-        Puzzle puzzle = new Puzzle(name, grid);
+        Puzzle puzzle = new Puzzle(name, grid, model.getSandwiches());
         try {
             model.getInventory().addNewPuzzle(puzzle);
         } catch (IOException e) {

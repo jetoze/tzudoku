@@ -66,7 +66,7 @@ public class GridUiModel {
     }
     
     public void setPuzzle(Puzzle puzzle) {
-        this.grid = requireNonNull(grid);
+        this.grid = puzzle.getGrid();
         this.sandwiches.set(puzzle.getSandwiches());
         cellUis.keySet().forEach(p -> {
             CellUi cellUi = cellUis.get(p);
