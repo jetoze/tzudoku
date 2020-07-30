@@ -35,7 +35,7 @@ import jetoze.tzudoku.model.Value;
 
 public class GridUiModel {
     private Grid grid;
-    private final GridSize size;
+    private final BoardSize size;
     private ImmutableMap<Position, CellUi> cellUis;
     @Nullable
     private CellUi lastSelectedCell;
@@ -47,7 +47,7 @@ public class GridUiModel {
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
 
-    public GridUiModel(Grid grid, GridSize size) {
+    public GridUiModel(Grid grid, BoardSize size) {
         this.grid = requireNonNull(grid);
         this.size = requireNonNull(size);
         this.cellUis = grid.getCells().entrySet().stream()
@@ -70,7 +70,7 @@ public class GridUiModel {
         return grid;
     }
 
-    public GridSize getSize() {
+    public BoardSize getSize() {
         return size;
     }
 

@@ -16,14 +16,14 @@ import jetoze.tzudoku.model.Value;
 class CellUi extends JComponent {
     private final Position position;
     private Cell cell;
-    private final GridSize gridSize;
+    private final BoardSize boardSize;
     private boolean selected;
     private boolean invalid;
 
-    public CellUi(Position position, Cell cell, GridSize gridSize) {
+    public CellUi(Position position, Cell cell, BoardSize boardSize) {
         this.position = requireNonNull(position);
         this.cell = requireNonNull(cell);
-        this.gridSize = requireNonNull(gridSize);
+        this.boardSize = requireNonNull(boardSize);
         setOpaque(true);
         setFocusable(true);
         addMouseListener(new MouseAdapter() {
@@ -71,17 +71,17 @@ class CellUi extends JComponent {
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        UiLook.fillCellBackground(g2, gridSize.getCellSize(), cell.getColor(), selected, invalid);
+        UiLook.fillCellBackground(g2, boardSize.getCellSize(), cell.getColor(), selected, invalid);
         cell.getValue().ifPresentOrElse(value -> renderValue(g2, value), () -> renderPencilMarks(g2));
     }
 
     private void renderValue(Graphics2D g, Value value) {
-        UiLook.drawValue(g, value, cell.isGiven(), gridSize);
+        UiLook.drawValue(g, value, cell.isGiven(), boardSize);
     }
 
     private void renderPencilMarks(Graphics2D g) {
         if (cell.hasPencilMarks()) {
-            UiLook.drawPencilMarks(g, cell.getCornerMarks(), cell.getCenterMarks(), gridSize);
+            UiLook.drawPencilMarks(g, cell.getCornerMarks(), cell.getCenterMarks(), boardSize);
         }
     }
 }

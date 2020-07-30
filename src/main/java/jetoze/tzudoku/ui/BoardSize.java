@@ -10,7 +10,10 @@ import java.awt.Rectangle;
 
 import jetoze.tzudoku.model.Position;
 
-public enum GridSize {
+/**
+ * Defines the size of various elements of the playing board.
+ */
+public enum BoardSize {
     SMALL(30),
     REGULAR(50);
     
@@ -37,7 +40,7 @@ public enum GridSize {
     private final Font valueFont;
     private final Font pencilMarkFont;
     
-    private GridSize(int cellSize) {
+    private BoardSize(int cellSize) {
         this.cellSize = cellSize;        this.gridSize = 9/* cells */ * cellSize +
                 // TODO: No idea why this is necessary
                 ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 

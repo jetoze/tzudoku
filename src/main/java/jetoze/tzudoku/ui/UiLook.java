@@ -92,7 +92,7 @@ public final class UiLook {
         }
     }
 
-    static void drawGrid(Graphics2D g, GridSize boardSize) {
+    static void drawGrid(Graphics2D g, BoardSize boardSize) {
         Color originalColor = g.getColor();
         Stroke originalStroke = g.getStroke();
         
@@ -135,7 +135,7 @@ public final class UiLook {
     }
 
     // TODO: These drawHorizontal/VerticalLine methods could be moved to gunga. Perhaps with
-    // overloads that take a Point as inpt for defining the starting point.
+    // overloads that take a Point as input for defining the starting point.
     private static void drawHorizontalLine(Graphics2D g, int startX, int startY, int length) {
         g.drawLine(startX, startY, startX + length, startY);
     }
@@ -168,51 +168,51 @@ public final class UiLook {
         }
     }
 
-    static void drawValue(Graphics2D g, Value value, boolean given, GridSize gridSize) {
+    static void drawValue(Graphics2D g, Value value, boolean given, BoardSize boardSize) {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
 
-        g.setFont(gridSize.getValueFont());
+        g.setFont(boardSize.getValueFont());
         g.setColor(given ? GIVEN_VALUE_COLOR : ENTERED_VALUE_COLOR);
 
         String text = Integer.toString(value.toInt());
-        drawTextCentered(g, gridSize.getValueFont(), text, gridSize);
+        drawTextCentered(g, boardSize.getValueFont(), text, boardSize);
 
         g.setFont(originalFont);
         g.setColor(originalColor);
     }
 
-    private static void drawTextCentered(Graphics2D g, Font font, String text, GridSize gridSize) {
+    private static void drawTextCentered(Graphics2D g, Font font, String text, BoardSize boardSize) {
         FontMetrics metrics = g.getFontMetrics(font);
         // Determine the X coordinate for the text
-        int x = (gridSize.getCellSize() - metrics.stringWidth(text)) / 2;
+        int x = (boardSize.getCellSize() - metrics.stringWidth(text)) / 2;
         // Determine the Y coordinate for the text (note we add the ascent, as in java
         // 2d 0 is top of the screen)
-        int y = ((gridSize.getCellSize() - metrics.getHeight()) / 2) + metrics.getAscent();
+        int y = ((boardSize.getCellSize() - metrics.getHeight()) / 2) + metrics.getAscent();
         // Set the font
         // Draw the String
         g.drawString(text, x, y);
     }
 
-    static void drawPencilMarks(Graphics2D g, PencilMarks cornerMarks, PencilMarks centerMarks, GridSize gridSize) {
+    static void drawPencilMarks(Graphics2D g, PencilMarks cornerMarks, PencilMarks centerMarks, BoardSize boardSize) {
         Font originalFont = g.getFont();
         Color originalColor = g.getColor();
 
-        g.setFont(gridSize.getPencilMarkFont());
+        g.setFont(boardSize.getPencilMarkFont());
         g.setColor(PENCIL_MARK_COLOR);
 
         if (!cornerMarks.isEmpty()) {
             int num = 1;
             for (Value pencilMark : cornerMarks.getValues()) {
                 String text = pencilMark.toString();
-                Point p = gridSize.getCornerPencilMarkLocation(g, text, num);
+                Point p = boardSize.getCornerPencilMarkLocation(g, text, num);
                 g.drawString(text, p.x, p.y);
                 ++num;
             }
         }
         if (!centerMarks.isEmpty()) {
             String text = PencilMarks.valuesAsString(centerMarks);
-            drawTextCentered(g, gridSize.getPencilMarkFont(), text, gridSize);
+            drawTextCentered(g, boardSize.getPencilMarkFont(), text, boardSize);
         }
 
         g.setFont(originalFont);
