@@ -12,6 +12,7 @@ import java.awt.FontMetrics;
 import java.awt.Graphics;
 import java.awt.Graphics2D;
 import java.awt.Point;
+import java.awt.Rectangle;
 import java.awt.Stroke;
 import java.awt.Window;
 
@@ -32,6 +33,8 @@ import jetoze.gunga.widget.PopupMenuButton;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.PuzzleState;
+import jetoze.tzudoku.model.Sandwich;
+import jetoze.tzudoku.model.Sandwiches;
 import jetoze.tzudoku.model.Value;
 
 public final class UiLook {
@@ -148,6 +151,30 @@ public final class UiLook {
         g.drawLine(startX, startY, startX, startY + length);
     }
     
+    static void drawSandwiches(Graphics2D g, Sandwiches sandwiches, BoardSize boardSize) {
+        if (sandwiches.isEmpty()) {
+            return;
+        }
+        Font originalFont = g.getFont();
+        Color originalColor = g.getColor();
+        
+        g.setColor(GIVEN_VALUE_COLOR);
+        g.setFont(boardSize.getValueFont());
+        
+        for (Sandwich rowSandwich : sandwiches.getRows()) {
+            Rectangle bounds = boardSize.getRowSandwichSumBounds(rowSandwich.getPosition());
+            drawTextCentered(g, boardSize.getValueFont(), Integer.toString(rowSandwich.getSum()), bounds);
+        }
+        
+        for (Sandwich columnSandwich : sandwiches.getColumns()) {
+            Rectangle bounds = boardSize.getColumnSandwichSumBounds(columnSandwich.getPosition());
+            drawTextCentered(g, boardSize.getValueFont(), Integer.toString(columnSandwich.getSum()), bounds);
+        }
+        
+        g.setFont(originalFont);
+        g.setColor(originalColor);
+    }
+    
     static void fillCellBackground(Graphics2D g, 
                                    int cellSize, 
                                    CellColor cellColor, 
@@ -193,7 +220,17 @@ public final class UiLook {
         // Determine the Y coordinate for the text (note we add the ascent, as in java
         // 2d 0 is top of the screen)
         int y = ((boardSize.getCellSize() - metrics.getHeight()) / 2) + metrics.getAscent();
-        // Set the font
+        // Draw the String
+        g.drawString(text, x, y);
+    }
+
+    private static void drawTextCentered(Graphics2D g, Font font, String text, Rectangle bounds) {
+        FontMetrics metrics = g.getFontMetrics(font);
+        // Determine the X coordinate for the text
+        int x = bounds.x + (bounds.width - metrics.stringWidth(text)) / 2;
+        // Determine the Y coordinate for the text (note we add the ascent, as in java
+        // 2d 0 is top of the screen)
+        int y = (bounds.y + (bounds.height - metrics.getHeight()) / 2) + metrics.getAscent();
         // Draw the String
         g.drawString(text, x, y);
     }

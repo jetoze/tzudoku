@@ -1,5 +1,6 @@
 package jetoze.tzudoku.ui;
 
+import static com.google.common.base.Preconditions.*;
 import static jetoze.tzudoku.ui.UiLook.*;
 
 import java.awt.Font;
@@ -94,7 +95,7 @@ public enum BoardSize {
         return new Rectangle(upperLeft.x, upperLeft.y, cellSize, cellSize);
     }
 
-    public Point getUpperLeftCellCorner(int row, int col) {
+    private Point getUpperLeftCellCorner(int row, int col) {
         int numOfPrecedingThickBordersToTheLeft = (col - 1) / 3;
         int numOfPrecedingThinBordersToTheLeft = (col - 1) - numOfPrecedingThickBordersToTheLeft;
         int x = getSandwichAreaWidth() +
@@ -110,6 +111,20 @@ public enum BoardSize {
                 + numOfPrecedingThinBordersAbove * THIN_BORDER_WIDTH;
 
         return new Point(x, y);
+    }
+    
+    public Rectangle getRowSandwichSumBounds(int row) {
+        checkArgument(row >= 1 && row <= 9);
+        int x = 0;
+        int y = getUpperLeftCellCorner(row, 1).y;
+        return new Rectangle(x,  y, sandwichAreaWidth, sandwichAreaWidth);
+    }
+    
+    public Rectangle getColumnSandwichSumBounds(int col) {
+        checkArgument(col >= 1 && col <= 9);
+        int x = getUpperLeftCellCorner(1, col).x;
+        int y = 0;
+        return new Rectangle(x,  y, sandwichAreaWidth, sandwichAreaWidth);
     }
 
     public Point getCornerPencilMarkLocation(Graphics2D g, String text, int pencilMarkNo) {

@@ -6,17 +6,17 @@ import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.Sandwiches;
 
 public class PuzzleBuilderModel {
     private final PuzzleInventory inventory;
     private final GridUiModel gridModel;
-    private Sandwiches sandwiches = Sandwiches.EMPTY;
     private final Property<String> puzzleNameProperty;
     
     public PuzzleBuilderModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
-        this.gridModel = new GridUiModel(Grid.emptyGrid(), BoardSize.SMALL);
+        this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, BoardSize.SMALL);
         this.gridModel.setHighlightDuplicateCells(true);
         this.puzzleNameProperty = Properties.newProperty("puzzleName", 
                 inventory.getAvailablePuzzleName("New Puzzle"));
@@ -43,16 +43,17 @@ public class PuzzleBuilderModel {
     }
     
     public Sandwiches getSandwiches() {
-        return sandwiches;
+        return gridModel.getSandwiches();
     }
     
     public void setSandwiches(Sandwiches sandwiches) {
-        this.sandwiches = requireNonNull(sandwiches);
+        gridModel.setSandwiches(sandwiches);
     }
     
     public void reset() {
-        setPuzzleName(inventory.getAvailablePuzzleName("New Puzzle"));
-        gridModel.setGrid(Grid.emptyGrid());
+        String name = inventory.getAvailablePuzzleName("New Puzzle");
+        setPuzzleName(name);
+        gridModel.setPuzzle(new Puzzle(name, Grid.emptyGrid()));
     }
     
 }

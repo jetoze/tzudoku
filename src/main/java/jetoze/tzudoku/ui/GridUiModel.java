@@ -30,6 +30,8 @@ import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Puzzle;
+import jetoze.tzudoku.model.Sandwiches;
 import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.model.Value;
 
@@ -44,11 +46,18 @@ public class GridUiModel {
     private final Property<Boolean> eliminateCandidates = Properties.newProperty(
             "eliminateDuplicates", Boolean.FALSE);
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
+    // XXX: Does the Sandwiches really belong here?
+    private final Property<Sandwiches> sandwiches;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
 
-    public GridUiModel(Grid grid, BoardSize size) {
+    public GridUiModel(Puzzle puzzle, BoardSize size) {
+        this(puzzle.getGrid(), puzzle.getSandwiches(), size);
+    }
+    
+    public GridUiModel(Grid grid, Sandwiches sandwiches, BoardSize size) {
         this.grid = requireNonNull(grid);
+        this.sandwiches = Properties.newProperty("sandwiches", requireNonNull(sandwiches));
         this.size = requireNonNull(size);
         this.cellUis = grid.getCells().entrySet().stream()
                 .collect(ImmutableMap.toImmutableMap(Entry::getKey, 
@@ -56,8 +65,9 @@ public class GridUiModel {
         this.highlightDuplicateCells.addListener(e -> onHighlightDuplicateCellsSelectionChanged());
     }
     
-    public void setGrid(Grid grid) {
+    public void setPuzzle(Puzzle puzzle) {
         this.grid = requireNonNull(grid);
+        this.sandwiches.set(puzzle.getSandwiches());
         cellUis.keySet().forEach(p -> {
             CellUi cellUi = cellUis.get(p);
             Cell cell = grid.cellAt(p);
@@ -68,6 +78,16 @@ public class GridUiModel {
 
     public Grid getGrid() {
         return grid;
+    }
+    
+    public Sandwiches getSandwiches() {
+        return sandwiches.get();
+    }
+    
+    public void setSandwiches(Sandwiches sandwiches) {
+        this.sandwiches.set(requireNonNull(sandwiches));
+        // HACK: This is just to get up and running.
+        notifyListeners(GridUiModelListener::onNewPuzzleLoaded);
     }
 
     public BoardSize getSize() {

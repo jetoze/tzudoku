@@ -143,6 +143,7 @@ public class GridUi implements Widget {
             g.fillRect(0, 0, getWidth(), getWidth());
             super.paintComponent(g);
             UiLook.drawGrid((Graphics2D) g, model.getSize());
+            UiLook.drawSandwiches((Graphics2D) g, model.getSandwiches(), model.getSize());
         }
 
         @Override
