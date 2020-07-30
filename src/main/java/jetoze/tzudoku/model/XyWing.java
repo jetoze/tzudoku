@@ -93,9 +93,10 @@ public class XyWing {
                         TwoValueCell w2 = possibleWings.get(j);
                         if (!isInSameRowOrColumn(center, w1, w2) && w2.values.equals(otherWingValues)) {
                             // Now check if w1 and w2 are both seen by any cells that have wingValue as
-                            // a candidate
+                            // a candidate. Exclude the wings themselves.
                             Set<Position> seenByBothWings = Sets.intersection(w1.seenBy(), w2.seenBy());
                             ImmutableSet<Position> targets = seenByBothWings.stream()
+                                    .filter(px -> !px.equals(w1.position) && !px.equals(w2.position))
                                     .filter(px -> {
                                         Cell cell = grid.cellAt(px);
                                         if (cell.hasValue()) {
