@@ -8,6 +8,8 @@ import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.util.stream.IntStream;
 
 import javax.swing.DefaultListCellRenderer;
@@ -20,24 +22,36 @@ import javax.swing.ListCellRenderer;
 import javax.swing.border.TitledBorder;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.ComboBoxWidget;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.Sandwich;
+import jetoze.tzudoku.model.Sandwiches;
 
 /**
  * UI for defining Sandwiches when building a puzzle.
  */
 public class SandwichDefinitionsUi implements Widget {
+    // TODO: Rewrite me with a model(?)
 
+    private static final Integer NO_SANDWICH = -1;
+    
     private final ImmutableMap<Integer, ComboBoxWidget<Integer>> rowSandwiches;
     private final ImmutableMap<Integer, ComboBoxWidget<Integer>> columnSandwiches;
     private final JComponent ui;
     
     public SandwichDefinitionsUi() {
+        this(Sandwiches.EMPTY);
+    }
+    
+    public SandwichDefinitionsUi(Sandwiches sandwiches) {
         rowSandwiches = createSumSelectors();
         columnSandwiches = createSumSelectors();
+        populateSelectors(sandwiches.getRows(), rowSandwiches);
+        populateSelectors(sandwiches.getColumns(), columnSandwiches);
         ui = layoutUi();
     }
 
@@ -45,6 +59,13 @@ public class SandwichDefinitionsUi implements Widget {
         return IntStream.rangeClosed(1, 9)
                 .mapToObj(Integer::valueOf)
                 .collect(toImmutableMap(i -> i, i -> createSumSelector()));
+    }
+    
+    private static void populateSelectors(ImmutableSet<Sandwich> sums, ImmutableMap<Integer, ComboBoxWidget<Integer>> selectors) {
+        sums.forEach(s -> {
+            ComboBoxWidget<Integer> selector = selectors.get(s.getPosition());
+            selector.setSelectedItem(s.getSum());
+        });
     }
     
     private JComponent layoutUi() {
@@ -80,6 +101,20 @@ public class SandwichDefinitionsUi implements Widget {
         return p;
     }
     
+    /**
+     * Returns the Sandwiches defined by this UI.
+     */
+    public Sandwiches getSandwiches() {
+        Sandwiches.Builder builder = Sandwiches.builder();
+        rowSandwiches.forEach((row, sumSelector) -> {
+            sumSelector.getSelectedItem().filter(i -> i != NO_SANDWICH).ifPresent(sum -> builder.row(row, sum));
+        });
+        columnSandwiches.forEach((col, sumSelector) -> {
+            sumSelector.getSelectedItem().filter(i -> i != NO_SANDWICH).ifPresent(sum -> builder.column(col, sum));
+        });
+        return builder.build();
+    }
+    
     @Override
     public JComponent getUi() {
         return ui;
@@ -93,7 +128,7 @@ public class SandwichDefinitionsUi implements Widget {
     // XXX: I don't particularly like the use of a combobox here, but it
     // gets us off the ground quicker with regards to validation and such.
     private static ComboBoxWidget<Integer> createSumSelector() {
-        ComboBoxWidget<Integer> comboBox = new ComboBoxWidget<>(IntStream.rangeClosed(-1, 35)
+        ComboBoxWidget<Integer> comboBox = new ComboBoxWidget<>(IntStream.rangeClosed(NO_SANDWICH, 35)
                 .filter(i -> i != 1) // 1 is not a valid Sandwich sum
                 .mapToObj(Integer::valueOf)
                 .collect(toList()));
@@ -120,13 +155,27 @@ public class SandwichDefinitionsUi implements Widget {
         UiThread.run(() -> {
             UiLook.installNimbus();
             SandwichDefinitionsUi ui = new SandwichDefinitionsUi();
-            JFrame frame = new JFrame("Sandwiches");
-            frame.getContentPane().add(ui.getUi(), BorderLayout.CENTER);
-            frame.pack();
-            frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-            frame.setLocationRelativeTo(null);
-            frame.setVisible(true);
+            openUi(ui);
         });
+    }
+
+    private static void openUi(SandwichDefinitionsUi ui) {
+        JFrame frame = new JFrame("Sandwiches");
+        frame.getContentPane().add(ui.getUi(), BorderLayout.CENTER);
+        frame.pack();
+        frame.setLocationRelativeTo(null);
+        frame.addWindowListener(new WindowAdapter() {
+
+            @Override
+            public void windowClosing(WindowEvent e) {
+                Sandwiches sandwiches = ui.getSandwiches();
+                UiThread.runLater(() -> {
+                    SandwichDefinitionsUi ui = new SandwichDefinitionsUi(sandwiches);
+                    openUi(ui);
+                });
+            }
+        });
+        frame.setVisible(true);
     }
 
 }
