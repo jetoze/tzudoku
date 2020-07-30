@@ -11,13 +11,15 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-public class HiddenSingle {
+public class HiddenSingle implements Hint {
 
+    private final Grid grid;
     private final Value value;
     private final House.Type houseType;
     private final Position position;
     
-    public HiddenSingle(Value value, House.Type houseType, Position position) {
+    public HiddenSingle(Grid grid, Value value, House.Type houseType, Position position) {
+        this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
         this.houseType = requireNonNull(houseType);
         this.position = requireNonNull(position);
@@ -35,6 +37,14 @@ public class HiddenSingle {
         return position;
     }
     
+    /**
+     * Updates the hidden single cell with its value.
+     */
+    @Override
+    public void apply() {
+        grid.cellAt(position).setValue(value);
+    }
+
     @Override
     public String toString() {
         return String.format("%s in %s: %s", value, houseType, position);
@@ -80,7 +90,7 @@ public class HiddenSingle {
                             return !cell.hasValue() && cell.getCenterMarks().contains(value);
                         }).collect(toSet());
                 if (candidates.size() == 1) {
-                    return new HiddenSingle(value, house.getType(), candidates.iterator().next());
+                    return new HiddenSingle(grid, value, house.getType(), candidates.iterator().next());
                 }
             }
             return null;
