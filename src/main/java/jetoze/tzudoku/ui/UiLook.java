@@ -22,8 +22,6 @@ import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
-import javax.swing.border.Border;
-import javax.swing.border.LineBorder;
 
 import com.google.common.collect.ImmutableMap;
 
@@ -94,40 +92,58 @@ public final class UiLook {
         }
     }
 
-    static Border getBoardBorder() {
-        return new LineBorder(BORDER_COLOR, THICK_BORDER_WIDTH);
-    }
-
-    static void drawGrid(Graphics2D g, GridSize gridSize) {
+    static void drawGrid(Graphics2D g, GridSize boardSize) {
         Color originalColor = g.getColor();
         Stroke originalStroke = g.getStroke();
+        
         g.setColor(BORDER_COLOR);
 
         Stroke thinStroke = new BasicStroke(THIN_BORDER_WIDTH * 2);
         Stroke thickStroke = new BasicStroke(THICK_BORDER_WIDTH * 2);
 
+        int sandwichAreaWidth = boardSize.getSandwichAreaWidth();
+        
+        // The border
+        g.setStroke(thickStroke);
+        g.drawRect(boardSize.getSandwichAreaWidth(), boardSize.getSandwichAreaWidth(), 
+                boardSize.getGridSize(), boardSize.getGridSize());
+
         // The horizontal lines.
-        int y = THICK_BORDER_WIDTH + gridSize.getCellSize();
+        int y = sandwichAreaWidth +
+                THICK_BORDER_WIDTH + 
+                boardSize.getCellSize();  // first row
         for (int n = 1; n < 9; ++n) {
             boolean thick = (n % 3) == 0;
             g.setStroke(thick ? thickStroke : thinStroke);
-            g.drawLine(0, y, gridSize.getBoardSize(), y);
-            y += gridSize.getCellSize() + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
+            drawHorizontalLine(g, sandwichAreaWidth, y, boardSize.getGridSize());
+            y += boardSize.getCellSize() + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
         }
 
         // The vertical lines
-        int x = THICK_BORDER_WIDTH + gridSize.getCellSize();
+        int x = sandwichAreaWidth +
+                THICK_BORDER_WIDTH + 
+                boardSize.getCellSize();  // first column
         for (int n = 1; n < 9; ++n) {
             boolean thick = (n % 3) == 0;
             g.setStroke(thick ? thickStroke : thinStroke);
-            g.drawLine(x, 0, x, gridSize.getBoardSize());
-            x += gridSize.getCellSize() + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
+            drawVerticalLine(g, x, sandwichAreaWidth, boardSize.getGridSize());
+            x += boardSize.getCellSize() + (thick ? THICK_BORDER_WIDTH : THIN_BORDER_WIDTH);
         }
 
         g.setColor(originalColor);
         g.setStroke(originalStroke);
     }
 
+    // TODO: These drawHorizontal/VerticalLine methods could be moved to gunga. Perhaps with
+    // overloads that take a Point as inpt for defining the starting point.
+    private static void drawHorizontalLine(Graphics2D g, int startX, int startY, int length) {
+        g.drawLine(startX, startY, startX + length, startY);
+    }
+    
+    private static void drawVerticalLine(Graphics2D g, int startX, int startY, int length) {
+        g.drawLine(startX, startY, startX, startY + length);
+    }
+    
     static void fillCellBackground(Graphics2D g, 
                                    int cellSize, 
                                    CellColor cellColor, 

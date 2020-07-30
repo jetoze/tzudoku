@@ -14,25 +14,65 @@ public enum GridSize {
     SMALL(30),
     REGULAR(50);
     
+    /**
+     * The size in pixels of a single cell.
+     */
     private final int cellSize;
+    
+    /**
+     * The width in pixels of the sandwich area.
+     */
+    private final int sandwichAreaWidth;
+    
+    /**
+     * The size in pixels of the 9x9 grid of cells, including borders.
+     */
+    private final int gridSize;
+    
+    /**
+     * The size in pixels of the entire board, including the grid and the surrounding
+     * sandwich areas.
+     */
     private final int boardSize;
     private final Font valueFont;
     private final Font pencilMarkFont;
     
     private GridSize(int cellSize) {
-        this.cellSize = cellSize;
-        this.boardSize = 9/* cells */ * cellSize +
+        this.cellSize = cellSize;        this.gridSize = 9/* cells */ * cellSize +
                 // TODO: No idea why this is necessary
                 ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 
                 8/* thin borders */ * THIN_BORDER_WIDTH;
+        this.sandwichAreaWidth = cellSize;
+        this.boardSize = gridSize + 2 * sandwichAreaWidth; // surround the board on all sides
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
     }
     
+    /**
+     * Returns the size (pixels) of a single cell.
+     */
     public int getCellSize() {
         return cellSize;
     }
     
+    /**
+     * Returns the width (pixels) of the sandwich area.
+     */
+    public int getSandwichAreaWidth() {
+        return sandwichAreaWidth;
+    }
+    
+    /**
+     * Returns the size (pixels) of the 9x9 grid of cells.
+     */
+    public int getGridSize() {
+        return gridSize;
+    }
+    
+    /**
+     * Returns the size (pixels) of the entire board, including the 9x9 grid of cells and
+     * the sandwich areas.
+     */
     public int getBoardSize() {
         return boardSize;
     }
@@ -54,13 +94,15 @@ public enum GridSize {
     public Point getUpperLeftCellCorner(int row, int col) {
         int numOfPrecedingThickBordersToTheLeft = (col - 1) / 3;
         int numOfPrecedingThinBordersToTheLeft = (col - 1) - numOfPrecedingThickBordersToTheLeft;
-        int x = THICK_BORDER_WIDTH /* left edge */ + (col - 1) * cellSize /* preceding cells */
+        int x = getSandwichAreaWidth() +
+                THICK_BORDER_WIDTH /* left edge */ + (col - 1) * cellSize /* preceding cells */
                 + numOfPrecedingThickBordersToTheLeft * THICK_BORDER_WIDTH
                 + numOfPrecedingThinBordersToTheLeft * THIN_BORDER_WIDTH;
 
         int numOfPrecedingThickBordersAbove = (row - 1) / 3;
         int numOfPrecedingThinBordersAbove = (row - 1) - numOfPrecedingThickBordersAbove;
-        int y = THICK_BORDER_WIDTH /* left edge */ + (row - 1) * cellSize /* preceding cells */
+        int y = getSandwichAreaWidth() +
+                THICK_BORDER_WIDTH /* left edge */ + (row - 1) * cellSize /* preceding cells */
                 + numOfPrecedingThickBordersAbove * THICK_BORDER_WIDTH
                 + numOfPrecedingThinBordersAbove * THIN_BORDER_WIDTH;
 

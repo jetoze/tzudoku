@@ -35,7 +35,6 @@ public class GridUi implements Widget {
             board.add(c);
         });
         board.setBounds(0, 0, model.getSize().getBoardSize(), model.getSize().getBoardSize());
-        board.setBorder(UiLook.getBoardBorder());
         model.addListener(new GridUiModelListener() {
 
             @Override
