@@ -1,7 +1,6 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableSet.*;
 import static java.util.Objects.requireNonNull;
 
 import java.util.EnumSet;
@@ -67,11 +66,9 @@ public class Multiple {
             if (remainingValues.size() <= size) {
                 return null;
             }
-            ImmutableSet<Position> emptyCellsWithPencilMarks = house.getPositionsWithoutValues(grid).stream()
-                    .filter(p -> {
-                        Cell cell = grid.cellAt(p);
-                        return !cell.getCenterMarks().isEmpty();
-                    }).collect(toImmutableSet());
+            ImmutableSet<Position> emptyCellsWithPencilMarks = house.getMatchingPositions(grid, cell -> {
+                return !cell.hasValue() && !cell.getCenterMarks().isEmpty();
+            });
             if (emptyCellsWithPencilMarks.size() <= size) {
                 return null;
             }

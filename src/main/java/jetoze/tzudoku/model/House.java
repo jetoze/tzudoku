@@ -8,6 +8,7 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -103,14 +104,15 @@ public class House {
     }
     
     /**
-     * Returns a set of the positions in this house that do not have a
-     * value in the given grid.
+     * Returns a set of the positions of the cells in this house that match 
+     * the given condition.
      */
-    public ImmutableSet<Position> getPositionsWithoutValues(Grid grid) {
+    public ImmutableSet<Position> getMatchingPositions(Grid grid, Predicate<? super Cell> condition) {
         requireNonNull(grid);
+        requireNonNull(condition);
         return getPositions().filter(p -> {
             Cell cell = grid.cellAt(p);
-            return !cell.hasValue();
+            return condition.test(cell);
         }).collect(toImmutableSet());
     }
 
