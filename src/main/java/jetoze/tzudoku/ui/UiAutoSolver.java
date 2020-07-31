@@ -192,7 +192,7 @@ public class UiAutoSolver {
         @Override
         public void run(Controller controller) {
             controller.getModel().showRemainingCandidates();
-            controller.runNextStep(HintStep.NAKED_SINGLE);
+            controller.runNextStepAfterDelay(HintStep.NAKED_SINGLE);
         }
     }
     
