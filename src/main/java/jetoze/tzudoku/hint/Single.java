@@ -22,30 +22,42 @@ public class Single implements Hint {
 
     private final Grid grid;
     private final Value value;
-    private final House.Type houseType;
+    private final House house; // XXX: Superfluous, really, since we have the position too.
     private final Position position;
     private final boolean naked;
     
-    public Single(Grid grid, Value value, House.Type houseType, Position position, boolean naked) {
+    public Single(Grid grid, Value value, House house, Position position, boolean naked) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
-        this.houseType = requireNonNull(houseType);
+        this.house = requireNonNull(house);
         this.position = requireNonNull(position);
         this.naked = naked;
     }
     
+    /**
+     * The value of this single, i.e. the value that can be filled into the cell.
+     */
     public Value getValue() {
         return value;
     }
 
-    public House.Type getHouseType() {
-        return houseType;
-    }
-
+    /**
+     * The position in the grid of this single.
+     */
     public Position getPosition() {
         return position;
     }
-    
+
+    /**
+     * The house in which this single was found.
+     */
+    public House getHouse() {
+        return house;
+    }
+
+    /**
+     * Returns true if this was a naked single, false if it was a hidden one.
+     */
     public boolean isNaked() {
         return naked;
     }
@@ -64,7 +76,7 @@ public class Single implements Hint {
 
     @Override
     public String toString() {
-        return String.format("%s in %s: %s", value, houseType, position);
+        return String.format("%s in %s: %s", value, house, position);
     }
     
     public static Optional<Single> findNext(Grid grid) {
@@ -108,7 +120,7 @@ public class Single implements Hint {
                 if (candidates.size() == 1) {
                     Position position = candidates.iterator().next();
                     boolean naked = grid.cellAt(position).getCenterMarks().getValues().size() == 1;
-                    return new Single(grid, value, house.getType(), position, naked);
+                    return new Single(grid, value, house, position, naked);
                 }
             }
             return null;
