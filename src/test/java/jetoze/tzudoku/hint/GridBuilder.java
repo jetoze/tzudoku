@@ -1,7 +1,7 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
@@ -14,7 +14,6 @@ import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
-import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
 /**
