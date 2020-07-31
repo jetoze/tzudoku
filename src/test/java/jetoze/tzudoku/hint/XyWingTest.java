@@ -1,39 +1,20 @@
 package jetoze.tzudoku.hint;
 
-import static jetoze.tzudoku.model.Value.EIGHT;
-import static jetoze.tzudoku.model.Value.FIVE;
-import static jetoze.tzudoku.model.Value.FOUR;
-import static jetoze.tzudoku.model.Value.NINE;
-import static jetoze.tzudoku.model.Value.ONE;
-import static jetoze.tzudoku.model.Value.SEVEN;
-import static jetoze.tzudoku.model.Value.SIX;
-import static jetoze.tzudoku.model.Value.THREE;
-import static jetoze.tzudoku.model.Value.TWO;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 
 import org.junit.jupiter.api.Test;
 
-import com.google.common.collect.ImmutableSet;
-
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.Value;
 
 public class XyWingTest {
 
     @Test
     public void threeXyWingCandidatesInSameBoxShouldBeIgnored() {
-        Grid grid = Grid.builder().box(7, 
-                Cell.given(SIX), cellWithCandidates(ONE, FOUR), cellWithCandidates(ONE, THREE),
-                cellWithCandidates(THREE, FOUR), Cell.given(TWO), Cell.given(FIVE),
-                Cell.given(SEVEN), Cell.given(EIGHT), Cell.given(NINE)).build();
+        Grid grid = GridBuilder.builder().box(7, 
+                "6[14][13]",
+                "[34]25",
+                "789").build();
         assertFalse(XyWing.findNext(grid).isPresent());
-    }
-
-    private static Cell cellWithCandidates(Value... values) {
-        Cell cell = Cell.empty();
-        cell.getCenterMarks().setValues(ImmutableSet.copyOf(values));
-        return cell;
     }
     
 }
