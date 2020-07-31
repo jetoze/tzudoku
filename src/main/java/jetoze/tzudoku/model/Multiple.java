@@ -8,20 +8,25 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public class Multiple {
+public class Multiple implements Hint {
 
+    private final Grid grid;
+    private final House house;
     private final ImmutableSet<Position> positions;
     private final ImmutableSet<Value> values;
     
-    public Multiple(Set<Position> positions, Set<Value> values) {
+    public Multiple(Grid grid, House house, Set<Position> positions, Set<Value> values) {
         checkArgument(positions.size() > 2);
         checkArgument(positions.size() == values.size());
+        this.grid = requireNonNull(grid);
+        this.house = requireNonNull(house);
         this.positions = ImmutableSet.copyOf(positions);
         this.values = ImmutableSet.copyOf(values);
     }
@@ -33,7 +38,21 @@ public class Multiple {
     public ImmutableSet<Value> getValues() {
         return values;
     }
-    
+
+    /**
+     * Removes the common values as candidates from the other positions in the same house.
+     */
+    @Override
+    public void apply() {
+        house.getPositions().filter(Predicate.not(positions::contains))
+            .map(grid::cellAt)
+            .filter(Predicate.not(Cell::isGiven))
+            .map(Cell::getCenterMarks)
+            .forEach(m -> {
+                values.forEach(m::remove);
+            });
+    }
+
     public static Optional<Multiple> findNextTriple(Grid grid) {
         return findNext(grid, 3);
     }
@@ -90,7 +109,7 @@ public class Multiple {
                             .flatMap(pm -> pm.getValues().stream())
                             .anyMatch(allCandidatesInGroup::contains);
                     if (targetCellExists) {
-                        return new Multiple(group, allCandidatesInGroup);
+                        return new Multiple(grid, house, group, allCandidatesInGroup);
                     }
                 }
             }

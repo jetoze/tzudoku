@@ -84,6 +84,7 @@ public class PointingPair implements Hint {
         Stream.concat(positionsInBox, positionsInHouse)
             .filter(Predicate.not(positions::contains)) // do not touch the pointing pair itself
             .map(grid::cellAt)
+            .filter(Predicate.not(Cell::isGiven))
             .map(Cell::getCenterMarks)
             .forEach(m -> m.remove(value));
     }
