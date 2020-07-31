@@ -17,16 +17,20 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public class XyWing {
+public class XyWing implements Hint {
+    
+    private final Grid grid;
     private final Position center;
     private final ImmutableSet<Position> wings;
     private final Value valueThatCanBeEliminated;
     private final ImmutableSet<Position> targets;
 
-    private XyWing(Position center, 
+    private XyWing(Grid grid, 
+                   Position center, 
                    ImmutableSet<Position> wings,
                    Value valueThatCanBeEliminated,
                    ImmutableSet<Position> targets) {
+        this.grid = requireNonNull(grid);
         this.center = requireNonNull(center);
         this.wings = requireNonNull(wings);
         checkArgument(!wings.contains(center));
@@ -34,6 +38,7 @@ public class XyWing {
         this.targets = requireNonNull(targets);
         checkArgument(!targets.contains(center));
         checkArgument(Sets.intersection(wings, targets).isEmpty());
+        checkArgument(targets.stream().map(grid::cellAt).noneMatch(Cell::isGiven));
     }
     
     public Position getCenter() {
@@ -50,6 +55,13 @@ public class XyWing {
     
     public ImmutableSet<Position> getTargets() {
         return targets;
+    }
+
+    @Override
+    public void apply() {
+        targets.stream().map(grid::cellAt)
+            .map(Cell::getCenterMarks)
+            .forEach(m -> m.remove(valueThatCanBeEliminated));
     }
 
     public static Optional<XyWing> findNext(Grid grid) {
@@ -99,13 +111,10 @@ public class XyWing {
                                     .filter(px -> !px.equals(w1.position) && !px.equals(w2.position))
                                     .filter(px -> {
                                         Cell cell = grid.cellAt(px);
-                                        if (cell.hasValue()) {
-                                            return false;
-                                        }
-                                        return cell.getCenterMarks().contains(wingValue);
+                                        return !cell.hasValue() && cell.getCenterMarks().contains(wingValue);
                                     }).collect(toImmutableSet());
                             if (!targets.isEmpty()) {
-                                return Optional.of(new XyWing(center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
+                                return Optional.of(new XyWing(grid, center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
                             }
                         }
                     }
