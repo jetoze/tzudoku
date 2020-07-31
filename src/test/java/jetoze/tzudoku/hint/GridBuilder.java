@@ -1,17 +1,20 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static java.util.stream.Collectors.*;
 
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.IntStream;
 
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
+import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
 /**
@@ -22,7 +25,10 @@ import jetoze.tzudoku.model.Value;
  * already have a value, or has one or more center pencil marks. A cell
  * with a value is represented by the string representation of that value, 
  * e.g. "7". A cell with center pencil marks is represented by the string
- * "[xyz]", e.g. ["25"], "[12369]".
+ * "[xyz]", e.g. ["25"], "[12369]". Optional spaces can be provided between
+ * cells in the input strings to provide visual clues for how the cells 
+ * are grouped - spaces are ignored when parsing the string (except when
+ * parsing pencil marks, spaces are not allowed between "[" and "]").
  * 
  */
 class GridBuilder {
@@ -65,6 +71,18 @@ class GridBuilder {
         return this;
     }
     
+    public GridBuilder fullyUnknownRow(int rowNum) {
+        return fullyUnknownHouse(new House(Type.ROW, rowNum));
+    }
+    
+    public GridBuilder fullyUnknownColumn(int colNum) {
+        return fullyUnknownHouse(new House(Type.COLUMN, colNum));
+    }
+    
+    public GridBuilder fullyUnknownBox(int boxNum) {
+        return fullyUnknownHouse(new House(Type.BOX, boxNum));
+    }
+
     private List<Cell> parseString(String input, int expectedNumberOfCells) {
         List<Cell> cells = new StringParser(input).parse();
         checkArgument(cells.size() == expectedNumberOfCells, "Expected %s number of cells, got %s", 
@@ -72,6 +90,19 @@ class GridBuilder {
         return cells;
     }
     
+    private Cell cellWithAllCandidates() {
+        Cell cell = Cell.empty();
+        cell.getCenterMarks().setValues(Value.ALL);
+        return cell;
+    }
+    
+    private GridBuilder fullyUnknownHouse(House house) {
+        houses.put(house, IntStream.rangeClosed(1, 9)
+                .mapToObj(i -> cellWithAllCandidates())
+                .collect(toList()));
+        return this;
+    }
+
     
     private static class StringParser {
         private final String input;
@@ -94,6 +125,9 @@ class GridBuilder {
                 } else if (c == '[') {
                     Cell cell = parsePencilMarks();
                     cells.add(cell);
+                } else if (c == ' ') {
+                    // spaces are ignored
+                    ++index;
                 } else {
                     throw illegalCharacter(c);
                 }
