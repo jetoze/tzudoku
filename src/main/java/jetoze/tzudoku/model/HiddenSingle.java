@@ -75,8 +75,7 @@ public class HiddenSingle implements Hint {
         @Nullable
         public HiddenSingle findNext() {
             EnumSet<Value> remainingValues = house.getRemainingValues(grid);
-            if (remainingValues.size() < 2) {
-                // A naked single should be easy enough to find without help...
+            if (remainingValues.isEmpty()) {
                 return null;
             }
             boolean allCellsHaveCenterPencilMarks = house.getPositions()
