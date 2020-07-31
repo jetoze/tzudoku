@@ -160,7 +160,7 @@ public class UiAutoSolver {
         }
         
         private void applyHint(XyWing xyWing) {
-            removeCandidates(xyWing.getTargets(), ImmutableSet.of(xyWing.getValueThatCanBeEliminated()));
+            removeCandidates(xyWing.getTargets(), ImmutableSet.of(xyWing.getValue()));
         }
         
         private void removeCandidates(ImmutableSet<Position> targets, ImmutableSet<Value> values) {

@@ -46,22 +46,37 @@ public class XyWing implements Hint {
         checkArgument(targets.stream().map(grid::cellAt).noneMatch(Cell::isGiven));
     }
     
+    /**
+     * Returns the position of the center (or pivot) cell.
+     */
     public Position getCenter() {
         return center;
     }
-    
+
+    /**
+     * Returns the positions of the wings.
+     */
     public ImmutableSet<Position> getWings() {
         return wings;
     }
 
-    public Value getValueThatCanBeEliminated() {
+    /**
+     * Returns the value that can be eliminated from the target cells.
+     */
+    public Value getValue() {
         return valueThatCanBeEliminated;
     }
-    
+
+    /**
+     * Returns the positions of the target cells, from which the XY-wing's value can be eliminated.
+     */
     public ImmutableSet<Position> getTargets() {
         return targets;
     }
 
+    /**
+     * Eliminates the XY-wing's value as a candidate from the target cells.
+     */
     @Override
     public void apply() {
         targets.stream().map(grid::cellAt)
@@ -69,6 +84,12 @@ public class XyWing implements Hint {
             .forEach(m -> m.remove(valueThatCanBeEliminated));
     }
 
+    /**
+     * Looks for an XY-wing in the given grid.
+     * 
+     * @return an Optional containing an XyWing, or an empty optional if there are
+     *         no XY-wings in the grid.
+     */
     public static Optional<XyWing> findNext(Grid grid) {
         return new Detector(grid).findNext();
     }

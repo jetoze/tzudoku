@@ -157,7 +157,7 @@ public class PuzzleUiController {
         StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
         s.append(xyWing.getCenter());
         xyWing.getWings().forEach(w -> s.append("<br>").append(w));
-        s.append("<br><br>").append(xyWing.getValueThatCanBeEliminated().toInt())
+        s.append("<br><br>").append(xyWing.getValue().toInt())
             .append(" can be eliminated from these cells:");
         xyWing.getTargets().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
