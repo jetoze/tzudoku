@@ -34,10 +34,19 @@ public class UiAutoSolver {
     
     // TODO: Place the app frame in blocking wait-state while the auto solver is running.
     // TODO: Allow the auto-solver to be stopped.
+    // TODO: Show information about the hints are being processed. This can be done in a small
+    //       modal dialog, that also has a Stop button.
+    // TODO: When applying a hint that eliminates candidates, color the cells involved,
+    //       using a different color for the target cells than the generating cells.
 
-    // TODO: We need to blank out the current undo-redo state before starting.
-    // TODO: Alternatively, rewrite the apply() method to work with the GridUiModel.
-    //       Then we get undo-redo for free.
+    // TODO: Create a non-UI version of this auto solver. It can analyze the current puzzle,
+    //       and provide the following information without actually showing the solution:
+    //         1. Could the puzzle be solved?
+    //         2. If it could be solved or not.
+    //         3. Statistics on what types of hints were used, in particular advanced 
+    //            (triples(?), X-Wings, XY-Wings) hints.
+    //         4. For puzzles that could be solved, the hint statistics can be used to
+    //            rate the difficulty of the puzzle.
 
     private static final Duration DELAY = Duration.ofMillis(750L);
     
