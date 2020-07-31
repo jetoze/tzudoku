@@ -1,6 +1,7 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import java.util.EnumSet;
@@ -25,17 +26,18 @@ import jetoze.tzudoku.model.Value;
 public class Multiple implements Hint {
 
     private final Grid grid;
-    private final House house;
     private final ImmutableSet<Position> positions;
     private final ImmutableSet<Value> values;
+    private final ImmutableSet<Position> targets;
     
-    public Multiple(Grid grid, House house, Set<Position> positions, Set<Value> values) {
+    public Multiple(Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
         checkArgument(positions.size() > 2);
         checkArgument(positions.size() == values.size());
+        checkArgument(Sets.intersection(positions, targets).isEmpty());
         this.grid = requireNonNull(grid);
-        this.house = requireNonNull(house);
         this.positions = ImmutableSet.copyOf(positions);
         this.values = ImmutableSet.copyOf(values);
+        this.targets = ImmutableSet.copyOf(targets);
     }
 
     public ImmutableSet<Position> getPositions() {
@@ -45,13 +47,17 @@ public class Multiple implements Hint {
     public ImmutableSet<Value> getValues() {
         return values;
     }
+    
+    public ImmutableSet<Position> getTargets() {
+        return targets;
+    }
 
     /**
      * Removes the common values as candidates from the other positions in the same house.
      */
     @Override
     public void apply() {
-        house.getPositions().filter(Predicate.not(positions::contains))
+        targets.stream()
             .map(grid::cellAt)
             .filter(Predicate.not(Cell::isGiven))
             .map(Cell::getCenterMarks)
@@ -110,13 +116,13 @@ public class Multiple implements Hint {
                 if (allCandidatesInGroup.size() == size) {
                     // Check if any other cell in the house has a matching candidate value
                     // that can be eliminated.
-                    boolean targetCellExists = Sets.difference(emptyCellsWithPencilMarks, group).stream()
-                            .map(grid::cellAt)
-                            .map(Cell::getCenterMarks)
-                            .flatMap(pm -> pm.getValues().stream())
-                            .anyMatch(allCandidatesInGroup::contains);
-                    if (targetCellExists) {
-                        return new Multiple(grid, house, group, allCandidatesInGroup);
+                    ImmutableSet<Position> targets = Sets.difference(emptyCellsWithPencilMarks, group).stream()
+                            .filter(p -> {
+                                Cell cell = grid.cellAt(p);
+                                return !Sets.intersection(cell.getCenterMarks().getValues(), allCandidatesInGroup).isEmpty();
+                            }).collect(toImmutableSet());
+                    if (!targets.isEmpty()) {
+                        return new Multiple(grid, group, allCandidatesInGroup, targets);
                     }
                 }
             }

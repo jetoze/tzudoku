@@ -1,5 +1,6 @@
 package jetoze.tzudoku.ui;
 
+import static com.google.common.base.Preconditions.*;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -23,6 +24,7 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
@@ -277,13 +279,13 @@ public class GridUiModel {
     }
     
     /**
-     * Removes the given value as a candidate (i.e. center pencil mark) from the cells
+     * Removes the given values as candidates (i.e. center pencil marks) from the cells
      * at the given positions.
      */
-    public void removeCandidateFromCells(Collection<Position> positions, Value valueToRemove) {
+    public void removeCandidatesFromCells(Collection<Position> positions, Set<Value> valuesToRemove) {
         requireNonNull(positions);
-        requireNonNull(valueToRemove);
-        EliminateCandidateAction action = new EliminateCandidateAction(positions, valueToRemove);
+        checkArgument(!valuesToRemove.isEmpty());
+        RemoveCandidatesAction action = new RemoveCandidatesAction(positions, valuesToRemove);
         if (action.isNoOp()) {
             return;
         }
@@ -423,29 +425,29 @@ public class GridUiModel {
     }
     
     
-    private class EliminateCandidateAction implements UndoableAction {
+    private class RemoveCandidatesAction implements UndoableAction {
 
         private final ImmutableMap<Cell, ImmutableSet<Value>> cellsAndTheirOldCandidates;
-        private final Value valueToEliminate;
+        private final ImmutableSet<Value> valuesToRemove;
         
-        public EliminateCandidateAction(Collection<Position> positions, Value valueToEliminate) {
+        public RemoveCandidatesAction(Collection<Position> positions, Set<Value> valuesToRemove) {
             this.cellsAndTheirOldCandidates = positions.stream()
                     .map(grid::cellAt)
                     .collect(toImmutableMap(c -> c, c -> c.getCenterMarks().getValues()));
-            this.valueToEliminate = valueToEliminate;
+            this.valuesToRemove = ImmutableSet.copyOf(valuesToRemove);
         }
 
         @Override
         public boolean isNoOp() {
             return cellsAndTheirOldCandidates.isEmpty() || cellsAndTheirOldCandidates.values().stream()
-                    .noneMatch(values -> values.contains(valueToEliminate));
+                    .noneMatch(values -> Sets.intersection(values, valuesToRemove).isEmpty());
         }
 
         @Override
         public void perform() {
             cellsAndTheirOldCandidates.keySet().stream()
                 .map(Cell::getCenterMarks)
-                .forEach(m -> m.remove(valueToEliminate));
+                .forEach(m -> valuesToRemove.forEach(m::remove));
             notifyListeners(GridUiModelListener::onCellStateChanged);
         }
         

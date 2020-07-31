@@ -11,11 +11,13 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
+import com.google.common.collect.ImmutableSet;
+
 import jetoze.gunga.UiThread;
-import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
+import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
 
@@ -90,7 +92,12 @@ public class UiAutoSolver {
         
         public void applyHint(PointingPair pointingPair) {
             UiThread.throwIfNotUiThread();
-            model.removeCandidateFromCells(pointingPair.getTargets(), pointingPair.getValue());
+            model.removeCandidatesFromCells(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
+        }
+        
+        public void applyHint(Multiple multiple) {
+            UiThread.throwIfNotUiThread();
+            model.removeCandidatesFromCells(multiple.getTargets(), multiple.getValues());
         }
         
         public void start() {
