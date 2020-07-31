@@ -8,6 +8,7 @@ import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -16,9 +17,10 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
-import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
+import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Puzzle;
@@ -99,22 +101,6 @@ public class PuzzleUiController {
         UiThread.offload(work,  whenDone, exceptionHandler);
     }
     
-    public void lookForXyWing() {
-        runHintCheck(XyWing::findNext, this::showXyWingInfo, "Did not find any XY-wings :(");
-    }
-    
-    private void showXyWingInfo(XyWing xyWing) {
-        // TODO: This can obviously be done in a fancier way.
-        StringBuilder s = new StringBuilder("<html>Found an XY-wing:<br>");
-        s.append(xyWing.getCenter());
-        xyWing.getWings().forEach(w -> s.append("<br>").append(w));
-        s.append("<br><br>").append(xyWing.getValueThatCanBeEliminated().toInt())
-            .append(" can be eliminated from these cells:");
-        xyWing.getTargets().forEach(t -> s.append("<br>").append(t));
-        s.append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
-    }
-    
     public void lookForPointingPair() {
         runHintCheck(PointingPair::findNext, this::showPointingPairInfo,  "Did not find any Pointing Pairs :(");
     }
@@ -145,6 +131,36 @@ public class PuzzleUiController {
         StringBuilder s = new StringBuilder("<html>Found a triple:<br>");
         multiple.getPositions().forEach(p -> s.append(p).append("<br>"));
         s.append("Values: ").append(multiple.getValues()).append("</html>");
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+    }
+    
+    public void lookForXWing() {
+        runHintCheck(XWing::findNext, this::showXWingInfo, "Did not find any X-Wings :(");
+    }
+    
+    private void showXWingInfo(XWing xwing) {
+        StringBuilder s = new StringBuilder("<html>Found an X-Wing:<br><br>");
+        s.append("Positions: ");
+        s.append(xwing.getPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
+        s.append("<br><br>");
+        s.append(xwing.getValue()).append(" can be eliminated from:<br>");
+        s.append(xwing.getTargets().stream().map(Object::toString).collect(Collectors.joining(" ")));
+        s.append("</html>");
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+    }
+    
+    public void lookForXyWing() {
+        runHintCheck(XyWing::findNext, this::showXyWingInfo, "Did not find any XY-Wings :(");
+    }
+    
+    private void showXyWingInfo(XyWing xyWing) {
+        StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
+        s.append(xyWing.getCenter());
+        xyWing.getWings().forEach(w -> s.append("<br>").append(w));
+        s.append("<br><br>").append(xyWing.getValueThatCanBeEliminated().toInt())
+            .append(" can be eliminated from these cells:");
+        xyWing.getTargets().forEach(t -> s.append("<br>").append(t));
+        s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
     }
 

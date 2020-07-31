@@ -18,6 +18,7 @@ import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
@@ -56,7 +57,8 @@ public class UiAutoSolver {
         //   3. Naked Pair
         //   4. Pointing Pair
         //   5. Triple
-        //   6. XY wing
+        //   6. X-Wing
+        //   6. XY-Wing
         //
         // If a hint is found, the next hint will *always* be Naked Single. If no hint is
         // found, move to the next hint. If we reach the end of the hint list without finding
@@ -129,8 +131,12 @@ public class UiAutoSolver {
                     applyHint((PointingPair) hint);
                 } else if (hint instanceof Multiple) {
                     applyHint((Multiple) hint);
+                } else if (hint instanceof XWing) {
+                    applyHint((XWing) hint);
                 } else if (hint instanceof XyWing) {
                     applyHint((XyWing) hint);
+                } else {
+                    throw new RuntimeException("Unknown hint: " + hint);
                 }
             });
         }
@@ -147,6 +153,10 @@ public class UiAutoSolver {
         
         private void applyHint(Multiple multiple) {
             removeCandidates(multiple.getTargets(), multiple.getValues());
+        }
+        
+        private void applyHint(XWing xwing) {
+            removeCandidates(xwing.getTargets(), ImmutableSet.of(xwing.getValue()));
         }
         
         private void applyHint(XyWing xyWing) {
@@ -213,6 +223,14 @@ public class UiAutoSolver {
         },
         
         TRIPLE(Multiple::findNextTriple) {
+
+            @Override
+            protected Optional<HintStep> getNextStep() {
+                return Optional.of(X_WING);
+            }
+        },
+        
+        X_WING(XWing::findNext) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
