@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Callable;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import javax.swing.JFrame;
@@ -38,10 +39,6 @@ public class UiAutoSolver {
     //       modal dialog, that also has a Stop button.
     // TODO: When applying a hint that eliminates candidates, color the cells involved,
     //       using a different color for the target cells than the generating cells.
-    // TODO: Change the timer behavior, so that we introduce a delay only when we have
-    //       found and applied a hint, before we move to the next hint. That will allow
-    //       the solver to sift through non-productive hints faster. Or at least use a 
-    //       smaller delay after a non-productive hint.
 
     // TODO: Create a non-UI version of this auto solver. It can analyze the current puzzle,
     //       and provide the following information without actually showing the solution:
@@ -118,20 +115,20 @@ public class UiAutoSolver {
             JOptionPane.showMessageDialog(appFrame, "Ta-da!", "Solved", JOptionPane.INFORMATION_MESSAGE);
         }
         
+        public void runNextStepAfterDelay(Step step) {
+            Timer timer = new Timer((int) DELAY.toMillis(), e -> this.runNextStep(step));
+            timer.setRepeats(false);
+            timer.start();
+        }
+        
         public void runNextStep(Step step) {
             UiThread.throwIfNotUiThread();
             requireNonNull(step);
             if (model.getGrid().isSolved()) {
                 showSuccessMessage();
             } else {
-                runStep(step);
+                step.run(this);
             }
-        }
-
-        private void runStep(Step step) {
-            Timer timer = new Timer((int) DELAY.toMillis(), e -> step.run(this));
-            timer.setRepeats(false);
-            timer.start();
         }
 
         public void updateUi(Hint hint) {
@@ -268,16 +265,21 @@ public class UiAutoSolver {
 
         @Override
         public final void run(Controller controller) {
-            Callable<Optional<HintStep>> job = () -> {
-                Optional<? extends Hint> opt = hintFinder.apply(controller.getModel().getGrid());
+            Callable<Optional<? extends Hint>> job = () -> hintFinder.apply(controller.getModel().getGrid());
+            Consumer<Optional<? extends Hint>> resultHandler = opt -> {
                 if (opt.isPresent()) {
-                    controller.updateUi(opt.get());
-                    return Optional.of(NAKED_SINGLE);
+                    applyHint(controller, opt.get());
                 } else {
-                    return getNextStep();
+                    getNextStep().ifPresentOrElse(controller::runNextStep, controller::stop);
                 }
             };
-            UiThread.offload(job, next -> next.ifPresentOrElse(controller::runNextStep, controller::stop));
+            UiThread.offload(job, resultHandler);
+        }
+        
+        private void applyHint(Controller controller, Hint hint) {
+            controller.updateUi(hint);
+            // Always go back to Naked Single after each successful hint.
+            controller.runNextStepAfterDelay(NAKED_SINGLE);
         }
         
         protected abstract Optional<HintStep> getNextStep();
