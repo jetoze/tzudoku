@@ -18,6 +18,7 @@ import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
+import javax.swing.JSeparator;
 import javax.swing.JToggleButton;
 
 import com.google.common.collect.ImmutableList;
@@ -181,10 +182,12 @@ public class ControlPanel {
     private PopupMenuButton createHintsButton() {
         PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
                 new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
+                new JSeparator(),
                 new JMenuItem(createAction("Look for Hidden Single", controller::lookForHiddenSingle)),
                 new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
                 new JMenuItem(createAction("Look for Triple", controller::lookForTriple)),
                 new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),
+                new JSeparator(),
                 new JMenuItem(createAction("Auto-solve", controller::startAutoSolver)));
         UiLook.makeOverLarge(hintsButton);
         return hintsButton;
