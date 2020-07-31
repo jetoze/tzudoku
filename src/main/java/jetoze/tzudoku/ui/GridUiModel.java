@@ -109,6 +109,20 @@ public class GridUiModel {
         return Optional.ofNullable(lastSelectedCell).filter(CellUi::isSelected);
     }
     
+    public void selectCellsAt(Collection<Position> positions) {
+        List<CellUi> cellsToSelect = positions.stream()
+                .map(cellUis::get)
+                .filter(Predicate.not(CellUi::isSelected))
+                .collect(toList());
+        if (cellsToSelect.isEmpty()) {
+            return;
+        }
+        cellUis.values().forEach(c -> c.setSelected(false));
+        lastSelectedCell = cellsToSelect.get(cellsToSelect.size() - 1);
+        cellsToSelect.forEach(c -> c.setSelected(true));
+        notifyListeners(GridUiModelListener::onCellStateChanged);
+    }
+    
     public void selectCellAt(Position position) {
         selectCell(cellUis.get(position), false);
     }

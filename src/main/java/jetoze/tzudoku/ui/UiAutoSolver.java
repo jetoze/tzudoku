@@ -20,6 +20,8 @@ import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 /**
  * Attempts to auto-solve the puzzle currently loaded into the UI, giving visual feedback
@@ -138,15 +140,20 @@ public class UiAutoSolver {
         }
         
         private void applyHint(PointingPair pointingPair) {
-            model.removeCandidatesFromCells(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
+            removeCandidates(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
         }
         
         private void applyHint(Multiple multiple) {
-            model.removeCandidatesFromCells(multiple.getTargets(), multiple.getValues());
+            removeCandidates(multiple.getTargets(), multiple.getValues());
         }
         
         private void applyHint(XyWing xyWing) {
-            model.removeCandidatesFromCells(xyWing.getTargets(), ImmutableSet.of(xyWing.getValueThatCanBeEliminated()));
+            removeCandidates(xyWing.getTargets(), ImmutableSet.of(xyWing.getValueThatCanBeEliminated()));
+        }
+        
+        private void removeCandidates(ImmutableSet<Position> targets, ImmutableSet<Value> values) {
+            model.selectCellsAt(targets);
+            model.removeCandidatesFromCells(targets, values);
         }
     }
     
