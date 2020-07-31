@@ -171,7 +171,8 @@ public class ControlPanel {
                 new JMenuItem(createAction("Look for Hidden Single", controller::lookForHiddenSingle)),
                 new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
                 new JMenuItem(createAction("Look for Triple", controller::lookForTriple)),
-                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)));
+                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),
+                new JMenuItem(createAction("Auto-solve", controller::startAutoSolver)));
         UiLook.makeOverLarge(hintsButton);
         return hintsButton;
     }

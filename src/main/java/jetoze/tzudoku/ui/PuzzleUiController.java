@@ -156,7 +156,10 @@ public class PuzzleUiController {
         UiThread.offload(producer, consumer);
     }
     
-    
+    public void startAutoSolver() {
+        UiAutoSolver autoSolver = new UiAutoSolver(appFrame, puzzleModel.getGridModel());
+        autoSolver.start();
+    }
     
     public void checkSolution() {
         UiThread.offload(this::validatePuzzle, this::displayResult);

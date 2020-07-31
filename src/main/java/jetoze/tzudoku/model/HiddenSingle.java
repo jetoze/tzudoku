@@ -43,6 +43,10 @@ public class HiddenSingle implements Hint {
     @Override
     public void apply() {
         grid.cellAt(position).setValue(value);
+        position.seenBy().map(grid::cellAt)
+            .filter(Predicate.not(Cell::hasValue))
+            .map(Cell::getCenterMarks)
+            .forEach(m -> m.remove(value));
     }
 
     @Override

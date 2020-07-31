@@ -306,6 +306,11 @@ public class GridUiModel {
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
     
+    // HACK: Used by the auto solver. Is there another way?
+    public void notifyListenersThatCellStateChanged() {
+        notifyListeners(GridUiModelListener::onCellStateChanged);
+    }
+    
     
     private class SetValueAction implements UndoableAction {
         private final Value value;
