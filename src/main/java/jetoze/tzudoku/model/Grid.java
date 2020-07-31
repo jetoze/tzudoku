@@ -258,6 +258,7 @@ public final class Grid {
     
     public static final class Builder {
         private final Map<Position, Cell> gridCells = Position.all().collect(Collectors.toMap(p -> p, p -> Cell.empty()));
+        private final Set<Position> addedCells = new HashSet<>();
         
         public Builder row(int rowNum, List<Cell> cells) {
             return addCells(rowNum, cells, Position::positionsInRow);
@@ -282,13 +283,30 @@ public final class Grid {
         public Builder box(int boxNum, Cell... cells) {
             return box(boxNum, Arrays.asList(cells));
         }
+        
+        public Builder house(House house, List<Cell> cells) {
+            checkCells(cells);
+            Iterator<Cell> it = cells.iterator();
+            house.getPositions().forEach(p -> addCell(p, it.next()));
+            return this;
+        }
 
         private Builder addCells(int houseNumber, List<Cell> cells, IntFunction<Stream<Position>> positionsSupplier) {
+            checkCells(cells);
+            Iterator<Cell> it = cells.iterator();
+            positionsSupplier.apply(houseNumber).forEach(p -> addCell(p, it.next()));
+            return this;
+        }
+        
+        private void addCell(Position p, Cell cell) {
+            boolean isNew = addedCells.add(p);
+            checkArgument(isNew, "A cell has already been added at position %s", p);
+            gridCells.put(p, cell);
+        }
+
+        private static void checkCells(List<Cell> cells) {
             checkArgument(cells.size() == 9);
             checkArgument(cells.stream().allMatch(Objects::nonNull));
-            Iterator<Cell> it = cells.iterator();
-            positionsSupplier.apply(houseNumber).forEach(p -> gridCells.put(p, it.next()));
-            return this;
         }
         
         public Grid build() {
