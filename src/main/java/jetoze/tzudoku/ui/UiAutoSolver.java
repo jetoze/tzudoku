@@ -38,6 +38,10 @@ public class UiAutoSolver {
     //       modal dialog, that also has a Stop button.
     // TODO: When applying a hint that eliminates candidates, color the cells involved,
     //       using a different color for the target cells than the generating cells.
+    // TODO: Change the timer behavior, so that we introduce a delay only when we have
+    //       found and applied a hint, before we move to the next hint. That will allow
+    //       the solver to sift through non-productive hints faster. Or at least use a 
+    //       smaller delay after a non-productive hint.
 
     // TODO: Create a non-UI version of this auto solver. It can analyze the current puzzle,
     //       and provide the following information without actually showing the solution:
