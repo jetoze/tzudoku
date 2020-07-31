@@ -79,28 +79,9 @@ public class UiAutoSolver {
             return model;
         }
         
-        public void updateUi() {
-            UiThread.run(model::notifyListenersThatCellStateChanged);
-        }
-        
-        public void applyHint(Single single) {
-            UiThread.throwIfNotUiThread();
-            model.setEnterValueMode(EnterValueMode.NORMAL);
-            model.selectCellAt(single.getPosition());
-            model.enterValue(single.getValue());
-        }
-        
-        public void applyHint(PointingPair pointingPair) {
-            UiThread.throwIfNotUiThread();
-            model.removeCandidatesFromCells(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
-        }
-        
-        public void applyHint(Multiple multiple) {
-            UiThread.throwIfNotUiThread();
-            model.removeCandidatesFromCells(multiple.getTargets(), multiple.getValues());
-        }
-        
         public void start() {
+            // TODO: Restore the original setting when we are done?
+            model.getEliminateCandidatesProperty().set(true);
             new FillInCandidates().run(this);
         }
         
@@ -132,6 +113,40 @@ public class UiAutoSolver {
             Timer timer = new Timer((int) DELAY.toMillis(), e -> step.run(this));
             timer.setRepeats(false);
             timer.start();
+        }
+
+        public void updateUi(Hint hint) {
+            // FIXME: Refactor the Step implementation so that we can pass Hints of
+            // specific types, without having to cast.
+            UiThread.run(() -> {
+                if (hint instanceof Single) {
+                    applyHint((Single) hint);
+                } else if (hint instanceof PointingPair) {
+                    applyHint((PointingPair) hint);
+                } else if (hint instanceof Multiple) {
+                    applyHint((Multiple) hint);
+                } else if (hint instanceof XyWing) {
+                    applyHint((XyWing) hint);
+                }
+            });
+        }
+        
+        private void applyHint(Single single) {
+            model.setEnterValueMode(EnterValueMode.NORMAL);
+            model.selectCellAt(single.getPosition());
+            model.enterValue(single.getValue());
+        }
+        
+        private void applyHint(PointingPair pointingPair) {
+            model.removeCandidatesFromCells(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
+        }
+        
+        private void applyHint(Multiple multiple) {
+            model.removeCandidatesFromCells(multiple.getTargets(), multiple.getValues());
+        }
+        
+        private void applyHint(XyWing xyWing) {
+            model.removeCandidatesFromCells(xyWing.getTargets(), ImmutableSet.of(xyWing.getValueThatCanBeEliminated()));
         }
     }
     
@@ -200,8 +215,7 @@ public class UiAutoSolver {
             Callable<Optional<HintStep>> job = () -> {
                 Optional<? extends Hint> opt = hintFinder.apply(controller.getModel().getGrid());
                 if (opt.isPresent()) {
-                    opt.get().apply();
-                    controller.updateUi();
+                    controller.updateUi(opt.get());
                     return Optional.of(HIDDEN_SINGLE);
                 } else {
                     return getNextStep();
