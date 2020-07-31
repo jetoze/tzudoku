@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map.Entry;
 import java.util.Optional;
@@ -104,6 +105,10 @@ public class GridUiModel {
 
     public Optional<CellUi> getLastSelectedCell() {
         return Optional.ofNullable(lastSelectedCell).filter(CellUi::isSelected);
+    }
+    
+    public void selectCellAt(Position position) {
+        selectCell(cellUis.get(position), false);
     }
 
     public void selectCell(CellUi cell, boolean isMultiSelect) {
@@ -271,6 +276,21 @@ public class GridUiModel {
         action.perform();
     }
     
+    /**
+     * Removes the given value as a candidate (i.e. center pencil mark) from the cells
+     * at the given positions.
+     */
+    public void removeCandidateFromCells(Collection<Position> positions, Value valueToRemove) {
+        requireNonNull(positions);
+        requireNonNull(valueToRemove);
+        EliminateCandidateAction action = new EliminateCandidateAction(positions, valueToRemove);
+        if (action.isNoOp()) {
+            return;
+        }
+        undoRedoState.add(action);
+        action.perform();
+    }
+    
     public Property<Boolean> getHighlightDuplicateCellsProperty() {
         return highlightDuplicateCells;
     }
@@ -399,6 +419,40 @@ public class GridUiModel {
         @Override
         public void undo() {
             toggle();
+        }
+    }
+    
+    
+    private class EliminateCandidateAction implements UndoableAction {
+
+        private final ImmutableMap<Cell, ImmutableSet<Value>> cellsAndTheirOldCandidates;
+        private final Value valueToEliminate;
+        
+        public EliminateCandidateAction(Collection<Position> positions, Value valueToEliminate) {
+            this.cellsAndTheirOldCandidates = positions.stream()
+                    .map(grid::cellAt)
+                    .collect(toImmutableMap(c -> c, c -> c.getCenterMarks().getValues()));
+            this.valueToEliminate = valueToEliminate;
+        }
+
+        @Override
+        public boolean isNoOp() {
+            return cellsAndTheirOldCandidates.isEmpty() || cellsAndTheirOldCandidates.values().stream()
+                    .noneMatch(values -> values.contains(valueToEliminate));
+        }
+
+        @Override
+        public void perform() {
+            cellsAndTheirOldCandidates.keySet().stream()
+                .map(Cell::getCenterMarks)
+                .forEach(m -> m.remove(valueToEliminate));
+            notifyListeners(GridUiModelListener::onCellStateChanged);
+        }
+        
+        @Override
+        public void undo() {
+            cellsAndTheirOldCandidates.forEach((cell, oldValues) -> cell.getCenterMarks().setValues(oldValues));
+            notifyListeners(GridUiModelListener::onCellStateChanged);
         }
     }
     

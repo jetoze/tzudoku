@@ -21,28 +21,29 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
-import jetoze.tzudoku.model.House.Type;
 
 public class PointingPair implements Hint {
 
     private final Grid grid;
     private final Value value;
-    private final House.Type houseType;
     private final ImmutableSet<Position> positions;
+    private final ImmutableSet<Position> targets;
     
-    public PointingPair(Grid grid, Value value, Set<Position> positions) {
+    public PointingPair(Grid grid, Value value, Set<Position> positions, Set<Position> targets) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
         checkArgument(positions.size() >= 2);
-        this.houseType = getHouseType(positions);
+        House.Type houseType = getHouseType(positions);
         // Store the positions ordered by row or column depending on how they line up.
         // Getting the comparator also verifies that the positions are indeed in a line.
         Comparator<Position> order = getSortOrder(houseType);
         this.positions = positions.stream()
                 .sorted(order)
                 .collect(toImmutableSet());
+        this.targets = ImmutableSet.copyOf(targets);
     }
     
     private static House.Type getHouseType(Set<Position> positions) {
@@ -67,27 +68,40 @@ public class PointingPair implements Hint {
         }
     }
     
+    /**
+     * Returns the value identified by this pointing pair, i.e. the value that can be
+     * eliminated from the target cells.
+     */
     public Value getValue() {
         return value;
     }
 
+    /**
+     * Returns the positions that make up the pointing pair.
+     * 
+     * @return an ImmutableSet containing two or three positions.
+     */
     public ImmutableSet<Position> getPositions() {
         return positions;
     }
 
+    /**
+     * Returns the targets that are affected by the pointing pair, i.e. the
+     * positions in the grid of those cells from which the value can be eliminated.
+     * 
+     * @return an ImmutableSet of one or more positions.
+     */
+    public ImmutableSet<Position> getTargets() {
+        return targets;
+    }
+    
     /**
      * Removes the value of the pointing pair as a candidate from all cells seen by
      * the pointing pair.
      */
     @Override
     public void apply() {
-        Position p0 = positions.iterator().next();
-        Stream<Position> positionsInBox = Position.positionsInBox(p0.getBox());
-        Stream<Position> positionsInHouse = (houseType == Type.ROW)
-                ? Position.positionsInRow(p0.getRow())
-                : Position.positionsInColumn(p0.getColumn());
-        Stream.concat(positionsInBox, positionsInHouse)
-            .filter(Predicate.not(positions::contains)) // do not touch the pointing pair itself
+        targets.stream()
             .map(grid::cellAt)
             .filter(Predicate.not(Cell::hasValue))
             .map(Cell::getCenterMarks)
@@ -162,13 +176,14 @@ public class PointingPair implements Hint {
                 Stream<Position> sameBox = new House(House.Type.BOX, boxNumber).getPositions()
                         .filter(Predicate.not(candidates::contains));
                 
-                boolean targetCellExists = Stream.concat(otherBoxes, sameBox)
-                        .map(grid::cellAt)
-                        .filter(Predicate.not(Cell::hasValue))
-                        .map(Cell::getCenterMarks)
-                        .anyMatch(pm -> pm.contains(value));
-                if (targetCellExists) {
-                    return new PointingPair(grid, value, candidates);
+                ImmutableSet<Position> targets = Stream.concat(otherBoxes, sameBox)
+                        .filter(p -> {
+                            Cell cell = grid.cellAt(p);
+                            return !cell.hasValue() && cell.getCenterMarks().contains(value);
+                        })
+                        .collect(toImmutableSet());
+                if (!targets.isEmpty()) {
+                    return new PointingPair(grid, value, candidates, targets);
                 }
             }
             return null;

@@ -81,6 +81,18 @@ public class UiAutoSolver {
             UiThread.run(model::notifyListenersThatCellStateChanged);
         }
         
+        public void applyHint(Single single) {
+            UiThread.throwIfNotUiThread();
+            model.setEnterValueMode(EnterValueMode.NORMAL);
+            model.selectCellAt(single.getPosition());
+            model.enterValue(single.getValue());
+        }
+        
+        public void applyHint(PointingPair pointingPair) {
+            UiThread.throwIfNotUiThread();
+            model.removeCandidateFromCells(pointingPair.getTargets(), pointingPair.getValue());
+        }
+        
         public void start() {
             new FillInCandidates().run(this);
         }
