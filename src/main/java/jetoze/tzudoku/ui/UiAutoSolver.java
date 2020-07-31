@@ -53,9 +53,10 @@ public class UiAutoSolver {
         // Then find and apply hints in this order:
         //   1. Naked Single
         //   2. Hidden Single
-        //   3. Pointing Pair
-        //   4. Triple
-        //   5. XY wing
+        //   3. Naked Pair
+        //   4. Pointing Pair
+        //   5. Triple
+        //   6. XY wing
         //
         // If a hint is found, the next hint will *always* be Naked Single. If no hint is
         // found, move to the next hint. If we reach the end of the hint list without finding
@@ -190,9 +191,17 @@ public class UiAutoSolver {
 
             @Override
             protected Optional<HintStep> getNextStep() {
-                return Optional.of(POINTING_PAIR);
+                return Optional.of(NAKED_PAIR);
             }
 
+        },
+        
+        NAKED_PAIR(Multiple::findNextPair) {
+
+            @Override
+            protected Optional<HintStep> getNextStep() {
+                return Optional.of(POINTING_PAIR);
+            }
         },
         
         POINTING_PAIR(PointingPair::findNext) {

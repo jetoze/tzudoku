@@ -31,7 +31,7 @@ public class Multiple implements Hint {
     private final ImmutableSet<Position> targets;
     
     public Multiple(Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
-        checkArgument(positions.size() > 2);
+        checkArgument(positions.size() >= 2);
         checkArgument(positions.size() == values.size());
         checkArgument(Sets.intersection(positions, targets).isEmpty());
         this.grid = requireNonNull(grid);
@@ -66,13 +66,21 @@ public class Multiple implements Hint {
             });
     }
 
+    public static Optional<Multiple> findNextPair(Grid grid) {
+        return findNext(grid, 2);
+    }
+    
     public static Optional<Multiple> findNextTriple(Grid grid) {
         return findNext(grid, 3);
+    }
+    
+    public static Optional<Multiple> findNextQuadruple(Grid grid) {
+        return findNext(grid, 4);
     }
 
     public static Optional<Multiple> findNext(Grid grid, int size) {
         requireNonNull(grid);
-        checkArgument(size > 2 && size <= 9);
+        checkArgument(size >= 2 && size <= 9);
         return House.ALL.stream()
                 .map(house -> new Detector(grid, house, size))
                 .map(Detector::findNext)
