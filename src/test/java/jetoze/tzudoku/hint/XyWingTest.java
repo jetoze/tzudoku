@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.hint;
 
 import static jetoze.tzudoku.model.Value.EIGHT;
 import static jetoze.tzudoku.model.Value.FIVE;
@@ -14,6 +14,11 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Value;
 
 public class XyWingTest {
 

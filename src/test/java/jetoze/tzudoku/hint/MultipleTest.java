@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.hint;
 
 import static jetoze.tzudoku.model.Value.EIGHT;
 import static jetoze.tzudoku.model.Value.FIVE;
@@ -18,6 +18,12 @@ import java.util.Optional;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.hint.Multiple;
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 public class MultipleTest {
 

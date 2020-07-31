@@ -16,14 +16,14 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.Multiple;
+import jetoze.tzudoku.hint.PointingPair;
+import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.HiddenSingle;
-import jetoze.tzudoku.model.Multiple;
-import jetoze.tzudoku.model.PointingPair;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
-import jetoze.tzudoku.model.XyWing;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
@@ -125,19 +125,19 @@ public class PuzzleUiController {
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
     
-    public void lookForHiddenSingle() {
-        runHintCheck(HiddenSingle::findNext, this::showHiddenSingleInfo, "Did not find any Hidden Singles :(");
+    public void lookForSingle() {
+        runHintCheck(Single::findNext, this::showSingleInfo, "Did not find any Singles :(");
     }
     
-    private void showHiddenSingleInfo(HiddenSingle hiddenSingle) {
+    private void showSingleInfo(Single single) {
         // TODO: This can obviously be done in a fancier way.
-        String s = "<html>Found a Hidden Single:<br>" + hiddenSingle.getPosition() + 
-                "<br>Value: " + hiddenSingle.getValue() + "</html>";
+        String s = "<html>Found a " + (single.isNaked() ? "Naked" : "Hidden") + " Single:<br>" + single.getPosition() + 
+                "<br>Value: " + single.getValue() + "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
     
     public void lookForTriple() {
-        runHintCheck(Multiple::findNextTriple, this::showTripleInfo, "Dod not find any Triples :(");
+        runHintCheck(Multiple::findNextTriple, this::showTripleInfo, "Did not find any Triples :(");
     }
     
     private void showTripleInfo(Multiple multiple) {

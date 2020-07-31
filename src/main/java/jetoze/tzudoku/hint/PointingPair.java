@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -18,6 +18,11 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 import jetoze.tzudoku.model.House.Type;
 
 public class PointingPair implements Hint {

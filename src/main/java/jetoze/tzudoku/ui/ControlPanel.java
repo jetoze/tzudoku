@@ -165,18 +165,6 @@ public class ControlPanel {
                 .build();
     }
 
-    private PopupMenuButton createHintsButton() {
-        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
-                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
-                new JMenuItem(createAction("Look for Hidden Single", controller::lookForHiddenSingle)),
-                new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
-                new JMenuItem(createAction("Look for Triple", controller::lookForTriple)),
-                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),
-                new JMenuItem(createAction("Auto-solve", controller::startAutoSolver)));
-        UiLook.makeOverLarge(hintsButton);
-        return hintsButton;
-    }
-
     private PopupMenuButton createOptionsButton() {
         JCheckBoxMenuItem highlightDuplicatesChoice = new JCheckBoxMenuItem("Highlight Duplicates");
         BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
@@ -188,6 +176,18 @@ public class ControlPanel {
                 highlightDuplicatesChoice, eliminateCandidatesChoice);
         UiLook.makeOverLarge(optionsButton);
         return optionsButton;
+    }
+
+    private PopupMenuButton createHintsButton() {
+        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
+                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
+                new JMenuItem(createAction("Look for Naked/Hidden Single", controller::lookForSingle)),
+                new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
+                new JMenuItem(createAction("Look for Triple", controller::lookForTriple)),
+                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),
+                new JMenuItem(createAction("Auto-solve", controller::startAutoSolver)));
+        UiLook.makeOverLarge(hintsButton);
+        return hintsButton;
     }
 
 

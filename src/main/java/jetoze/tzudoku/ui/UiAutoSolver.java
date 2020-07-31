@@ -12,12 +12,12 @@ import javax.swing.JOptionPane;
 import javax.swing.Timer;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.Hint;
+import jetoze.tzudoku.hint.Multiple;
+import jetoze.tzudoku.hint.PointingPair;
+import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.HiddenSingle;
-import jetoze.tzudoku.model.Hint;
-import jetoze.tzudoku.model.Multiple;
-import jetoze.tzudoku.model.PointingPair;
-import jetoze.tzudoku.model.XyWing;
 
 /**
  * Attempts to auto-solve the puzzle currently loaded into the UI, giving visual feedback
@@ -136,7 +136,7 @@ public class UiAutoSolver {
     
     private static enum HintStep implements Step {
         
-        HIDDEN_SINGLE(HiddenSingle::findNext) {
+        HIDDEN_SINGLE(Single::findNext) {
 
             @Override
             protected Optional<HintStep> getNextStep() {

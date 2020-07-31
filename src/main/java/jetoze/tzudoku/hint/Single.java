@@ -1,7 +1,7 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.hint;
 
-import static java.util.Objects.*;
-import static java.util.stream.Collectors.*;
+import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.toSet;
 
 import java.util.EnumSet;
 import java.util.Objects;
@@ -11,18 +11,27 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
-public class HiddenSingle implements Hint {
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.PencilMarks;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
+
+public class Single implements Hint {
 
     private final Grid grid;
     private final Value value;
     private final House.Type houseType;
     private final Position position;
+    private final boolean naked;
     
-    public HiddenSingle(Grid grid, Value value, House.Type houseType, Position position) {
+    public Single(Grid grid, Value value, House.Type houseType, Position position, boolean naked) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
         this.houseType = requireNonNull(houseType);
         this.position = requireNonNull(position);
+        this.naked = naked;
     }
     
     public Value getValue() {
@@ -35,6 +44,10 @@ public class HiddenSingle implements Hint {
 
     public Position getPosition() {
         return position;
+    }
+    
+    public boolean isNaked() {
+        return naked;
     }
     
     /**
@@ -54,7 +67,7 @@ public class HiddenSingle implements Hint {
         return String.format("%s in %s: %s", value, houseType, position);
     }
     
-    public static Optional<HiddenSingle> findNext(Grid grid) {
+    public static Optional<Single> findNext(Grid grid) {
         return House.ALL.stream()
                 .map(house -> new Detector(grid, house))
                 .map(Detector::findNext)
@@ -73,7 +86,7 @@ public class HiddenSingle implements Hint {
         }
         
         @Nullable
-        public HiddenSingle findNext() {
+        public Single findNext() {
             EnumSet<Value> remainingValues = house.getRemainingValues(grid);
             if (remainingValues.isEmpty()) {
                 return null;
@@ -93,7 +106,9 @@ public class HiddenSingle implements Hint {
                             return !cell.hasValue() && cell.getCenterMarks().contains(value);
                         }).collect(toSet());
                 if (candidates.size() == 1) {
-                    return new HiddenSingle(grid, value, house.getType(), candidates.iterator().next());
+                    Position position = candidates.iterator().next();
+                    boolean naked = grid.cellAt(position).getCenterMarks().getValues().size() == 1;
+                    return new Single(grid, value, house.getType(), position, naked);
                 }
             }
             return null;
