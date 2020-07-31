@@ -125,13 +125,13 @@ public class PuzzleUiController {
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
     
-    public void lookForSingle() {
-        runHintCheck(Single::findNext, this::showSingleInfo, "Did not find any Singles :(");
+    public void lookForHiddenSingle() {
+        runHintCheck(Single::findNextHidden, this::showSingleInfo, "Did not find any Hidden Singles :(");
     }
     
     private void showSingleInfo(Single single) {
         // TODO: This can obviously be done in a fancier way.
-        String s = "<html>Found a " + (single.isNaked() ? "Naked" : "Hidden") + " Single:<br>" + single.getPosition() + 
+        String s = "<html>Found a Hidden Single:<br>" + single.getPosition() + 
                 "<br>Value: " + single.getValue() + "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }

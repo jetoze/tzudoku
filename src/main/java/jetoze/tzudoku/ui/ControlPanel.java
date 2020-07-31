@@ -181,7 +181,7 @@ public class ControlPanel {
     private PopupMenuButton createHintsButton() {
         PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
                 new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
-                new JMenuItem(createAction("Look for Naked/Hidden Single", controller::lookForSingle)),
+                new JMenuItem(createAction("Look for Naked/Hidden Single", controller::lookForHiddenSingle)),
                 new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
                 new JMenuItem(createAction("Look for Triple", controller::lookForTriple)),
                 new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),

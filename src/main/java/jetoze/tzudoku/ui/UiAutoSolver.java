@@ -51,12 +51,13 @@ public class UiAutoSolver {
     public void start() {
         // First fill in all candidates.
         // Then find and apply hints in this order:
-        //   1. Hidden Single
-        //   2. Pointing Pair
-        //   3. Triple
-        //   4. XY wing
+        //   1. Naked Single
+        //   2. Hidden Single
+        //   3. Pointing Pair
+        //   4. Triple
+        //   5. XY wing
         //
-        // If a hint is found, the next hint will *always* be Hidden Single. If no hint is
+        // If a hint is found, the next hint will *always* be Naked Single. If no hint is
         // found, move to the next hint. If we reach the end of the hint list without finding
         // anything, we give up.
         //
@@ -170,14 +171,22 @@ public class UiAutoSolver {
         @Override
         public void run(Controller controller) {
             controller.getModel().showRemainingCandidates();
-            controller.runNextStep(HintStep.HIDDEN_SINGLE);
+            controller.runNextStep(HintStep.NAKED_SINGLE);
         }
     }
     
     
     private static enum HintStep implements Step {
         
-        HIDDEN_SINGLE(Single::findNext) {
+        NAKED_SINGLE(Single::findNextNaked) {
+
+            @Override
+            protected Optional<HintStep> getNextStep() {
+                return Optional.of(HIDDEN_SINGLE);
+            }
+        },
+        
+        HIDDEN_SINGLE(Single::findNextHidden) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -223,7 +232,7 @@ public class UiAutoSolver {
                 Optional<? extends Hint> opt = hintFinder.apply(controller.getModel().getGrid());
                 if (opt.isPresent()) {
                     controller.updateUi(opt.get());
-                    return Optional.of(HIDDEN_SINGLE);
+                    return Optional.of(NAKED_SINGLE);
                 } else {
                     return getNextStep();
                 }

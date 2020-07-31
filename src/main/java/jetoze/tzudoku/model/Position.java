@@ -70,6 +70,9 @@ public class Position {
         return new Position((row < 9) ? row + 1 : 1, column);
     }
     
+    /**
+     * Returns a stream of all the other positions in the grid that is seen by this position.
+     */
     public Stream<Position> seenBy() {
         Stream<Position> othersInRow = positionsInRow(row)
                 .filter(p -> p != this);

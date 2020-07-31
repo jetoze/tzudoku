@@ -11,6 +11,8 @@ import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.Sets;
+
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
@@ -63,15 +65,11 @@ public class Single implements Hint {
     }
     
     /**
-     * Updates the hidden single cell with its value.
+     * Updates the single cell with its value.
      */
     @Override
     public void apply() {
         grid.cellAt(position).setValue(value);
-        position.seenBy().map(grid::cellAt)
-            .filter(Predicate.not(Cell::hasValue))
-            .map(Cell::getCenterMarks)
-            .forEach(m -> m.remove(value));
     }
 
     @Override
@@ -79,20 +77,67 @@ public class Single implements Hint {
         return String.format("%s in %s: %s", value, house, position);
     }
     
-    public static Optional<Single> findNext(Grid grid) {
+    public static Optional<Single> findNextNaked(Grid grid) {
         return House.ALL.stream()
-                .map(house -> new Detector(grid, house))
-                .map(Detector::findNext)
+                .map(house -> new NakedSingleDetector(grid, house))
+                .map(NakedSingleDetector::find)
+                .flatMap(Optional::stream)
+                .findAny();
+                
+    }
+    
+    public static Optional<Single> findNextHidden(Grid grid) {
+        return House.ALL.stream()
+                .map(house -> new HiddenSingleDetector(grid, house))
+                .map(HiddenSingleDetector::findNext)
                 .filter(Objects::nonNull)
                 .findAny();
     }
 
-
-    private static class Detector {
+    
+    
+    private static class NakedSingleDetector {
         private final Grid grid;
         private final House house;
         
-        public Detector(Grid grid, House house) {
+        public NakedSingleDetector(Grid grid, House house) {
+            this.grid = grid;
+            this.house = house;
+        }
+        
+        public Optional<Single> find() {
+            return house.getPositions().map(this::check).filter(Objects::nonNull).findAny();
+        }
+        
+        @Nullable
+        private Single check(Position p) {
+            Cell cell = grid.cellAt(p);
+            if (cell.hasValue()) {
+                return null;
+            }
+            Set<Value> valuesSeenByCell = p.seenBy().map(grid::cellAt)
+                .map(Cell::getValue)
+                .flatMap(Optional::stream)
+                .collect(toSet());
+            if (valuesSeenByCell.size() == 8) {
+                Value missingValue = Sets.difference(Value.ALL, valuesSeenByCell).iterator().next();
+                return new Single(grid, missingValue, house, p, true);
+            }
+            Set<Value> centerMarks = cell.getCenterMarks().getValues();
+            if (centerMarks.size() == 1) {
+                Value missingValue = centerMarks.iterator().next();
+                return new Single(grid, missingValue, house, p, true);
+            }
+            return null;
+        }
+    }
+    
+
+    private static class HiddenSingleDetector {
+        private final Grid grid;
+        private final House house;
+        
+        public HiddenSingleDetector(Grid grid, House house) {
             this.grid = grid;
             this.house = house;
         }
@@ -100,7 +145,8 @@ public class Single implements Hint {
         @Nullable
         public Single findNext() {
             EnumSet<Value> remainingValues = house.getRemainingValues(grid);
-            if (remainingValues.isEmpty()) {
+            if (remainingValues.size() < 2) {
+                // We are only looking for hidden singles, not naked ones.
                 return null;
             }
             boolean allCellsHaveCenterPencilMarks = house.getPositions()
@@ -119,8 +165,7 @@ public class Single implements Hint {
                         }).collect(toSet());
                 if (candidates.size() == 1) {
                     Position position = candidates.iterator().next();
-                    boolean naked = grid.cellAt(position).getCenterMarks().getValues().size() == 1;
-                    return new Single(grid, value, house, position, naked);
+                    return new Single(grid, value, house, position, true);
                 }
             }
             return null;
