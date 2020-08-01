@@ -14,6 +14,7 @@ import jetoze.gunga.KeyBindings;
 import jetoze.gunga.binding.TextBinding;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.TextFieldWidget;
+import jetoze.gunga.widget.TextFieldWidget.Validator;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.Puzzle;
 
@@ -30,6 +31,19 @@ public final class PuzzleBuilderUi implements Widget {
     public PuzzleBuilderUi(PuzzleBuilderModel model) {
         this.model = requireNonNull(model);
         this.gridUi = new GridUi(model.getGridModel());
+        nameField.setValidator(new Validator() {
+
+            @Override
+            public boolean isRequired() {
+                return true;
+            }
+
+            @Override
+            public boolean isValid(String text) {
+                // TODO: Implement me. Compare with existing puzzles in the inventory.
+                return true;
+            }
+        });
         nameField.selectAllWhenFocused();
         // TODO: Do we need to dispose the binding at some point? What is the 
         // lifetime of the model compared to the UI?
