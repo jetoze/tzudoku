@@ -29,9 +29,9 @@ public enum SolvingTechnique {
     
     XY_WING("XY-Wing", XyWing::findNext);
     
-    // TODO: Add Swordfish. For an example, run "SudokuEssentials-Dot-Com Very Hard No 2"
-    // in the inventory through the GridSolver. It gets stuck on a position where a 
-    // Swordfish can be applied. 
+    // TODO: Add Simple Coloring and Swordfish. For an example, run "SudokuEssentials-Dot-Com Very Hard No 2"
+    // in the inventory through the GridSolver. It gets stuck on a position where Simple Coloring can be applied.
+    
     // (Link to puzzle: http://www.sudokuessentials.com/support-files/sudoku-very-hard-2.pdf)
 
     private final String name;
