@@ -1,15 +1,13 @@
 package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.Duration;
-import java.util.Optional;
 import java.util.concurrent.Callable;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -31,6 +29,8 @@ import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.GridSolver;
+import jetoze.tzudoku.model.GridSolver.Result;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -49,18 +49,11 @@ public class UiAutoSolver {
     //          1. Create a copy of the Grid, and solve it. Do this in a background thread.
     //          2. Get the list of hints that were used in the solve, and replay them in the UI.
     //             Add a delay between each step.
-
-    // TODO: Clean me up, I've become messy. Especially the code around the delays.
     
     /**
-     * The delay after a completed hint is displayed in the UI before the process continues.
+     * The delay between updating the UI with the next completed hint.
      */
     private static final Duration HINT_DELAY = Duration.ofMillis(750L);
-    /**
-     * The delay between steps if the previous step did not find anything. This is purely
-     * for visual purposes, to provide a more pleasant progress display.
-     */
-    private static final Duration NEXT_STEP_DELAY = Duration.ofMillis(50L);
     
     private final JFrame appFrame;
     private final GridUiModel gridModel;
@@ -97,27 +90,52 @@ public class UiAutoSolver {
         private final JFrame appFrame;
         private final GridUiModel model;
         private ProgressDialog progressDialog;
+        private Timer timer;
+        private Result result;
+        private int hintIndex;
         private boolean cancelRequested;
         
         public Controller(JFrame appFrame, GridUiModel model) {
             this.appFrame = appFrame;
             this.model = model;
         }
-
-        public GridUiModel getModel() {
-            return model;
-        }
         
         public void start() {
             cancelRequested = false;
             UiThread.runLater(() -> {
-                // TODO: Restore the original setting when we are done?
                 setStatus("Filling in candidates");
                 model.getEliminateCandidatesProperty().set(true);
-                new FillInCandidates().run(this);
+                Callable<Result> worker = () -> {
+                    GridSolver solver = new GridSolver(Grid.copyOf(model.getGrid()));
+                    return solver.solve();
+                };
+                UiThread.offload(worker, this::replayResult);
             });
             progressDialog = new ProgressDialog(() -> cancelRequested = true);
             progressDialog.open(appFrame);
+        }
+        
+        private void replayResult(Result result) {
+            if (cancelRequested) {
+                return;
+            }
+            this.result = result;
+            this.hintIndex = 0;
+            model.showRemainingCandidates();
+            timer = new Timer((int) HINT_DELAY.toMillis(), e -> applyNextHint());
+            timer.start();
+        }
+        
+        private void applyNextHint() {
+            if (cancelRequested) {
+                return;
+            }
+            Hint hint = result.getHintsApplied().get(hintIndex);
+            updateUi(hint);
+            ++hintIndex;
+            if (hintIndex == result.getHintsApplied().size()) {
+                stop();
+            }
         }
         
         public void setStatus(String text) {
@@ -127,6 +145,7 @@ public class UiAutoSolver {
         
         public void stop() {
             UiThread.throwIfNotUiThread();
+            timer.stop();
             progressDialog.close();
             if (model.getGrid().isSolved()) {
                 showSuccessMessage();
@@ -140,45 +159,10 @@ public class UiAutoSolver {
             JOptionPane.showMessageDialog(appFrame, "Ta-da!", "Solved", JOptionPane.INFORMATION_MESSAGE);
         }
         
-        public void runNextStepAfterHintNotAvailable(Step step) {
-            runNextStepAfterDelayImpl(step, NEXT_STEP_DELAY);
-        }
-        
-        public void runNextStepAfterCompletedHint(Step step) {
-            runNextStepAfterDelayImpl(step, HINT_DELAY);
-        }
-        
-        private void runNextStepAfterDelayImpl(Step step, Duration delay) {
-            UiThread.throwIfNotUiThread();
-            if (cancelRequested) {
-                return;
-            }
-            Timer timer = new Timer((int) delay.toMillis(), e -> this.runNextStepImpl(step));
-            timer.setRepeats(false);
-            timer.start();
-        }
-
-        private void runNextStepImpl(Step step) {
-            UiThread.throwIfNotUiThread();
-            if (cancelRequested) {
-                return;
-            }
-            requireNonNull(step);
-            if (model.getGrid().isSolved()) {
-                progressDialog.close();
-                showSuccessMessage();
-            } else {
-                step.run(this);
-            }
-        }
-        
-        
-
-        public void updateUi(Hint hint, String name) {
+        public void updateUi(Hint hint) {
             // FIXME: Refactor the Step implementation so that we can pass Hints of
             // specific types, without having to cast.
             UiThread.run(() -> {
-                setStatus("Found " + name + ".");
                 if (hint instanceof Single) {
                     applyHint((Single) hint);
                 } else if (hint instanceof PointingPair) {
@@ -196,24 +180,32 @@ public class UiAutoSolver {
         }
         
         private void applyHint(Single single) {
+            setStatus(single.getTechnique().getName() + ": " + single.getValue());
             model.setEnterValueMode(EnterValueMode.NORMAL);
             model.selectCellAt(single.getPosition());
             model.enterValue(single.getValue());
         }
         
         private void applyHint(PointingPair pointingPair) {
+            setStatus(pointingPair.getTechnique().getName() + ": " + pointingPair.getValue());
             removeCandidates(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
         }
         
         private void applyHint(Multiple multiple) {
+            setStatus(multiple.getTechnique().getName() + ": " + multiple.getValues().stream()
+                    .sorted()
+                    .map(Object::toString)
+                    .collect(joining(" ")));
             removeCandidates(multiple.getTargets(), multiple.getValues());
         }
         
         private void applyHint(XWing xwing) {
+            setStatus(xwing.getTechnique().getName() + ": " + xwing.getValue());
             removeCandidates(xwing.getTargets(), ImmutableSet.of(xwing.getValue()));
         }
         
         private void applyHint(XyWing xyWing) {
+            setStatus(xyWing.getTechnique().getName() + ": " + xyWing.getValue());
             removeCandidates(xyWing.getTargets(), ImmutableSet.of(xyWing.getValue()));
         }
         
@@ -270,115 +262,5 @@ public class UiAutoSolver {
             }
         }
     }
-    
-    
-    private interface Step {
-        
-        void run(Controller controller);
-        
-    }
-    
-    
-    private static class FillInCandidates implements Step {
 
-        @Override
-        public void run(Controller controller) {
-            controller.getModel().showRemainingCandidates();
-            controller.runNextStepAfterCompletedHint(HintStep.NAKED_SINGLE);
-        }
-    }
-    
-    
-    private static enum HintStep implements Step {
-        
-        NAKED_SINGLE("Naked Single", Single::findNextNaked) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                return Optional.of(HIDDEN_SINGLE);
-            }
-        },
-        
-        HIDDEN_SINGLE("Hidden Single", Single::findNextHidden) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                return Optional.of(NAKED_PAIR);
-            }
-
-        },
-        
-        NAKED_PAIR("Naked Pair", Multiple::findNextPair) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                return Optional.of(POINTING_PAIR);
-            }
-        },
-        
-        POINTING_PAIR("Pointing Pair", PointingPair::findNext) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                return Optional.of(TRIPLE);
-            }
-        },
-        
-        TRIPLE("Triple", Multiple::findNextTriple) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                return Optional.of(X_WING);
-            }
-        },
-        
-        X_WING("X-Wing", XWing::findNext) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                return Optional.of(XY_WING);
-            }
-        },
-        
-        XY_WING("XY-Wing", XyWing::findNext) {
-
-            @Override
-            protected Optional<HintStep> getNextStep() {
-                // This is the last step.
-                return Optional.empty();
-            }
-        };
-        
-        private final String name;
-        private final Function<Grid, Optional<? extends Hint>> hintFinder;
-        
-        private HintStep(String name, Function<Grid, Optional<? extends Hint>> hintFinder) {
-            this.name = name;
-            this.hintFinder = hintFinder;
-        }
-
-        @Override
-        public final void run(Controller controller) {
-            Callable<Optional<? extends Hint>> job = () -> hintFinder.apply(controller.getModel().getGrid());
-            Consumer<Optional<? extends Hint>> resultHandler = opt -> {
-                if (opt.isPresent()) {
-                    applyHint(controller, opt.get());
-                } else {
-                    getNextStep().ifPresentOrElse(controller::runNextStepAfterHintNotAvailable, controller::stop);
-                }
-            };
-            controller.setStatus("Looking for " + name);
-            UiThread.offload(job, resultHandler);
-        }
-        
-        private void applyHint(Controller controller, Hint hint) {
-            controller.updateUi(hint, name);
-            // Always go back to Naked Single after each successful hint.
-            controller.runNextStepAfterCompletedHint(NAKED_SINGLE);
-        }
-        
-        protected abstract Optional<HintStep> getNextStep();
-        
-    }
-    
 }
