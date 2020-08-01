@@ -2,6 +2,7 @@ package jetoze.tzudoku.model;
 
 import static java.util.Objects.requireNonNull;
 
+import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -58,6 +59,7 @@ public class GridSolver {
     }
 
     public Result solve() {
+        long startTimeInNanos = System.nanoTime();
         grid.showRemainingCandidates();
         allTechniquesExhausted = false;
         while (!grid.isSolved() && !allTechniquesExhausted) {
@@ -65,7 +67,8 @@ public class GridSolver {
                     this::applyHint, 
                     () -> allTechniquesExhausted = true);
         }
-        return new Result(grid, hints);
+        Duration duration = Duration.ofNanos(System.nanoTime() - startTimeInNanos);
+        return new Result(grid, hints, duration);
     }
     
     /**
@@ -99,18 +102,23 @@ public class GridSolver {
          * The Hints that were applied, in order.
          */
         private final ImmutableList<Hint> hintsApplied;
+        private final Duration duration;
         
-        public Result(Grid grid, List<Hint> hintsApplied) {
+        public Result(Grid grid, List<Hint> hintsApplied, Duration duration) {
             this.grid = grid;
             this.hintsApplied = ImmutableList.copyOf(hintsApplied);
+            this.duration = requireNonNull(duration);
         }
         
+        /**
+         * Returns the grid that was worked on.
+         */
         public Grid getGrid() {
             return grid;
         }
         
         /**
-         * Checks if the puzzle was solved or not.
+         * Checks if the grid was solved or not.
          */
         public boolean isSolved() {
             return grid.isSolved();
@@ -121,6 +129,13 @@ public class GridSolver {
          */
         public ImmutableList<Hint> getHintsApplied() {
             return hintsApplied;
+        }
+        
+        /**
+         * Returns the time spent on solving the grid.
+         */
+        public Duration getDuration() {
+            return duration;
         }
     }
 }
