@@ -2,19 +2,28 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.Point;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.time.Duration;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import javax.swing.JButton;
+import javax.swing.JDialog;
 import javax.swing.JFrame;
+import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 import javax.swing.Timer;
+import javax.swing.border.EmptyBorder;
 
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
+import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
@@ -33,10 +42,6 @@ import jetoze.tzudoku.model.Value;
  */
 public class UiAutoSolver {
     
-    // TODO: Place the app frame in blocking wait-state while the auto solver is running.
-    // TODO: Allow the auto-solver to be stopped.
-    // TODO: Show information about the hints are being processed. This can be done in a small
-    //       modal dialog, that also has a Stop button.
     // TODO: When applying a hint that eliminates candidates, color the cells involved,
     //       using a different color for the target cells than the generating cells.
 
@@ -49,7 +54,17 @@ public class UiAutoSolver {
     //         4. For puzzles that could be solved, the hint statistics can be used to
     //            rate the difficulty of the puzzle.
 
-    private static final Duration DELAY = Duration.ofMillis(750L);
+    // TODO: Clean me up, I've become messy. Especially the code around the delays.
+    
+    /**
+     * The delay after a completed hint is displayed in the UI before the process continues.
+     */
+    private static final Duration HINT_DELAY = Duration.ofMillis(750L);
+    /**
+     * The delay between steps if the previous step did not find anything. This is purely
+     * for visual purposes, to provide a more pleasant progress display.
+     */
+    private static final Duration NEXT_STEP_DELAY = Duration.ofMillis(50L);
     
     private final JFrame appFrame;
     private final GridUiModel gridModel;
@@ -85,6 +100,8 @@ public class UiAutoSolver {
         
         private final JFrame appFrame;
         private final GridUiModel model;
+        private ProgressDialog progressDialog;
+        private boolean cancelRequested;
         
         public Controller(JFrame appFrame, GridUiModel model) {
             this.appFrame = appFrame;
@@ -96,13 +113,25 @@ public class UiAutoSolver {
         }
         
         public void start() {
-            // TODO: Restore the original setting when we are done?
-            model.getEliminateCandidatesProperty().set(true);
-            new FillInCandidates().run(this);
+            cancelRequested = false;
+            UiThread.runLater(() -> {
+                // TODO: Restore the original setting when we are done?
+                setStatus("Filling in candidates");
+                model.getEliminateCandidatesProperty().set(true);
+                new FillInCandidates().run(this);
+            });
+            progressDialog = new ProgressDialog(() -> cancelRequested = true);
+            progressDialog.open(appFrame);
+        }
+        
+        public void setStatus(String text) {
+            UiThread.throwIfNotUiThread();
+            progressDialog.setStatus(text);
         }
         
         public void stop() {
             UiThread.throwIfNotUiThread();
+            progressDialog.close();
             if (model.getGrid().isSolved()) {
                 showSuccessMessage();
             } else {
@@ -115,26 +144,45 @@ public class UiAutoSolver {
             JOptionPane.showMessageDialog(appFrame, "Ta-da!", "Solved", JOptionPane.INFORMATION_MESSAGE);
         }
         
-        public void runNextStepAfterDelay(Step step) {
-            Timer timer = new Timer((int) DELAY.toMillis(), e -> this.runNextStep(step));
+        public void runNextStepAfterHintNotAvailable(Step step) {
+            runNextStepAfterDelayImpl(step, NEXT_STEP_DELAY);
+        }
+        
+        public void runNextStepAfterCompletedHint(Step step) {
+            runNextStepAfterDelayImpl(step, HINT_DELAY);
+        }
+        
+        private void runNextStepAfterDelayImpl(Step step, Duration delay) {
+            UiThread.throwIfNotUiThread();
+            if (cancelRequested) {
+                return;
+            }
+            Timer timer = new Timer((int) delay.toMillis(), e -> this.runNextStepImpl(step));
             timer.setRepeats(false);
             timer.start();
         }
-        
-        public void runNextStep(Step step) {
+
+        private void runNextStepImpl(Step step) {
             UiThread.throwIfNotUiThread();
+            if (cancelRequested) {
+                return;
+            }
             requireNonNull(step);
             if (model.getGrid().isSolved()) {
+                progressDialog.close();
                 showSuccessMessage();
             } else {
                 step.run(this);
             }
         }
+        
+        
 
-        public void updateUi(Hint hint) {
+        public void updateUi(Hint hint, String name) {
             // FIXME: Refactor the Step implementation so that we can pass Hints of
             // specific types, without having to cast.
             UiThread.run(() -> {
+                setStatus("Found " + name + ".");
                 if (hint instanceof Single) {
                     applyHint((Single) hint);
                 } else if (hint instanceof PointingPair) {
@@ -180,6 +228,54 @@ public class UiAutoSolver {
     }
     
     
+    private static class ProgressDialog {
+        private final JLabel statusLabel = new JLabel(" ".repeat(60));
+        private final JButton cancelButton = new JButton("Stop");
+        private final Runnable cancelHandler;
+        private JDialog dialog;
+        
+        public ProgressDialog(Runnable cancelHandler) {
+            this.cancelHandler = cancelHandler;
+            cancelButton.addActionListener(e -> cancelHandler.run());
+        }
+        
+        public void setStatus(String text) {
+            statusLabel.setText(text);
+        }
+        
+        public void open(JFrame appFrame) {
+            dialog = new JDialog(appFrame, "Auto-solve Progress", true);
+            JPanel buttonPanel = Layouts.border().east(cancelButton).build();
+            dialog.setContentPane(Layouts.border(0, 10)
+                    .center(statusLabel)
+                    .south(buttonPanel)
+                    .withBorder(new EmptyBorder(10, 10, 10, 10))
+                    .build());
+            dialog.pack();
+            Point appFrameLocation = appFrame.getLocationOnScreen();
+            Point dialogLocation = new Point(
+                    appFrameLocation.x + appFrame.getWidth() - dialog.getWidth() - 8,
+                    appFrameLocation.y + appFrame.getHeight() - dialog.getHeight() - 24);
+            dialog.setLocation(dialogLocation);
+            dialog.addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowClosing(WindowEvent e) {
+                    cancelHandler.run();
+                }
+            });
+            cancelButton.addActionListener(e -> UiThread.runLater(dialog::dispose));
+            dialog.setVisible(true);
+        }
+        
+        public void close() {
+            if (dialog != null) {
+                dialog.dispose();
+            }
+        }
+    }
+    
+    
     private interface Step {
         
         void run(Controller controller);
@@ -192,14 +288,14 @@ public class UiAutoSolver {
         @Override
         public void run(Controller controller) {
             controller.getModel().showRemainingCandidates();
-            controller.runNextStepAfterDelay(HintStep.NAKED_SINGLE);
+            controller.runNextStepAfterCompletedHint(HintStep.NAKED_SINGLE);
         }
     }
     
     
     private static enum HintStep implements Step {
         
-        NAKED_SINGLE(Single::findNextNaked) {
+        NAKED_SINGLE("Naked Single", Single::findNextNaked) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -207,7 +303,7 @@ public class UiAutoSolver {
             }
         },
         
-        HIDDEN_SINGLE(Single::findNextHidden) {
+        HIDDEN_SINGLE("Hidden Single", Single::findNextHidden) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -216,7 +312,7 @@ public class UiAutoSolver {
 
         },
         
-        NAKED_PAIR(Multiple::findNextPair) {
+        NAKED_PAIR("Naked Pair", Multiple::findNextPair) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -224,7 +320,7 @@ public class UiAutoSolver {
             }
         },
         
-        POINTING_PAIR(PointingPair::findNext) {
+        POINTING_PAIR("Pointing Pair", PointingPair::findNext) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -232,7 +328,7 @@ public class UiAutoSolver {
             }
         },
         
-        TRIPLE(Multiple::findNextTriple) {
+        TRIPLE("Triple", Multiple::findNextTriple) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -240,7 +336,7 @@ public class UiAutoSolver {
             }
         },
         
-        X_WING(XWing::findNext) {
+        X_WING("X-Wing", XWing::findNext) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -248,7 +344,7 @@ public class UiAutoSolver {
             }
         },
         
-        XY_WING(XyWing::findNext) {
+        XY_WING("XY-Wing", XyWing::findNext) {
 
             @Override
             protected Optional<HintStep> getNextStep() {
@@ -257,9 +353,11 @@ public class UiAutoSolver {
             }
         };
         
+        private final String name;
         private final Function<Grid, Optional<? extends Hint>> hintFinder;
         
-        private HintStep(Function<Grid, Optional<? extends Hint>> hintFinder) {
+        private HintStep(String name, Function<Grid, Optional<? extends Hint>> hintFinder) {
+            this.name = name;
             this.hintFinder = hintFinder;
         }
 
@@ -270,16 +368,17 @@ public class UiAutoSolver {
                 if (opt.isPresent()) {
                     applyHint(controller, opt.get());
                 } else {
-                    getNextStep().ifPresentOrElse(controller::runNextStep, controller::stop);
+                    getNextStep().ifPresentOrElse(controller::runNextStepAfterHintNotAvailable, controller::stop);
                 }
             };
+            controller.setStatus("Looking for " + name);
             UiThread.offload(job, resultHandler);
         }
         
         private void applyHint(Controller controller, Hint hint) {
-            controller.updateUi(hint);
+            controller.updateUi(hint, name);
             // Always go back to Naked Single after each successful hint.
-            controller.runNextStepAfterDelay(NAKED_SINGLE);
+            controller.runNextStepAfterCompletedHint(NAKED_SINGLE);
         }
         
         protected abstract Optional<HintStep> getNextStep();
