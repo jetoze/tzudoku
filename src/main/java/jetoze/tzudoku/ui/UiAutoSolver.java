@@ -254,8 +254,8 @@ public class UiAutoSolver {
             dialog.pack();
             Point appFrameLocation = appFrame.getLocationOnScreen();
             Point dialogLocation = new Point(
-                    appFrameLocation.x + appFrame.getWidth() - dialog.getWidth() - 8,
-                    appFrameLocation.y + appFrame.getHeight() - dialog.getHeight() - 24);
+                    appFrameLocation.x + appFrame.getWidth() - dialog.getWidth() - 12,
+                    appFrameLocation.y + appFrame.getHeight() - dialog.getHeight() - 40);
             dialog.setLocation(dialogLocation);
             dialog.addWindowListener(new WindowAdapter() {
 
