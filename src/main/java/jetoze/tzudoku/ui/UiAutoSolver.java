@@ -7,7 +7,6 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.Duration;
-import java.util.concurrent.Callable;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -36,19 +35,13 @@ import jetoze.tzudoku.model.Value;
 
 /**
  * Attempts to auto-solve the puzzle currently loaded into the UI, giving visual feedback
- * of each individual step.
- * <p>
- * This auto solver only applies classic sudoku techniques.
+ * of each individual step. A UiAutoSolver uses a {@link GridSolver} to solve the puzzle.
+ * See the documentation of that class for current limitations.
  */
 public class UiAutoSolver {
     
     // TODO: When applying a hint that eliminates candidates, color the cells involved,
     //       using a different color for the target cells than the generating cells.
-
-    // TODO: Rewrite me using the GridSolver. Do the following:
-    //          1. Create a copy of the Grid, and solve it. Do this in a background thread.
-    //          2. Get the list of hints that were used in the solve, and replay them in the UI.
-    //             Add a delay between each step.
     
     /**
      * The delay between updating the UI with the next completed hint.
@@ -64,27 +57,14 @@ public class UiAutoSolver {
     }
 
     public void start() {
-        // First fill in all candidates.
-        // Then find and apply hints in this order:
-        //   1. Naked Single
-        //   2. Hidden Single
-        //   3. Naked Pair
-        //   4. Pointing Pair
-        //   5. Triple
-        //   6. X-Wing
-        //   6. XY-Wing
-        //
-        // If a hint is found, the next hint will *always* be Naked Single. If no hint is
-        // found, move to the next hint. If we reach the end of the hint list without finding
-        // anything, we give up.
-        //
-        // We run this on a timer, that fires every second or so, for a more pleasant 
-        // user experience.
         Controller controller = new Controller(appFrame, gridModel);
         controller.start();
     }
     
     
+    // XXX: What purpose does the controller class serve now? Perhaps lift out [Timer, Result, hintIndex] to
+    // separate class called something like HintDisplayer, and the lift everything out to the UiAutoSolver
+    // class itself.
     private static class Controller {
         
         private final JFrame appFrame;
@@ -102,19 +82,28 @@ public class UiAutoSolver {
         
         public void start() {
             cancelRequested = false;
+            // Offload the start of the solver so that we can open the modal progress dialog.
             UiThread.runLater(() -> {
                 setStatus("Filling in candidates");
+                // TODO: Reset the eliminateCandidatesProperty to its original value
+                // when we are done?
                 model.getEliminateCandidatesProperty().set(true);
-                Callable<Result> worker = () -> {
-                    GridSolver solver = new GridSolver(Grid.copyOf(model.getGrid()));
-                    return solver.solve();
-                };
-                UiThread.offload(worker, this::replayResult);
+                UiThread.offload(this::solveGrid, this::replayResult);
             });
             progressDialog = new ProgressDialog(() -> cancelRequested = true);
             progressDialog.open(appFrame);
         }
         
+        private Result solveGrid() {
+            GridSolver solver = new GridSolver(Grid.copyOf(model.getGrid()));
+            return solver.solve();
+        }
+        
+        private void setStatus(String text) {
+            UiThread.throwIfNotUiThread();
+            progressDialog.setStatus(text);
+        }
+
         private void replayResult(Result result) {
             if (cancelRequested) {
                 return;
@@ -138,12 +127,7 @@ public class UiAutoSolver {
             }
         }
         
-        public void setStatus(String text) {
-            UiThread.throwIfNotUiThread();
-            progressDialog.setStatus(text);
-        }
-        
-        public void stop() {
+        private void stop() {
             UiThread.throwIfNotUiThread();
             timer.stop();
             progressDialog.close();
