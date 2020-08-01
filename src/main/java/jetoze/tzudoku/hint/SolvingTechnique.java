@@ -31,7 +31,9 @@ public enum SolvingTechnique {
     
     // TODO: Add Simple Coloring and Swordfish. For an example, run "SudokuEssentials-Dot-Com Very Hard No 2"
     // in the inventory through the GridSolver. It gets stuck on a position where Simple Coloring can be applied.
-    
+    // A couple of simple colorings are enough to get the puzzle to a state where it can be solved with
+    // the current technique, but one can also reach a position where a Swordfish is applied.
+    // See https://www.thonky.com/sudoku/simple-coloring for how Simple Coloring works.
     // (Link to puzzle: http://www.sudokuessentials.com/support-files/sudoku-very-hard-2.pdf)
 
     private final String name;
