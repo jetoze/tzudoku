@@ -1,5 +1,6 @@
 package jetoze.tzudoku.hint;
 
+import static com.google.common.base.Preconditions.*;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toSet;
 
@@ -22,20 +23,27 @@ import jetoze.tzudoku.model.Value;
 
 public class Single implements Hint {
 
+    private final SolvingTechnique technique;
     private final Grid grid;
     private final Value value;
     private final House house; // XXX: Superfluous, really, since we have the position too.
     private final Position position;
-    private final boolean naked;
     
-    public Single(Grid grid, Value value, House house, Position position, boolean naked) {
+    // TODO: Replace with factory methods naked() and hidden().
+    public Single(Grid grid, Value value, House house, Position position, SolvingTechnique technique) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
         this.house = requireNonNull(house);
         this.position = requireNonNull(position);
-        this.naked = naked;
+        this.technique = requireNonNull(technique);
+        checkArgument(technique == SolvingTechnique.NAKED_SINGLE || technique == SolvingTechnique.HIDDEN_SINGLE);
     }
     
+    @Override
+    public SolvingTechnique getTechnique() {
+        return technique;
+    }
+
     /**
      * The value of this single, i.e. the value that can be filled into the cell.
      */
@@ -61,7 +69,7 @@ public class Single implements Hint {
      * Returns true if this was a naked single, false if it was a hidden one.
      */
     public boolean isNaked() {
-        return naked;
+        return technique == SolvingTechnique.NAKED_SINGLE;
     }
     
     /**
@@ -121,12 +129,12 @@ public class Single implements Hint {
                 .collect(toSet());
             if (valuesSeenByCell.size() == 8) {
                 Value missingValue = Sets.difference(Value.ALL, valuesSeenByCell).iterator().next();
-                return new Single(grid, missingValue, house, p, true);
+                return new Single(grid, missingValue, house, p, SolvingTechnique.NAKED_SINGLE);
             }
             Set<Value> centerMarks = cell.getCenterMarks().getValues();
             if (centerMarks.size() == 1) {
                 Value missingValue = centerMarks.iterator().next();
-                return new Single(grid, missingValue, house, p, true);
+                return new Single(grid, missingValue, house, p, SolvingTechnique.NAKED_SINGLE);
             }
             return null;
         }
@@ -165,7 +173,7 @@ public class Single implements Hint {
                         }).collect(toSet());
                 if (candidates.size() == 1) {
                     Position position = candidates.iterator().next();
-                    return new Single(grid, value, house, position, true);
+                    return new Single(grid, value, house, position, SolvingTechnique.HIDDEN_SINGLE);
                 }
             }
             return null;

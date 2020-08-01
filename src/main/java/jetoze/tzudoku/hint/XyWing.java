@@ -45,7 +45,12 @@ public class XyWing implements Hint {
         checkArgument(Sets.intersection(wings, targets).isEmpty());
         checkArgument(targets.stream().map(grid::cellAt).noneMatch(Cell::isGiven));
     }
-    
+
+    @Override
+    public SolvingTechnique getTechnique() {
+        return SolvingTechnique.XY_WING;
+    }
+
     /**
      * Returns the position of the center (or pivot) cell.
      */

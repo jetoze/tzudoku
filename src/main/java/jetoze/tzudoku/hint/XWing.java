@@ -41,6 +41,11 @@ public class XWing implements Hint {
         this.targets = ImmutableSet.copyOf(targets);
     }
 
+    @Override
+    public SolvingTechnique getTechnique() {
+        return SolvingTechnique.X_WING;
+    }
+
     /**
      * Returns the positions of the cells that make up the X-wing.
      * 

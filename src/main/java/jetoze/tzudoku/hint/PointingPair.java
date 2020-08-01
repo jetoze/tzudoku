@@ -68,6 +68,11 @@ public class PointingPair implements Hint {
         }
     }
     
+    @Override
+    public SolvingTechnique getTechnique() {
+        return SolvingTechnique.POINTING_PAIR;
+    }
+
     /**
      * Returns the value identified by this pointing pair, i.e. the value that can be
      * eliminated from the target cells.

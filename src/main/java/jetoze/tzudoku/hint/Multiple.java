@@ -40,6 +40,20 @@ public class Multiple implements Hint {
         this.targets = ImmutableSet.copyOf(targets);
     }
 
+    @Override
+    public SolvingTechnique getTechnique() {
+        switch (values.size()) {
+        case 2:
+            return SolvingTechnique.NAKED_PAIR;
+        case 3:
+            return SolvingTechnique.TRIPLE;
+        case 4:
+            return SolvingTechnique.QUADRUPLE;
+        default:
+            throw new RuntimeException("We need a SolvingTechnique for " + values.size() + " number of values");
+        }
+    }
+
     public ImmutableSet<Position> getPositions() {
         return positions;
     }
