@@ -73,11 +73,17 @@ public class Single implements Hint {
     }
     
     /**
-     * Updates the single cell with its value.
+     * Updates the single cell with its value, and removes the value as a candidate from
+     * all cells seen by the updated cell.
      */
     @Override
     public void apply() {
         grid.cellAt(position).setValue(value);
+        position.seenBy()
+            .map(grid::cellAt)
+            .filter(Predicate.not(Cell::hasValue))
+            .map(Cell::getCenterMarks)
+            .forEach(m -> m.remove(value));
     }
 
     @Override
