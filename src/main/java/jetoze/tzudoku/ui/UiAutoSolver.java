@@ -45,14 +45,10 @@ public class UiAutoSolver {
     // TODO: When applying a hint that eliminates candidates, color the cells involved,
     //       using a different color for the target cells than the generating cells.
 
-    // TODO: Create a non-UI version of this auto solver. It can analyze the current puzzle,
-    //       and provide the following information without actually showing the solution:
-    //         1. Could the puzzle be solved?
-    //         2. If it could be solved or not.
-    //         3. Statistics on what types of hints were used, in particular advanced 
-    //            (triples(?), X-Wings, XY-Wings) hints.
-    //         4. For puzzles that could be solved, the hint statistics can be used to
-    //            rate the difficulty of the puzzle.
+    // TODO: Rewrite me using the GridSolver. Do the following:
+    //          1. Create a copy of the Grid, and solve it. Do this in a background thread.
+    //          2. Get the list of hints that were used in the solve, and replay them in the UI.
+    //             Add a delay between each step.
 
     // TODO: Clean me up, I've become messy. Especially the code around the delays.
     

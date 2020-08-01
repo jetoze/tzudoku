@@ -35,18 +35,6 @@ import jetoze.tzudoku.hint.SolvingTechnique;
  *
  */
 public class GridSolver {
-
-    // TODO: This class obviously has a lot in common with the UiAutoSolver. Rewrite the UI solver
-    // to use a GridSolver internally.
-    
-    // TODO: Pass the grid into the constructor, or into the solve() method?
-    
-    // TODO: Optional progress report mechanism (some sort of callback).
-    
-    // TODO: Option to cancel the solver.
-    
-    // TODO: When used in the UiAutoSolver we must provide a way to intercept a Hint so that
-    //       it can be applied to the UI model rather than directly on the grid itself.
     
     private final Grid grid;
     private final List<Hint> hints = new ArrayList<>();
