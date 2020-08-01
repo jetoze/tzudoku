@@ -1,6 +1,7 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
@@ -31,6 +32,16 @@ public final class Grid {
     public static Grid emptyGrid() {
         return new Grid(IntStream.rangeClosed(1, 81)
                 .mapToObj(i -> Cell.empty()));
+    }
+    
+    /**
+     * Returns a deep copy of the given grid.
+     */
+    public static Grid copyOf(Grid grid) {
+        ImmutableMap<Position, Cell> cells = grid.cells.entrySet().stream().collect(toImmutableMap(
+                e -> e.getKey(),
+                e -> Cell.copyOf(e.getValue())));
+        return new Grid(cells);
     }
 
     private final ImmutableMap<Position, Cell> cells;

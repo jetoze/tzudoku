@@ -28,6 +28,24 @@ public class Cell {
         return new Cell(false, value, PencilMarks.forUnknownCell(), PencilMarks.forUnknownCell());
     }
     
+    /**
+     * Creates a deep copy of the given Cell.
+     */
+    public static Cell copyOf(Cell original) {
+        if (original.isGiven()) {
+            Cell copy = Cell.given(original.value);
+            copy.color = original.color;
+            return copy;
+        } else {
+            Cell copy = Cell.empty();
+            copy.value = original.value;
+            copy.color = original.color;
+            copy.cornerMarks.setValues(original.cornerMarks.getValues());
+            copy.centerMarks.setValues(original.centerMarks.getValues());
+            return copy;
+        }
+    }
+    
     private Cell(boolean given, @Nullable Value value, PencilMarks cornerMarks, PencilMarks centerMarks) {
         this.given = given;
         this.value = value;
