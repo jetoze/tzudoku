@@ -82,6 +82,13 @@ public class Position {
                 .filter(p -> p.getRow() != row && p.getColumn() != column);
         return Streams.concat(othersInRow, othersInColumn, othersInBox);
     }
+    
+    /**
+     * Returns an Stream containing the three houses this position is a member of.
+     */
+    public Stream<House> memberOf() {
+        return Stream.of(House.row(row), House.column(column), House.box(getBox()));
+    }
 
     @Override
     public String toString() {

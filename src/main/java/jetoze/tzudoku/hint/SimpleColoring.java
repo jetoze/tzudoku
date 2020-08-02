@@ -27,7 +27,6 @@ import com.google.common.collect.Multimap;
 
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
-import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -77,7 +76,6 @@ public class SimpleColoring implements Hint {
     }
     
 
-    // TODO: I need a few more iterations to tidy me up.
     private static class Detector {
         private final Grid grid;
         private final Multimap<Value, ConjugatePair> allPairs = HashMultimap.create();
@@ -198,7 +196,7 @@ public class SimpleColoring implements Hint {
         @Nullable
         public SimpleColoring run(Grid grid) {
             visit(startPosition, Color.ORANGE);
-            SimpleColoring result = lookForColorAppearingTwiceInUnit(grid);
+            SimpleColoring result = lookForColorAppearingTwiceInHouse(grid);
             if (result == null) {
                 result = lookForCellsSeeingOppositeColors(grid);
             }
@@ -226,26 +224,20 @@ public class SimpleColoring implements Hint {
         }
         
         @Nullable
-        private SimpleColoring lookForColorAppearingTwiceInUnit(Grid grid) {
-            // FIXME: This piece of code is impressively ugly
-            for (Color color : Color.values()) {
-                Set<House> houses = new HashSet<>();
-                for (Position p : colorToCells.get(color)) {
-                    House row = Type.ROW.createHouse(p.getRow());
-                    if (!houses.add(row)) {
-                        return eliminateAllCellsOfColor(grid, color);
-                    }
-                    House column = Type.COLUMN.createHouse(p.getColumn());
-                    if (!houses.add(column)) {
-                        return eliminateAllCellsOfColor(grid, color);
-                    }
-                    House box = Type.BOX.createHouse(p.getBox());
-                    if (!houses.add(box)) {
-                        return eliminateAllCellsOfColor(grid, color);
-                    }
-                }
-            }
-            return null;
+        private SimpleColoring lookForColorAppearingTwiceInHouse(Grid grid) {
+            return Stream.of(Color.values())
+                .filter(this::isApperingTwiceInHouse)
+                .map(color -> eliminateAllCellsOfColor(grid, color))
+                .findFirst()
+                .orElse(null);
+        }
+
+        private boolean isApperingTwiceInHouse(Color color) {
+            Set<House> houses = new HashSet<>();
+            return colorToCells.get(color).stream()
+                    .flatMap(Position::memberOf)
+                    // houses.add() returns false if we add the same House a second time.
+                    .anyMatch(Predicate.not(houses::add));
         }
         
         private SimpleColoring eliminateAllCellsOfColor(Grid grid, Color color) {

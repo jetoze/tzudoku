@@ -77,6 +77,27 @@ public class House {
     }
     
     /**
+     * Returns a House representation of the given row.
+     */
+    public static House row(int rowNum) {
+        return new House(Type.ROW, rowNum);
+    }
+    
+    /**
+     * Returns a House representation of the given column.
+     */
+    public static House column(int colNum) {
+        return new House(Type.COLUMN, colNum);
+    }
+    
+    /**
+     * Returns a House representation of the given box.
+     */
+    public static House box(int boxNum) {
+        return new House(Type.BOX, boxNum);
+    }
+
+    /**
      * Returns the type of this House.
      */
     public Type getType() {
