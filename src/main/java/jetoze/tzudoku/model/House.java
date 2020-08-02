@@ -46,6 +46,10 @@ public class House {
         public Stream<Position> positions(int num) {
             return positionsSupplier.apply(num);
         }
+        
+        public final House createHouse(int num) {
+            return new House(this, num);
+        }
     };
     
     /**

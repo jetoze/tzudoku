@@ -4,12 +4,12 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -73,12 +73,7 @@ public class XWing implements Hint {
 
     @Override
     public void apply() {
-        // FIXME: This logic is shared by most hints.
-        targets.stream()
-            .map(grid::cellAt)
-            .filter(Predicate.not(Cell::hasValue))
-            .map(Cell::getCenterMarks)
-            .forEach(m -> m.remove(value));
+        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
     }
     
     public static Optional<XWing> findNext(Grid grid) {

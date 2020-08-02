@@ -5,6 +5,7 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
@@ -106,11 +107,7 @@ public class PointingPair implements Hint {
      */
     @Override
     public void apply() {
-        targets.stream()
-            .map(grid::cellAt)
-            .filter(Predicate.not(Cell::hasValue))
-            .map(Cell::getCenterMarks)
-            .forEach(m -> m.remove(value));
+        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
     }
 
     public String toString() {

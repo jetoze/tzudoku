@@ -9,7 +9,6 @@ import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 
 import javax.annotation.Nullable;
 
@@ -71,13 +70,7 @@ public class Multiple implements Hint {
      */
     @Override
     public void apply() {
-        targets.stream()
-            .map(grid::cellAt)
-            .filter(Predicate.not(Cell::isGiven))
-            .map(Cell::getCenterMarks)
-            .forEach(m -> {
-                values.forEach(m::remove);
-            });
+        HintUtils.eliminateCandidates(grid, targets, values);
     }
 
     public static Optional<Multiple> findNextPair(Grid grid) {

@@ -84,9 +84,7 @@ public class XyWing implements Hint {
      */
     @Override
     public void apply() {
-        targets.stream().map(grid::cellAt)
-            .map(Cell::getCenterMarks)
-            .forEach(m -> m.remove(valueThatCanBeEliminated));
+        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(valueThatCanBeEliminated));
     }
 
     /**
