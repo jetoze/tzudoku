@@ -24,6 +24,7 @@ import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
+import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
@@ -105,6 +106,8 @@ public class UiAutoSolver {
         }
 
         private void replayResult(Result result) {
+            // TODO: If we reach a point here only Naked and Hidden singles 
+            // remain in the replay list, speed up the timer.
             if (cancelRequested) {
                 return;
             }
@@ -144,8 +147,7 @@ public class UiAutoSolver {
         }
         
         public void updateUi(Hint hint) {
-            // FIXME: Refactor the Step implementation so that we can pass Hints of
-            // specific types, without having to cast.
+            // XXX: Ugly casts here, of course.
             UiThread.run(() -> {
                 if (hint instanceof Single) {
                     applyHint((Single) hint);
@@ -157,6 +159,8 @@ public class UiAutoSolver {
                     applyHint((XWing) hint);
                 } else if (hint instanceof XyWing) {
                     applyHint((XyWing) hint);
+                } else if (hint instanceof SimpleColoring) {
+                    applyHint((SimpleColoring) hint);
                 } else {
                     throw new RuntimeException("Unknown hint: " + hint);
                 }
@@ -191,6 +195,11 @@ public class UiAutoSolver {
         private void applyHint(XyWing xyWing) {
             setStatus(xyWing.getTechnique().getName() + ": " + xyWing.getValue());
             removeCandidates(xyWing.getTargets(), ImmutableSet.of(xyWing.getValue()));
+        }
+        
+        private void applyHint(SimpleColoring simpleColoring) {
+            setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
+            removeCandidates(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
         }
         
         private void removeCandidates(ImmutableSet<Position> targets, ImmutableSet<Value> values) {
