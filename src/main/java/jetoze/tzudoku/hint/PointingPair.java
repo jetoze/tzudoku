@@ -19,7 +19,6 @@ import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
 
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
@@ -162,11 +161,7 @@ public class PointingPair implements Hint {
         @Nullable
         private PointingPair examine(Value value) {
             // Find the candidates for the given value in the House.
-            ImmutableSet<Position> candidates = house.getPositions()
-                    .filter(p -> {
-                        Cell cell = grid.cellAt(p);
-                        return !cell.hasValue() && cell.getCenterMarks().contains(value);
-                    }).collect(toImmutableSet());
+            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, house.getPositions());
             // Are the candidates in the same line in the same box?
             if (isLine(candidates) && isContainedInHouse(candidates, Position::getBox)) {
                 int boxNumber = candidates.iterator().next().getBox();
@@ -178,12 +173,7 @@ public class PointingPair implements Hint {
                 Stream<Position> sameBox = new House(House.Type.BOX, boxNumber).getPositions()
                         .filter(Predicate.not(candidates::contains));
                 
-                ImmutableSet<Position> targets = Stream.concat(otherBoxes, sameBox)
-                        .filter(p -> {
-                            Cell cell = grid.cellAt(p);
-                            return !cell.hasValue() && cell.getCenterMarks().contains(value);
-                        })
-                        .collect(toImmutableSet());
+                ImmutableSet<Position> targets = HintUtils.collectCandidates(grid, value, Stream.concat(otherBoxes, sameBox));
                 if (!targets.isEmpty()) {
                     return new PointingPair(grid, value, candidates, targets);
                 }

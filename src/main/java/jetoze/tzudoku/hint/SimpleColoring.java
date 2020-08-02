@@ -11,6 +11,7 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -19,14 +20,11 @@ import java.util.stream.Stream;
 import javax.annotation.Nullable;
 
 import com.google.common.base.Predicates;
-import com.google.common.collect.HashBasedTable;
 import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
-import com.google.common.collect.Table;
 
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
@@ -75,48 +73,48 @@ public class SimpleColoring implements Hint {
 
     public static Optional<SimpleColoring> findNext(Grid grid) {
         Detector detector = new Detector(grid);
-        return Optional.ofNullable(detector.find());
+        return detector.find();
     }
     
 
     // TODO: I need a few more iterations to tidy me up.
     private static class Detector {
         private final Grid grid;
-        private final Table<Value, House, ConjugatePair> allPairs = HashBasedTable.create();
+        private final Multimap<Value, ConjugatePair> allPairs = HashMultimap.create();
         
         public Detector(Grid grid) {
             this.grid = grid;
         }
         
-        @Nullable
-        public SimpleColoring find() {
+        public Optional<SimpleColoring> find() {
             House.ALL.stream().forEach(this::collectConjugatePairsInHouse);
-            for (Value value : allPairs.rowKeySet()) {
-                SimpleColoring result = searchForValue(value);
-                if (result != null) {
-                    return result;
-                }
-            }
-            return null;
+            return allPairs.keySet().stream()
+                    .map(this::searchForValue)
+                    .filter(Objects::nonNull)
+                    .findAny();
         }
         
         @Nullable
         private SimpleColoring searchForValue(Value value) {
             ImmutableMultimap<Position, ConjugatePair> positions = getPositionsForValue(value);
             Set<Position> visitedPositions = new HashSet<>();
+            // We iterate over all individual positions in the set of Conjugate Pair for this value, 
+            // and for each position we traverse the graph of Conjugate Pairs that can be reached
+            // from that position, coloring in nodes as we go. 
+            // If we find that Simple Coloring can be applied, we stop and return the result. Otherwise
+            // we go to the next position and traverse its graph, skipping positions that have already
+            // been visited by earlier traversals.
             for (Position p : positions.keySet()) {
                 if (visitedPositions.contains(p)) {
                     continue;
                 }
                 ColorCoder colorCoder = new ColorCoder(value, p, positions);
-                colorCoder.run();
-                SimpleColoring hint = colorCoder.lookForColorAppearingTwiceInUnit(grid);
-                if (hint == null) {
-                    hint = colorCoder.lookForCellsSeeingOppositeColors(grid);
-                }
+                SimpleColoring hint = colorCoder.run(grid);
                 if (hint != null) {
                     return hint;
                 }
+                // Mark all positions visited by the ColorCoder run - we can skip them
+                // in subsequent iterations.
                 visitedPositions.addAll(colorCoder.getVisitedPositions());
             }
             return null;
@@ -129,12 +127,10 @@ public class SimpleColoring implements Hint {
             }
             for (Value value : remainingValues) {
                 List<Position> positions = house.getPositions()
-                        .filter(p -> {
-                            Cell cell = grid.cellAt(p);
-                            return !cell.hasValue() && cell.getCenterMarks().contains(value);
-                        }).collect(toList());
+                        .filter(HintUtils.isCandidate(grid, value))
+                        .collect(toList());
                 if (positions.size() == 2) {
-                    allPairs.put(value, house, new ConjugatePair(positions.get(0), positions.get(1)));
+                    allPairs.put(value, new ConjugatePair(positions.get(0), positions.get(1)));
                 }
             }
         }
@@ -145,12 +141,9 @@ public class SimpleColoring implements Hint {
          */
         private final ImmutableMultimap<Position, ConjugatePair> getPositionsForValue(Value value) {
             ImmutableMultimap.Builder<Position, ConjugatePair> builder = ImmutableMultimap.builder();
-            for (Table.Cell<Value, House, ConjugatePair> e : allPairs.cellSet()) {
-                if (e.getRowKey() == value) {
-                    ConjugatePair p = e.getValue();
-                    builder.put(p.first, p);
-                    builder.put(p.second, p);
-                }
+            for (ConjugatePair cp : allPairs.get(value)) {
+                builder.put(cp.first, cp);
+                builder.put(cp.second, cp);
             }
             return builder.build();
         }
@@ -168,6 +161,10 @@ public class SimpleColoring implements Hint {
     }
     
     
+    /**
+     * Traverses the graph of Conjugate Pair positions, coloring in each position that is
+     * visited with alternate colors.
+     */
     private static class ColorCoder {
         private final Value value;
         private final Position startPosition;
@@ -181,8 +178,25 @@ public class SimpleColoring implements Hint {
             this.positions = positions;
         }
         
-        public void run() {
+        /**
+         * Colors in all the cells that can be reached from the start position, and
+         * checks if a Simple Coloring hint can be applied from the result.
+         * 
+         * @return the Simple Coloring hint that can be applied, or null if the coloring
+         *         did not produce any useful result. In the latter case, call
+         *         {@link #getVisitedPositions()} to get a set of all the positions that
+         *         were visited in the traversal - these positions can be skipped when
+         *         continuing to process the set of Conjugate Pairs for the value in
+         *         question.
+         */
+        @Nullable
+        public SimpleColoring run(Grid grid) {
             visit(startPosition, Color.ORANGE);
+            SimpleColoring result = lookForColorAppearingTwiceInUnit(grid);
+            if (result == null) {
+                result = lookForCellsSeeingOppositeColors(grid);
+            }
+            return result;
         }
         
         private void visit(Position p, Color color) {
@@ -206,7 +220,7 @@ public class SimpleColoring implements Hint {
         }
         
         @Nullable
-        public SimpleColoring lookForColorAppearingTwiceInUnit(Grid grid) {
+        private SimpleColoring lookForColorAppearingTwiceInUnit(Grid grid) {
             for (Color color : Color.values()) {
                 Set<House> houses = new HashSet<>();
                 for (Position p : colorToCells.get(color)) {
@@ -232,21 +246,15 @@ public class SimpleColoring implements Hint {
         }
         
         @Nullable
-        public SimpleColoring lookForCellsSeeingOppositeColors(Grid grid) {
+        private SimpleColoring lookForCellsSeeingOppositeColors(Grid grid) {
             ImmutableSet<Position> targets = Position.all()
-                    .filter(isCandidateCell(grid))
+                    .filter(HintUtils.isCandidate(grid, value))
+                    .filter(Predicate.not(cellToColor::containsKey)) // We are only interested in positions that are not part of a conjugate pair (?)
                     .filter(seesTwoDifferentColors())
                     .collect(toImmutableSet());
             return targets.isEmpty()
                     ? null
                     : new SimpleColoring(grid, value, targets);
-        }
-        
-        private Predicate<Position> isCandidateCell(Grid grid) {
-            return p -> {
-                Cell cell = grid.cellAt(p);
-                return !cell.hasValue() && cell.getCenterMarks().contains(value) && !cellToColor.containsKey(p);
-            };
         }
         
         private Predicate<Position> seesTwoDifferentColors() {

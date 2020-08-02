@@ -1,7 +1,6 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
@@ -17,7 +16,6 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
@@ -139,11 +137,7 @@ public class XWing implements Hint {
         
         @Nullable
         private Pair getCandidatesInHouse(House house, Value value) {
-            Set<Position> candidates = house.getPositions()
-                    .filter(p -> {
-                        Cell cell = grid.cellAt(p);
-                        return !cell.hasValue() && cell.getCenterMarks().contains(value);
-                    }).collect(toImmutableSet());
+            Set<Position> candidates = HintUtils.collectCandidates(grid, value, house.getPositions());
             return (candidates.size() == 2)
                     ? new Pair(candidates)
                     : null;
@@ -179,11 +173,7 @@ public class XWing implements Hint {
                     .getPositions().filter(p -> !p.equals(firstPair.first) && !p.equals(secondPair.first));
             Stream<Position> positionsInSecondHouse = new House(typeOfHouseToSearchIn, secondHouseNumberToSearchIn)
                     .getPositions().filter(p -> !p.equals(firstPair.second) && !p.equals(secondPair.second));
-            return Stream.concat(positionsInFirstHouse, positionsInSecondHouse)
-                    .filter(p -> {
-                        Cell cell = grid.cellAt(p);
-                        return !cell.hasValue() && cell.getCenterMarks().contains(value);
-                    }).collect(toImmutableSet());
+            return HintUtils.collectCandidates(grid, value, Stream.concat(positionsInFirstHouse, positionsInSecondHouse));
         }
         
         
