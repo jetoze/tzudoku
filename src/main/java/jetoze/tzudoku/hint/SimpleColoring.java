@@ -78,8 +78,8 @@ public class SimpleColoring implements Hint {
         return Optional.ofNullable(detector.find());
     }
     
-    
-    // This implementation is not complete. It is just a starting point.
+
+    // TODO: I need a few more iterations to tidy me up.
     private static class Detector {
         private final Grid grid;
         private final Table<Value, House, ConjugatePair> allPairs = HashBasedTable.create();
