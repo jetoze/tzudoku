@@ -102,13 +102,17 @@ public class SimpleColoring implements Hint {
         
         @Nullable
         private SimpleColoring searchForValue(Value value) {
-            ColorCoder colorCoder = new ColorCoder(value, getPositionsForValue(value));
-            colorCoder.run();
-            SimpleColoring hint = colorCoder.lookForColorAppearingTwiceInUnit(grid);
-            if (hint == null) {
-                hint = colorCoder.lookForCellsSeeingOppositeColors(grid);
+            ImmutableMultimap<Position, ConjugatePair> positions = getPositionsForValue(value);
+            for (Position p : positions.keySet()) {
+                ColorCoder colorCoder = new ColorCoder(value, p, positions);
+                colorCoder.run();
+                SimpleColoring hint = colorCoder.lookForColorAppearingTwiceInUnit(grid);
+                if (hint == null) {
+                    hint = colorCoder.lookForCellsSeeingOppositeColors(grid);
+                }
+                return hint;
             }
-            return hint;
+            return null;
         }
         
         private void collectConjugatePairsInHouse(House house) {
@@ -159,17 +163,19 @@ public class SimpleColoring implements Hint {
     
     private static class ColorCoder {
         private final Value value;
+        private final Position startPosition;
         private final ImmutableMultimap<Position, ConjugatePair> positions;
         private final Map<Position, Color> cellToColor = new HashMap<>();
         private final Multimap<Color, Position> colorToCells = HashMultimap.create();
         
-        public ColorCoder(Value value, ImmutableMultimap<Position, ConjugatePair> positions) {
+        public ColorCoder(Value value, Position startPosition, ImmutableMultimap<Position, ConjugatePair> positions) {
             this.value = value;
+            this.startPosition = startPosition;
             this.positions = positions;
         }
         
         public void run() {
-            positions.keySet().forEach(p -> visit(p, Color.ORANGE));
+            visit(startPosition, Color.ORANGE);
         }
         
         private void visit(Position p, Color color) {
@@ -261,6 +267,11 @@ public class SimpleColoring implements Hint {
         
         public Stream<Position> stream() {
             return Stream.of(first, second);
+        }
+
+        @Override
+        public String toString() {
+            return first + " and " + second;
         }
     }
     

@@ -1,5 +1,6 @@
 package jetoze.tzudoku.ui;
 
+import static java.util.stream.Collectors.joining;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.event.WindowAdapter;
@@ -19,6 +20,7 @@ import javax.swing.JOptionPane;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
+import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
@@ -162,6 +164,18 @@ public class PuzzleUiController {
         xyWing.getTargets().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+    }
+    
+    public void lookForSimpleColoring() {
+        runHintCheck(SimpleColoring::findNext, this::showSimpleColoringInfo, "Did not find any Simple Coloring hint :(");
+    }
+    
+    private void showSimpleColoringInfo(SimpleColoring simpleColoring) {
+        // TODO: I need to include more info
+        String s = "<html>Simple Coloring eliminates the value " + simpleColoring.getValue() + 
+                " from these cells:<br><br>" + simpleColoring.getTargets().stream().map(Object::toString).collect(joining(" ")) +
+                "</html>";
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
