@@ -31,6 +31,11 @@ import jetoze.tzudoku.model.ValidationResult;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
+    // TODO: When showing Hint, provide option for Applying the hint. To do this, add methods
+    //       apply(Hint) to GridUiModel (one per supported hint), and then update the UiAutoSolver
+    //       to call these methods as well.
+    // TODO: Add "Look for Hint" option, that goes through all known SolvingTechniques until 
+    //       a Hint is found.
     
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
