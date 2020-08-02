@@ -150,9 +150,15 @@ public class SimpleColoring implements Hint {
     }
     
     
+    /**
+     * The colors we use for the coloring. The values don't matter, we just need two of them.
+     */
     private static enum Color {
         ORANGE, BLUE;
         
+        /**
+         * Alternates colors, ORANGE -> BLUE -> ORANGE -> BLUE -> ...
+         */
         Color next() {
             return (this == ORANGE)
                     ? BLUE
@@ -221,6 +227,7 @@ public class SimpleColoring implements Hint {
         
         @Nullable
         private SimpleColoring lookForColorAppearingTwiceInUnit(Grid grid) {
+            // FIXME: This piece of code is impressively ugly
             for (Color color : Color.values()) {
                 Set<House> houses = new HashSet<>();
                 for (Position p : colorToCells.get(color)) {
@@ -249,22 +256,17 @@ public class SimpleColoring implements Hint {
         private SimpleColoring lookForCellsSeeingOppositeColors(Grid grid) {
             ImmutableSet<Position> targets = Position.all()
                     .filter(HintUtils.isCandidate(grid, value))
-                    .filter(Predicate.not(cellToColor::containsKey)) // We are only interested in positions that are not part of a conjugate pair (?)
-                    .filter(seesTwoDifferentColors())
+                    .filter(Predicate.not(cellToColor::containsKey)) // We are only interested in positions that are not part of a conjugate pair
+                    .filter(seesColor(Color.ORANGE).and(seesColor(Color.BLUE)))
                     .collect(toImmutableSet());
             return targets.isEmpty()
                     ? null
                     : new SimpleColoring(grid, value, targets);
         }
         
-        private Predicate<Position> seesTwoDifferentColors() {
-            return p -> {
-                boolean seesBlue = colorToCells.get(Color.BLUE).stream()
-                        .anyMatch(blueCell -> p.sees(blueCell));
-                boolean seesOrange = colorToCells.get(Color.ORANGE).stream()
-                        .anyMatch(orange -> p.sees(orange));
-                return seesBlue && seesOrange;
-            };
+        private Predicate<Position> seesColor(Color color) {
+            return p -> colorToCells.get(color).stream()
+                    .anyMatch(coloredCell -> p.sees(coloredCell));
         }
         
         public ImmutableSet<Position> getVisitedPositions() {
