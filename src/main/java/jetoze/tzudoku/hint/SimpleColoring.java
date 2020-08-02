@@ -103,14 +103,21 @@ public class SimpleColoring implements Hint {
         @Nullable
         private SimpleColoring searchForValue(Value value) {
             ImmutableMultimap<Position, ConjugatePair> positions = getPositionsForValue(value);
+            Set<Position> visitedPositions = new HashSet<>();
             for (Position p : positions.keySet()) {
+                if (visitedPositions.contains(p)) {
+                    continue;
+                }
                 ColorCoder colorCoder = new ColorCoder(value, p, positions);
                 colorCoder.run();
                 SimpleColoring hint = colorCoder.lookForColorAppearingTwiceInUnit(grid);
                 if (hint == null) {
                     hint = colorCoder.lookForCellsSeeingOppositeColors(grid);
                 }
-                return hint;
+                if (hint != null) {
+                    return hint;
+                }
+                visitedPositions.addAll(colorCoder.getVisitedPositions());
             }
             return null;
         }
@@ -250,6 +257,10 @@ public class SimpleColoring implements Hint {
                         .anyMatch(orange -> p.sees(orange));
                 return seesBlue && seesOrange;
             };
+        }
+        
+        public ImmutableSet<Position> getVisitedPositions() {
+            return ImmutableSet.copyOf(cellToColor.keySet());
         }
     }
     
