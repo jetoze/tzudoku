@@ -20,6 +20,9 @@ import jetoze.tzudoku.model.Puzzle;
 
 public final class PuzzleBuilderUi implements Widget {
 
+    // TODO: When a value has been entered, automatically move to the next cell.
+    //       Add an option for this to GridUi(?).
+    
     private final PuzzleBuilderModel model;
     private final GridUi gridUi;
     // TODO: Restrict input to valid characters only.
