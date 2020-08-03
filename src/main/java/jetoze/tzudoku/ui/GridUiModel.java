@@ -1,6 +1,6 @@
 package jetoze.tzudoku.ui;
 
-import static com.google.common.base.Preconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
@@ -296,7 +296,7 @@ public class GridUiModel {
      * Removes the given values as candidates (i.e. center pencil marks) from the cells
      * at the given positions.
      */
-    public void removeCandidatesFromCells(Collection<Position> positions, Set<Value> valuesToRemove) {
+    public void removeCandidatesFromCells(Collection<Position> positions, Collection<Value> valuesToRemove) {
         requireNonNull(positions);
         checkArgument(!valuesToRemove.isEmpty());
         RemoveCandidatesAction action = new RemoveCandidatesAction(positions, valuesToRemove);
@@ -439,7 +439,7 @@ public class GridUiModel {
         private final ImmutableMap<Cell, ImmutableSet<Value>> cellsAndTheirOldCandidates;
         private final ImmutableSet<Value> valuesToRemove;
         
-        public RemoveCandidatesAction(Collection<Position> positions, Set<Value> valuesToRemove) {
+        public RemoveCandidatesAction(Collection<Position> positions, Collection<Value> valuesToRemove) {
             this.cellsAndTheirOldCandidates = positions.stream()
                     .map(grid::cellAt)
                     .collect(toImmutableMap(c -> c, c -> c.getCenterMarks().getValues()));

@@ -7,6 +7,8 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.Duration;
+import java.util.Collection;
+import java.util.Collections;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -21,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
+import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.NakedMultiple;
 import jetoze.tzudoku.hint.PointingPair;
@@ -156,6 +159,8 @@ public class UiAutoSolver {
                     applyHint((PointingPair) hint);
                 } else if (hint instanceof NakedMultiple) {
                     applyHint((NakedMultiple) hint);
+                } else if (hint instanceof HiddenMultiple) {
+                    applyHint((HiddenMultiple) hint);
                 } else if (hint instanceof XWing) {
                     applyHint((XWing) hint);
                 } else if (hint instanceof XyWing) {
@@ -190,6 +195,18 @@ public class UiAutoSolver {
             removeCandidates(multiple.getTargets(), multiple.getValues());
         }
         
+        private void applyHint(HiddenMultiple multiple) {
+            setStatus(multiple.getTechnique().getName() + ": " + multiple.getHiddenValues().stream()
+                    .sorted()
+                    .map(Object::toString)
+                    .collect(joining(" ")));
+            // XXX: This messes up Undo-Redo, since we can't apply this change
+            // as an atomic operation at the moment.
+            for (Position target : multiple.getTargets()) {
+                removeCandidates(Collections.singleton(target), multiple.getValuesToEliminate(target));
+            }
+        }
+        
         private void applyHint(XWing xwing) {
             setStatus(xwing.getTechnique().getName() + ": " + xwing.getValue());
             removeCandidates(xwing.getTargets(), ImmutableSet.of(xwing.getValue()));
@@ -210,7 +227,7 @@ public class UiAutoSolver {
             removeCandidates(swordfish.getTargets(), ImmutableSet.of(swordfish.getValue()));
         }
         
-        private void removeCandidates(ImmutableSet<Position> targets, ImmutableSet<Value> values) {
+        private void removeCandidates(Collection<Position> targets, Collection<Value> values) {
             model.selectCellsAt(targets);
             model.removeCandidatesFromCells(targets, values);
         }

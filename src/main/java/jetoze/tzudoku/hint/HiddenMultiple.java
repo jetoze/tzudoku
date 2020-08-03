@@ -13,6 +13,7 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
@@ -42,8 +43,12 @@ public class HiddenMultiple implements Hint {
     @Override
     public SolvingTechnique getTechnique() {
         switch (hiddenValues.size()) {
+        case 2:
+            return SolvingTechnique.HIDDEN_PAIR;
         case 3:
             return SolvingTechnique.HIDDEN_TRIPLE;
+        case 4:
+            return SolvingTechnique.HIDDEN_QUADRUPLE;
         default:
             throw new RuntimeException("Unexpected size: " + hiddenValues.size());
         }
@@ -57,8 +62,12 @@ public class HiddenMultiple implements Hint {
         return valuesToEliminate.keySet();
     }
 
-    public ImmutableMultimap<Position, Value> getValuesToEliminate() {
+    ImmutableMultimap<Position, Value> getValuesToEliminate() {
         return valuesToEliminate;
+    }
+    
+    public ImmutableCollection<Value> getValuesToEliminate(Position target) {
+        return valuesToEliminate.get(target);
     }
 
     @Override
@@ -68,10 +77,22 @@ public class HiddenMultiple implements Hint {
         }
     }
 
+    public static Optional<HiddenMultiple> findHiddenPair(Grid grid) {
+        return find(grid, 2);
+    }
+
     public static Optional<HiddenMultiple> findHiddenTriple(Grid grid) {
+        return find(grid, 3);
+    }
+
+    public static Optional<HiddenMultiple> findHiddenQuadruple(Grid grid) {
+        return find(grid, 4);
+    }
+
+    private static Optional<HiddenMultiple> find(Grid grid, int size) {
         requireNonNull(grid);
         return House.ALL.stream()
-                .map(house -> new Detector(grid, house, 3))
+                .map(house -> new Detector(grid, house, size))
                 .map(Detector::find)
                 .filter(Objects::nonNull)
                 .findAny();

@@ -25,7 +25,11 @@ public enum SolvingTechnique {
     
     NAKED_QUADRUPLE("Naked Quadruple", NakedMultiple::findNakedQuadruple),
     
+    HIDDEN_PAIR("Hidden Pair", HiddenMultiple::findHiddenPair),
+    
     HIDDEN_TRIPLE("Hidden Triple", HiddenMultiple::findHiddenTriple),
+    
+    HIDDEN_QUADRUPLE("Hidden Triple", HiddenMultiple::findHiddenQuadruple),
     
     X_WING("X-Wing", XWing::findNext),
     
@@ -34,6 +38,8 @@ public enum SolvingTechnique {
     SIMPLE_COLORING("Simple Coloring", SimpleColoring::findNext),
     
     SWORDFISH("Swordfish", Swordfish::findNext);
+    
+    // TODO: Two String Kite.
 
     private final String name;
     private final Function<Grid, Optional<? extends Hint>> analyzer;

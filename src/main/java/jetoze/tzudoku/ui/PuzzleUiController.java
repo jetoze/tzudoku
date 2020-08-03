@@ -1,10 +1,11 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.stream.Collectors.joining;
 import static java.util.Objects.requireNonNull;
+import static java.util.stream.Collectors.joining;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
+import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -18,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.NakedMultiple;
 import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.SimpleColoring;
@@ -27,9 +29,11 @@ import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House.Type;
+import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
+import jetoze.tzudoku.model.Value;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
@@ -131,16 +135,52 @@ public class PuzzleUiController {
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
     
-    public void lookForTriple() {
-        runHintCheck(NakedMultiple::findNakedTriple, this::showTripleInfo, "Did not find any Triples :(");
+    public void lookForNakedTriple() {
+        runHintCheck(NakedMultiple::findNakedTriple, this::showNakedMultipleInfo, "Did not find any Naked Triples :(");
     }
     
-    private void showTripleInfo(NakedMultiple multiple) {
-        assert multiple.getPositions().size() == 3;
-        StringBuilder s = new StringBuilder("<html>Found a triple:<br>");
+    public void lookForNakedQuadruple() {
+        runHintCheck(NakedMultiple::findNakedQuadruple, this::showNakedMultipleInfo, "Did not find any Naked Quadruples :(");
+    }
+    
+    private void showNakedMultipleInfo(NakedMultiple multiple) {
+        StringBuilder s = new StringBuilder("<html>Found a ")
+                .append(multiple.getTechnique().getName())
+                .append(":<br>");
         multiple.getPositions().forEach(p -> s.append(p).append("<br>"));
         s.append("Values: ").append(multiple.getValues()).append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+    }
+    
+    public void lookForHiddenPair() {
+        runHintCheck(HiddenMultiple::findHiddenPair, this::showHiddenMultipleInfo, "Did not find any Hidden Pairs :(");
+    }
+    
+    public void lookForHiddenTriple() {
+        runHintCheck(HiddenMultiple::findHiddenTriple, this::showHiddenMultipleInfo, "Did not find any Hidden Triples :(");
+    }
+    
+    public void lookForHiddenQuadruple() {
+        runHintCheck(HiddenMultiple::findHiddenPair, this::showHiddenMultipleInfo, "Did not find any Hidden Quadruples :(");
+    }
+    
+    private void showHiddenMultipleInfo(HiddenMultiple multiple) {
+        StringBuilder s = new StringBuilder("<html>Found a ")
+                .append(multiple.getTechnique().getName())
+                .append(" of ")
+                .append(sortedStringOfValues(multiple.getHiddenValues()))
+                .append("<br><br>Values that can be eliminated:<br>");
+        for (Position t : multiple.getTargets()) {
+            s.append(t)
+                .append(": ")
+                .append(sortedStringOfValues(multiple.getValuesToEliminate(t)))
+                .append("<br>");
+        }
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+    }
+    
+    private static String sortedStringOfValues(Collection<Value> values) {
+        return values.stream().sorted().map(Object::toString).collect(joining(" "));
     }
     
     public void lookForXWing() {
