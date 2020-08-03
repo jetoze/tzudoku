@@ -161,7 +161,7 @@ public class PointingPair implements Hint {
         @Nullable
         private PointingPair examine(Value value) {
             // Find the candidates for the given value in the House.
-            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, house.getPositions());
+            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, house);
             // Are the candidates in the same line in the same box?
             if (isLine(candidates) && isContainedInHouse(candidates, Position::getBox)) {
                 int boxNumber = candidates.iterator().next().getBox();

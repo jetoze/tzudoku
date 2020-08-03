@@ -137,7 +137,7 @@ public class XWing implements Hint {
         
         @Nullable
         private Pair getCandidatesInHouse(House house, Value value) {
-            Set<Position> candidates = HintUtils.collectCandidates(grid, value, house.getPositions());
+            Set<Position> candidates = HintUtils.collectCandidates(grid, value, house);
             return (candidates.size() == 2)
                     ? new Pair(candidates)
                     : null;

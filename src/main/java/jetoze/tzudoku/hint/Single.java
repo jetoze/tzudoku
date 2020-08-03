@@ -172,7 +172,7 @@ public class Single implements Hint {
                 return null;
             }
             for (Value value : remainingValues) {
-                Set<Position> candidates = HintUtils.collectCandidates(grid, value, house.getPositions());
+                Set<Position> candidates = HintUtils.collectCandidates(grid, value, house);
                 if (candidates.size() == 1) {
                     Position position = candidates.iterator().next();
                     return new Single(grid, value, house, position, SolvingTechnique.HIDDEN_SINGLE);

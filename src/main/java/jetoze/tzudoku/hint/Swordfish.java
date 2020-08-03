@@ -102,7 +102,7 @@ public class Swordfish implements Hint {
         }
 
         private boolean hasTriple(Value value, House house) {
-            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, house.getPositions());
+            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, house);
             if (candidates.size() == 3) {
                 return true;
             }
@@ -123,6 +123,7 @@ public class Swordfish implements Hint {
                 .orElse(null);
         }
         
+        // TODO: Clean me up!
         @Nullable
         private Swordfish examineValue(Value value) {
             List<House> houses = ImmutableList.copyOf(valuesWithTwoOrThreeCandidatesInThreeHouses.get(value));
@@ -133,17 +134,27 @@ public class Swordfish implements Hint {
             Predicate<Position> candidateCellOrFilledInCell = HintUtils.isCandidate(grid, value)
                     .or(p -> grid.cellAt(p).hasValue());
             for (Triple triple : getTriplesFromHouse(houses.get(0), value)) {
-                List<Position> secondHouse = triple.getCrossCoordinates(orientation)
+                // The cells in the second house that have the value as candidate. We know there are
+                // 2 or three of them.
+                Set<Position> secondHouseCandidates = HintUtils.collectCandidates(grid, value, houses.get(1));
+                // The cells in the second house that match up with the triple from the first house
+                List<Position> secondHouseTriple = triple.getCrossCoordinates(orientation)
                         .mapToObj(n -> houses.get(1).getPosition(n))
                         .collect(toList());
-                boolean match = secondHouse.stream().allMatch(candidateCellOrFilledInCell);
+                // Does the second house triple fulfill the requirements to take part
+                // in the Swordfish?
+                boolean match = secondHouseTriple.stream().allMatch(candidateCellOrFilledInCell) &&
+                        secondHouseTriple.containsAll(secondHouseCandidates);
                 if (!match) {
                     continue;
                 }
-                List<Position> thirdHouse = triple.getCrossCoordinates(orientation)
+                // Now repeat this for the third house.
+                Set<Position> thirdHouseCandidates = HintUtils.collectCandidates(grid, value, houses.get(2));
+                List<Position> thirdHouseTriple = triple.getCrossCoordinates(orientation)
                         .mapToObj(n -> houses.get(2).getPosition(n))
                         .collect(toList());
-                match = thirdHouse.stream().allMatch(candidateCellOrFilledInCell);
+                match = thirdHouseTriple.stream().allMatch(candidateCellOrFilledInCell) &&
+                        thirdHouseTriple.containsAll(thirdHouseCandidates);
                 if (!match) {
                     continue;
                 }
@@ -153,8 +164,8 @@ public class Swordfish implements Hint {
                 // TODO: Instead of putting these 9 cells in a Set, can we use the cross coordinate
                 // as a filter?
                 Set<Position> matchedCells = new HashSet<>(triple.positions);
-                matchedCells.addAll(secondHouse);
-                matchedCells.addAll(thirdHouse);
+                matchedCells.addAll(secondHouseTriple);
+                matchedCells.addAll(thirdHouseTriple);
                 House.Type crossOrientation = (orientation == Type.ROW)
                         ? Type.COLUMN
                         : Type.ROW;

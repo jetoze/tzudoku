@@ -10,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -32,7 +33,15 @@ final class HintUtils {
     }
     
     /**
-     * Returns an immutable Set of those positions in the Stream that has the given value
+     * Returns an immutable Set of those positions in the given House that have the given value
+     * as a candidate.
+     */
+    static ImmutableSet<Position> collectCandidates(Grid grid, Value value, House house) {
+        return collectCandidates(grid, value, house);
+    }
+    
+    /**
+     * Returns an immutable Set of those positions in the Stream that have the given value
      * as a candidate.
      */
     static ImmutableSet<Position> collectCandidates(Grid grid, Value value, Stream<Position> positions) {
