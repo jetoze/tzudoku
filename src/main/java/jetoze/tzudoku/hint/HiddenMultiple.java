@@ -143,7 +143,7 @@ public class HiddenMultiple implements Hint {
                         // This is a naked multiple. Nothing to see here.
                         continue;
                     }
-                    // We have a naked multiple. Now figure out what values can be eliminated from each cell.
+                    // We have a hidden multiple. Now figure out what values can be eliminated from each cell.
                     ImmutableMultimap.Builder<Position, Value> valuesToEliminate = ImmutableMultimap.builder();
                     for (Position target : candidateCells) {
                         valuesToEliminate.putAll(target, 
