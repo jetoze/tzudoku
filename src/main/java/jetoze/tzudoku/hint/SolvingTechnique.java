@@ -17,13 +17,13 @@ public enum SolvingTechnique {
     
     HIDDEN_SINGLE("Hidden Single", Single::findNextHidden),
     
-    NAKED_PAIR("Naked Pair", Multiple::findNextPair),
+    NAKED_PAIR("Naked Pair", NakedMultiple::findNakedPair),
     
     POINTING_PAIR("Pointing Pair", PointingPair::findNext),
     
-    TRIPLE("Triple", Multiple::findNextTriple),
+    NAKED_TRIPLE("Naked Triple", NakedMultiple::findNakedTriple),
     
-    QUADRUPLE("Quadruple", Multiple::findNextQuadruple),
+    NAKED_QUADRUPLE("Naked Quadruple", NakedMultiple::findNakedQuadruple),
     
     X_WING("X-Wing", XWing::findNext),
     

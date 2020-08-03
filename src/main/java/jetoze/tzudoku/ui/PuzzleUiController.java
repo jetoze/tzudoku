@@ -18,7 +18,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
-import jetoze.tzudoku.hint.Multiple;
+import jetoze.tzudoku.hint.NakedMultiple;
 import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
@@ -132,10 +132,10 @@ public class PuzzleUiController {
     }
     
     public void lookForTriple() {
-        runHintCheck(Multiple::findNextTriple, this::showTripleInfo, "Did not find any Triples :(");
+        runHintCheck(NakedMultiple::findNakedTriple, this::showTripleInfo, "Did not find any Triples :(");
     }
     
-    private void showTripleInfo(Multiple multiple) {
+    private void showTripleInfo(NakedMultiple multiple) {
         assert multiple.getPositions().size() == 3;
         StringBuilder s = new StringBuilder("<html>Found a triple:<br>");
         multiple.getPositions().forEach(p -> s.append(p).append("<br>"));

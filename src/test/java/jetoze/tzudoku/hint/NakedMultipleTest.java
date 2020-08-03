@@ -16,7 +16,7 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 
-public class MultipleTest {
+public class NakedMultipleTest {
 
     @Test
     public void tripleInRowShouldBeDetected() {
@@ -24,9 +24,9 @@ public class MultipleTest {
         Grid grid = GridBuilder.builder()
                 .row(1, "123[46][45][57][789][56][789]")
                 .build();
-        Optional<Multiple> optTriple = Multiple.findNextTriple(grid);
+        Optional<NakedMultiple> optTriple = NakedMultiple.findNakedTriple(grid);
         assertTrue(optTriple.isPresent());
-        Multiple multiple = optTriple.get();
+        NakedMultiple multiple = optTriple.get();
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
         assertEquals(ImmutableSet.of(new Position(1, 4), new Position(1, 5), new Position(1, 8)), multiple.getPositions());
     }
@@ -37,9 +37,9 @@ public class MultipleTest {
         Grid grid = GridBuilder.builder()
                 .column(2, "123[46][45][57][789][56][789]")
                 .build();
-        Optional<Multiple> optTriple = Multiple.findNextTriple(grid);
+        Optional<NakedMultiple> optTriple = NakedMultiple.findNakedTriple(grid);
         assertTrue(optTriple.isPresent());
-        Multiple multiple = optTriple.get();
+        NakedMultiple multiple = optTriple.get();
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
         assertEquals(ImmutableSet.of(new Position(4, 2), new Position(5, 2), new Position(8, 2)), multiple.getPositions());
     }
@@ -51,9 +51,9 @@ public class MultipleTest {
                 "1[46][789]", 
                 "[45]2[57]", 
                 "3[789][56]").build();
-        Optional<Multiple> optTriple = Multiple.findNextTriple(grid);
+        Optional<NakedMultiple> optTriple = NakedMultiple.findNakedTriple(grid);
         assertTrue(optTriple.isPresent());
-        Multiple multiple = optTriple.get();
+        NakedMultiple multiple = optTriple.get();
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
         assertEquals(ImmutableSet.of(new Position(1, 2), new Position(2, 1), new Position(3, 3)), multiple.getPositions());
     }

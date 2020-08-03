@@ -22,14 +22,14 @@ import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class Multiple implements Hint {
+public class NakedMultiple implements Hint {
 
     private final Grid grid;
     private final ImmutableSet<Position> positions;
     private final ImmutableSet<Value> values;
     private final ImmutableSet<Position> targets;
     
-    public Multiple(Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
+    public NakedMultiple(Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
         checkArgument(positions.size() >= 2);
         checkArgument(positions.size() == values.size());
         checkArgument(Sets.intersection(positions, targets).isEmpty());
@@ -45,7 +45,7 @@ public class Multiple implements Hint {
         case 2:
             return SolvingTechnique.NAKED_PAIR;
         case 3:
-            return SolvingTechnique.TRIPLE;
+            return SolvingTechnique.NAKED_TRIPLE;
         case 4:
             return SolvingTechnique.QUADRUPLE;
         default:
@@ -73,19 +73,19 @@ public class Multiple implements Hint {
         HintUtils.eliminateCandidates(grid, targets, values);
     }
 
-    public static Optional<Multiple> findNextPair(Grid grid) {
+    public static Optional<NakedMultiple> findNakedPair(Grid grid) {
         return findNext(grid, 2);
     }
     
-    public static Optional<Multiple> findNextTriple(Grid grid) {
+    public static Optional<NakedMultiple> findNakedTriple(Grid grid) {
         return findNext(grid, 3);
     }
     
-    public static Optional<Multiple> findNextQuadruple(Grid grid) {
+    public static Optional<NakedMultiple> findNakedQuadruple(Grid grid) {
         return findNext(grid, 4);
     }
 
-    public static Optional<Multiple> findNext(Grid grid, int size) {
+    public static Optional<NakedMultiple> findNext(Grid grid, int size) {
         requireNonNull(grid);
         checkArgument(size >= 2 && size <= 9);
         return House.ALL.stream()
@@ -108,7 +108,7 @@ public class Multiple implements Hint {
         }
         
         @Nullable
-        public Multiple findNext() {
+        public NakedMultiple findNext() {
             EnumSet<Value> remainingValues = house.getRemainingValues(grid);
             if (remainingValues.size() <= size) {
                 return null;
@@ -137,7 +137,7 @@ public class Multiple implements Hint {
                                 return !Sets.intersection(cell.getCenterMarks().getValues(), allCandidatesInGroup).isEmpty();
                             }).collect(toImmutableSet());
                     if (!targets.isEmpty()) {
-                        return new Multiple(grid, group, allCandidatesInGroup, targets);
+                        return new NakedMultiple(grid, group, allCandidatesInGroup, targets);
                     }
                 }
             }

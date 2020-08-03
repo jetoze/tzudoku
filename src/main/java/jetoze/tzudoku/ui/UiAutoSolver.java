@@ -22,7 +22,7 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.hint.Hint;
-import jetoze.tzudoku.hint.Multiple;
+import jetoze.tzudoku.hint.NakedMultiple;
 import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
@@ -154,8 +154,8 @@ public class UiAutoSolver {
                     applyHint((Single) hint);
                 } else if (hint instanceof PointingPair) {
                     applyHint((PointingPair) hint);
-                } else if (hint instanceof Multiple) {
-                    applyHint((Multiple) hint);
+                } else if (hint instanceof NakedMultiple) {
+                    applyHint((NakedMultiple) hint);
                 } else if (hint instanceof XWing) {
                     applyHint((XWing) hint);
                 } else if (hint instanceof XyWing) {
@@ -182,7 +182,7 @@ public class UiAutoSolver {
             removeCandidates(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
         }
         
-        private void applyHint(Multiple multiple) {
+        private void applyHint(NakedMultiple multiple) {
             setStatus(multiple.getTechnique().getName() + ": " + multiple.getValues().stream()
                     .sorted()
                     .map(Object::toString)
