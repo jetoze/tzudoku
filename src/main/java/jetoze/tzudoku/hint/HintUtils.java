@@ -37,7 +37,7 @@ final class HintUtils {
      * as a candidate.
      */
     static ImmutableSet<Position> collectCandidates(Grid grid, Value value, House house) {
-        return collectCandidates(grid, value, house);
+        return collectCandidates(grid, value, house.getPositions());
     }
     
     /**

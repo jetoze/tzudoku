@@ -128,48 +128,30 @@ public class Swordfish implements Hint {
         private Swordfish examineValue(Value value) {
             List<House> houses = ImmutableList.copyOf(valuesWithTwoOrThreeCandidatesInThreeHouses.get(value));
             assert houses.size() == 3;
-            // Create the Triples from the first houses and see if any of them line up with
+            // Create the Triples from the first house and see if any of them line up with
             // candidates in the other two houses. If we find a match, see if there are any
             // target cells from which we can eliminate the value.
-            Predicate<Position> candidateCellOrFilledInCell = HintUtils.isCandidate(grid, value)
-                    .or(p -> grid.cellAt(p).hasValue());
-            for (Triple triple : getTriplesFromHouse(houses.get(0), value)) {
-                // The cells in the second house that have the value as candidate. We know there are
-                // 2 or three of them.
-                Set<Position> secondHouseCandidates = HintUtils.collectCandidates(grid, value, houses.get(1));
-                // The cells in the second house that match up with the triple from the first house
-                List<Position> secondHouseTriple = triple.getCrossCoordinates(orientation)
-                        .mapToObj(n -> houses.get(1).getPosition(n))
-                        .collect(toList());
-                // Does the second house triple fulfill the requirements to take part
-                // in the Swordfish?
-                boolean match = secondHouseTriple.stream().allMatch(candidateCellOrFilledInCell) &&
-                        secondHouseTriple.containsAll(secondHouseCandidates);
-                if (!match) {
+            for (Triple firstHouseTriple : getTriplesFromHouse(houses.get(0), value)) {
+                Triple secondHouseTriple = findMatchingTripleInHouse(value, firstHouseTriple, houses.get(1));
+                if (secondHouseTriple == null) {
                     continue;
                 }
-                // Now repeat this for the third house.
-                Set<Position> thirdHouseCandidates = HintUtils.collectCandidates(grid, value, houses.get(2));
-                List<Position> thirdHouseTriple = triple.getCrossCoordinates(orientation)
-                        .mapToObj(n -> houses.get(2).getPosition(n))
-                        .collect(toList());
-                match = thirdHouseTriple.stream().allMatch(candidateCellOrFilledInCell) &&
-                        thirdHouseTriple.containsAll(thirdHouseCandidates);
-                if (!match) {
+                Triple thirdHouseTriple = findMatchingTripleInHouse(value, firstHouseTriple, houses.get(2));
+                if (thirdHouseTriple == null) {
                     continue;
                 }
-                // We have three matching positions in three houses. Now look at the cross Houses
+                // We have three matching Triples in three houses. Now look at the cross Houses
                 // at those positions, and see if we have any unfilled Cells with the value as a
                 // candidate (ignoring the 9 cells we've matched up). Those are our target cells.
                 // TODO: Instead of putting these 9 cells in a Set, can we use the cross coordinate
                 // as a filter?
-                Set<Position> matchedCells = new HashSet<>(triple.positions);
-                matchedCells.addAll(secondHouseTriple);
-                matchedCells.addAll(thirdHouseTriple);
+                Set<Position> matchedCells = new HashSet<>(firstHouseTriple.positions);
+                matchedCells.addAll(secondHouseTriple.positions);
+                matchedCells.addAll(thirdHouseTriple.positions);
                 House.Type crossOrientation = (orientation == Type.ROW)
                         ? Type.COLUMN
                         : Type.ROW;
-                Set<Position> targets = triple.getCrossCoordinates(orientation)
+                Set<Position> targets = firstHouseTriple.getCrossCoordinates(orientation)
                         .mapToObj(crossOrientation::createHouse)
                         .flatMap(House::getPositions)
                         .filter(Predicate.not(matchedCells::contains))
@@ -193,6 +175,7 @@ public class Swordfish implements Hint {
             // a filled-in Cell. We know that at least one such Cell exists, thanks to the
             // condition we applied when we collected Houses of interest -- see the 
             // hasTriple method.
+            assert candidates.size() == 2;
             List<Position> cellsWithValue = house.getPositions()
                     .filter(p -> grid.cellAt(p).hasValue())
                     .collect(toList());
@@ -200,6 +183,26 @@ public class Swordfish implements Hint {
             return cellsWithValue.stream()
                     .map(c -> new Triple(candidates, c))
                     .collect(toList());
+        }
+        
+        @Nullable
+        private Triple findMatchingTripleInHouse(Value value, Triple tripleFromFirstHouse, House otherHouse) {
+            // The cells in the second house that have the value as candidate. We know there are
+            // 2 or three of them.
+            Set<Position> candidates = HintUtils.collectCandidates(grid, value, otherHouse);
+            // The cells in the second house that match up with the triple from the first house
+            List<Position> triple = tripleFromFirstHouse.getCrossCoordinates(orientation)
+                    .mapToObj(n -> otherHouse.getPosition(n))
+                    .collect(toList());
+            // Does the second house triple fulfill the requirements to take part in the Swordfish?
+            Predicate<Position> candidateCellOrFilledInCell = HintUtils.isCandidate(grid, value)
+                    .or(p -> grid.cellAt(p).hasValue());
+            boolean match = triple.stream().allMatch(candidateCellOrFilledInCell) &&
+                    triple.containsAll(candidates);
+            return match 
+                    ? new Triple(triple) 
+                    : null;
+
         }
     }
     
