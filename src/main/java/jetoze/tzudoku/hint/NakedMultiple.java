@@ -47,7 +47,7 @@ public class NakedMultiple implements Hint {
         case 3:
             return SolvingTechnique.NAKED_TRIPLE;
         case 4:
-            return SolvingTechnique.QUADRUPLE;
+            return SolvingTechnique.NAKED_QUADRUPLE;
         default:
             throw new RuntimeException("We need a SolvingTechnique for " + values.size() + " number of values");
         }
