@@ -25,6 +25,8 @@ public enum SolvingTechnique {
     
     NAKED_QUADRUPLE("Naked Quadruple", NakedMultiple::findNakedQuadruple),
     
+    HIDDEN_TRIPLE("Hidden Triple", HiddenMultiple::findHiddenTriple),
+    
     X_WING("X-Wing", XWing::findNext),
     
     XY_WING("XY-Wing", XyWing::findNext),

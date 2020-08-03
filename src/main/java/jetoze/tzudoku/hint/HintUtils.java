@@ -2,7 +2,7 @@ package jetoze.tzudoku.hint;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
-import java.util.Set;
+import java.util.Collection;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -52,14 +52,14 @@ final class HintUtils {
     /**
      * Eliminates the given values as candidates from the cells at the given positions.
      */
-    static void eliminateCandidates(Grid grid, Set<Position> targets, Set<Value> valuesToEliminate) {
+    static void eliminateCandidates(Grid grid, Collection<Position> targets, Collection<Value> valuesToEliminate) {
         targets.stream()
-        .map(grid::cellAt)
-        .filter(Predicate.not(Cell::isGiven))
-        .map(Cell::getCenterMarks)
-        .forEach(m -> {
-            valuesToEliminate.forEach(m::remove);
-        });
+            .map(grid::cellAt)
+            .filter(Predicate.not(Cell::isGiven))
+            .map(Cell::getCenterMarks)
+            .forEach(m -> {
+                valuesToEliminate.forEach(m::remove);
+            });
     }
     
     private HintUtils() {/**/}
