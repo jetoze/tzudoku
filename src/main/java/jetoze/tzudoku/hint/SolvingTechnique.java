@@ -29,10 +29,9 @@ public enum SolvingTechnique {
     
     XY_WING("XY-Wing", XyWing::findNext),
     
-    SIMPLE_COLORING("Simple Coloring", SimpleColoring::findNext);
+    SIMPLE_COLORING("Simple Coloring", SimpleColoring::findNext),
     
-    // TODO: Swordfish. See http://www.sudokuessentials.com/support-files/sudoku-very-hard-2.pdf
-    // for an example.
+    SWORDFISH("Swordfish", Swordfish::findNext);
 
     private final String name;
     private final Function<Grid, Optional<? extends Hint>> analyzer;

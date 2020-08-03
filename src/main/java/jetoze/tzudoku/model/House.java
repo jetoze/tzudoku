@@ -105,6 +105,28 @@ public class House {
     }
     
     /**
+     * Returns the number of this house (e.g. the 7th row, the 4th column).
+     */
+    public int getNumber() {
+        return number;
+    }
+    
+    public Position getPosition(int n) {
+        switch (type) {
+        case ROW:
+            // this.number represents the row, n represents the column
+            return new Position(this.number, n);
+        case COLUMN:
+            // this.number represents the column, n represents the row
+            return new Position(n, this.number);
+        case BOX:
+            throw new RuntimeException("Not implemented yet");
+        default:
+            throw new RuntimeException("Unknown House type: " + type);
+        }
+    }
+    
+    /**
      * Returns a Stream of the positions in this house.
      */
     public Stream<Position> getPositions() {

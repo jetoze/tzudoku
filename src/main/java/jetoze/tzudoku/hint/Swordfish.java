@@ -1,14 +1,17 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -30,20 +33,37 @@ public class Swordfish implements Hint {
 
     private final Grid grid;
     private final Value value;
+    private final ImmutableList<House> houses;
     private final ImmutableSet<Position> targets;
     
-    public Swordfish(Grid grid, Value value, Set<Position> targets) {
+    public Swordfish(Grid grid, Value value, List<House> houses, Set<Position> targets) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
+        checkArgument(houses.size() == 3); // TODO: Also check they are all either ROWs or COLUMNs.
         checkArgument(!targets.isEmpty());
+        this.houses = ImmutableList.copyOf(houses);
         this.targets = ImmutableSet.copyOf(targets);
     }
 
     @Override
     public SolvingTechnique getTechnique() {
-        
-        // TODO Auto-generated method stub
-        return null;
+        return SolvingTechnique.SWORDFISH;
+    }
+
+    public House.Type getHouseType() {
+        return houses.get(0).getType();
+    }
+    
+    public ImmutableList<House> getHouses() {
+        return houses;
+    }
+
+    public Value getValue() {
+        return value;
+    }
+
+    public ImmutableSet<Position> getTargets() {
+        return targets;
     }
 
     @Override
@@ -96,19 +116,57 @@ public class Swordfish implements Hint {
         
         @Nullable
         public Swordfish find() {
-            
-            return null;
+            return valuesWithTwoOrThreeCandidatesInThreeHouses.keySet().stream()
+                .map(this::examineValue)
+                .filter(Objects::nonNull)
+                .findAny()
+                .orElse(null);
         }
         
         @Nullable
         private Swordfish examineValue(Value value) {
             List<House> houses = ImmutableList.copyOf(valuesWithTwoOrThreeCandidatesInThreeHouses.get(value));
             assert houses.size() == 3;
-            // Create the Triples from the first houses and see if any of them lines up with
+            // Create the Triples from the first houses and see if any of them line up with
             // candidates in the other two houses. If we find a match, see if there are any
             // target cells from which we can eliminate the value.
+            Predicate<Position> candidateCellOrFilledInCell = HintUtils.isCandidate(grid, value)
+                    .or(p -> grid.cellAt(p).hasValue());
             for (Triple triple : getTriplesFromHouse(houses.get(0), value)) {
-                // TODO: Complete me.
+                List<Position> secondHouse = triple.getCrossCoordinates(orientation)
+                        .mapToObj(n -> houses.get(1).getPosition(n))
+                        .collect(toList());
+                boolean match = secondHouse.stream().allMatch(candidateCellOrFilledInCell);
+                if (!match) {
+                    continue;
+                }
+                List<Position> thirdHouse = triple.getCrossCoordinates(orientation)
+                        .mapToObj(n -> houses.get(2).getPosition(n))
+                        .collect(toList());
+                match = thirdHouse.stream().allMatch(candidateCellOrFilledInCell);
+                if (!match) {
+                    continue;
+                }
+                // We have three matching positions in three houses. Now look at the cross Houses
+                // at those positions, and see if we have any unfilled Cells with the value as a
+                // candidate (ignoring the 9 cells we've matched up). Those are our target cells.
+                // TODO: Instead of putting these 9 cells in a Set, can we use the cross coordinate
+                // as a filter?
+                Set<Position> matchedCells = new HashSet<>(triple.positions);
+                matchedCells.addAll(secondHouse);
+                matchedCells.addAll(thirdHouse);
+                House.Type crossOrientation = (orientation == Type.ROW)
+                        ? Type.COLUMN
+                        : Type.ROW;
+                Set<Position> targets = triple.getCrossCoordinates(orientation)
+                        .mapToObj(crossOrientation::createHouse)
+                        .flatMap(House::getPositions)
+                        .filter(Predicate.not(matchedCells::contains))
+                        .filter(HintUtils.isCandidate(grid, value))
+                        .collect(toImmutableSet());
+                if (!targets.isEmpty()) {
+                    return new Swordfish(grid, value, houses, targets);
+                }
             }
             return null;
         }
@@ -147,6 +205,13 @@ public class Swordfish implements Hint {
         public Triple(List<Position> positions) {
             checkArgument(positions.size() == 3);
             this.positions = ImmutableList.copyOf(positions);
+        }
+        
+        public IntStream getCrossCoordinates(House.Type orientation) { // TODO: Better name?
+            return positions.stream()
+                    .mapToInt(orientation == Type.ROW
+                            ? Position::getColumn
+                            : Position::getRow);
         }
     }
 

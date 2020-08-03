@@ -26,6 +26,7 @@ import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
@@ -161,6 +162,8 @@ public class UiAutoSolver {
                     applyHint((XyWing) hint);
                 } else if (hint instanceof SimpleColoring) {
                     applyHint((SimpleColoring) hint);
+                } else if (hint instanceof Swordfish) {
+                    applyHint((Swordfish) hint);
                 } else {
                     throw new RuntimeException("Unknown hint: " + hint);
                 }
@@ -200,6 +203,11 @@ public class UiAutoSolver {
         private void applyHint(SimpleColoring simpleColoring) {
             setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
             removeCandidates(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
+        }
+        
+        private void applyHint(Swordfish swordfish) {
+            setStatus(swordfish.getTechnique().getName() + ": " + swordfish.getValue());
+            removeCandidates(swordfish.getTargets(), ImmutableSet.of(swordfish.getValue()));
         }
         
         private void removeCandidates(ImmutableSet<Position> targets, ImmutableSet<Value> values) {

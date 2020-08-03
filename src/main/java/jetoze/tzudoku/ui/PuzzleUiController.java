@@ -22,9 +22,11 @@ import jetoze.tzudoku.hint.Multiple;
 import jetoze.tzudoku.hint.PointingPair;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
@@ -179,6 +181,22 @@ public class PuzzleUiController {
         // TODO: I need to include more info
         String s = "<html>Simple Coloring eliminates the value " + simpleColoring.getValue() + 
                 " from these cells:<br><br>" + simpleColoring.getTargets().stream().map(Object::toString).collect(joining(" ")) +
+                "</html>";
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+    }
+    
+    public void lookForSwordfish() {
+        runHintCheck(Swordfish::findNext, this::showSwordfishInfo, "Did not find any Swordfish :(");
+    }
+    
+    private void showSwordfishInfo(Swordfish swordfish) {
+        String s = "<html>A Swordfish in " +
+                String.format("%s %d, %d, and %d ", (swordfish.getHouseType() == Type.ROW ? "rows" : "columns"), 
+                        swordfish.getHouses().get(0).getNumber(),
+                        swordfish.getHouses().get(1).getNumber(),
+                        swordfish.getHouses().get(2).getNumber()) +
+                "eliminates the value " + swordfish.getValue() + 
+                " from these cells:<br><br>" + swordfish.getTargets().stream().map(Object::toString).collect(joining(" ")) +
                 "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }

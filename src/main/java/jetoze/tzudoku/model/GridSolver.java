@@ -69,6 +69,7 @@ public class GridSolver {
      */
     private Optional<? extends Hint> applyTechniques() {
         return Stream.of(SolvingTechnique.values())
+                .filter(t -> t != SolvingTechnique.SWORDFISH) // needs more work
                 .map(t -> t.analyze(grid))
                 .flatMap(Optional::stream)
                 .findFirst();

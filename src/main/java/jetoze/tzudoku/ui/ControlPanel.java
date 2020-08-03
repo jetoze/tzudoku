@@ -189,6 +189,7 @@ public class ControlPanel {
                 new JMenuItem(createAction("Look for X-Wing", controller::lookForXWing)),
                 new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),
                 new JMenuItem(createAction("Look for Simple Coloring", controller::lookForSimpleColoring)),
+                new JMenuItem(createAction("Look for Swordfish", controller::lookForSwordfish)),
                 new JSeparator(),
                 new JMenuItem(createAction("Auto-solve", controller::startAutoSolver)));
         UiLook.makeOverLarge(hintsButton);
