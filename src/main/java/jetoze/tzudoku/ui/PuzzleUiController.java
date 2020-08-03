@@ -28,6 +28,7 @@ import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
@@ -252,6 +253,22 @@ public class PuzzleUiController {
     public void startAutoSolver() {
         UiAutoSolver autoSolver = new UiAutoSolver(appFrame, puzzleModel.getGridModel());
         autoSolver.start();
+    }
+    
+    public void analyze() {
+        // TODO: Hour-glass while the solver is running.
+        // TODO: Give an error message if not a classic sudoku puzzle?
+        Callable<GridSolver.Result> analyzer = () -> {
+            Grid copyOfGrid = Grid.copyOf(puzzleModel.getGridModel().getGrid());
+            GridSolver solver = new GridSolver(copyOfGrid);
+            return solver.solve();
+        };
+        UiThread.offload(analyzer, this::showAnalyzerResult);
+    }
+    
+    private void showAnalyzerResult(GridSolver.Result result) {
+        AnalyzerResultUi ui = new AnalyzerResultUi(result);
+        JOptionPane.showMessageDialog(appFrame, ui.getUi(), "Analyzer Result", JOptionPane.INFORMATION_MESSAGE);
     }
     
     public void checkSolution() {

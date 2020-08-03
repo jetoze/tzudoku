@@ -65,4 +65,9 @@ public enum SolvingTechnique {
     public Optional<? extends Hint> analyze(Grid grid) {
         return analyzer.apply(grid);
     }
+
+    @Override
+    public String toString() {
+        return getName();
+    }
 }

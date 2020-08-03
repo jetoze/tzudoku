@@ -174,7 +174,10 @@ public class ControlPanel {
         BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
                 Selectable.of(eliminateCandidatesChoice));
         PopupMenuButton optionsButton = new PopupMenuButton("Options...", 
-                highlightDuplicatesChoice, eliminateCandidatesChoice);
+                highlightDuplicatesChoice, 
+                eliminateCandidatesChoice,
+                new JSeparator(),
+                new JMenuItem(createAction("Analyze...", controller::analyze)));
         UiLook.makeOverLarge(optionsButton);
         return optionsButton;
     }
