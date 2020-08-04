@@ -125,5 +125,15 @@ public class GridSolver {
         public Duration getDuration() {
             return duration;
         }
+        
+        /**
+         * Returns the number of different techniques that were used when solving the grid.
+         */
+        public int getNumberOfTechniquesUsed() {
+            return (int) hintsApplied.stream()
+                        .map(Hint::getTechnique)
+                        .distinct()
+                        .count();
+        }
     }
 }
