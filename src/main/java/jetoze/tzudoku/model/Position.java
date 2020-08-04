@@ -92,7 +92,7 @@ public class Position {
 
     @Override
     public String toString() {
-        return String.format("[%d, %s]", row, column);
+        return String.format("r%dc%d", row, column);
     }
 
     @Override
