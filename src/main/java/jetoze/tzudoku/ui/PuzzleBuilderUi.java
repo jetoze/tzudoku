@@ -73,11 +73,13 @@ public final class PuzzleBuilderUi implements Widget {
 
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
+
+        JPanel optionsButtons = new JPanel(new GridLayout());
+        JButton sandwichesButton = UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction);
+        optionsButtons.add(sandwichesButton);
+        JPanel optionsButtonsWrapper = Layouts.border().north(optionsButtons).build();
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));
-        
-        JButton sandwichesButton = UiLook.makeLargeButton("Sandwiches...", defineSandwichesAction);
-        buttonPanel.add(sandwichesButton);
         JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
         buttonPanel.add(resetButton);
         // TODO: Bind the save action to the valid state of the model?
@@ -88,6 +90,7 @@ public final class PuzzleBuilderUi implements Widget {
                 .withVerticalGap(8)
                 .north(nameFieldPanel)
                 .center(gridWrapper)
+                .east(optionsButtonsWrapper)
                 .south(buttonPanel)
                 .build();
         ui.setBorder(new EmptyBorder(5, 5, 5, 5));

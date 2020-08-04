@@ -54,6 +54,7 @@ public class PuzzleBuilderModel {
         String name = inventory.getAvailablePuzzleName("New Puzzle");
         setPuzzleName(name);
         gridModel.setPuzzle(new Puzzle(name, Grid.emptyGrid()));
+        gridModel.setSandwiches(Sandwiches.EMPTY);
     }
     
 }
