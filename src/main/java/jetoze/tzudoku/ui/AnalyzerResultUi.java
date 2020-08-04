@@ -7,8 +7,6 @@ import java.awt.Insets;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableModel;
 
 import com.google.common.collect.ImmutableMultiset;
 import com.google.common.collect.Multiset;
@@ -81,7 +79,7 @@ public class AnalyzerResultUi implements Widget {
         c.gridwidth = 2;
         c.weightx = 1.0;
         c.fill = GridBagConstraints.HORIZONTAL;
-        TableWidget techniqueTable = new TableWidget(createTechniquesTableModel(result));
+        TableWidget techniqueTable = buildTechniqueTable(result);
         // TODO: Enable sorting. 
         stats.add(techniqueTable.getUi(), c);
         
@@ -89,14 +87,15 @@ public class AnalyzerResultUi implements Widget {
         
         return stats;
     }
-    
-    private TableModel createTechniquesTableModel(GridSolver.Result result) {
+
+    private TableWidget buildTechniqueTable(GridSolver.Result result) {
+        TableWidget.Builder techniqueTableBuilder = TableWidget.builder("Technique", "Times Used");
         Multiset<SolvingTechnique> data = result.getHintsApplied().stream()
                 .map(Hint::getTechnique)
                 .collect(ImmutableMultiset.toImmutableMultiset());
-        DefaultTableModel model = new DefaultTableModel(new String[] { "Technique", "Times Used" }, 0);
-        data.entrySet().forEach(e -> model.addRow(new Object[] { e.getElement(), e.getCount() }));
-        return model;
+        data.entrySet().forEach(e -> techniqueTableBuilder.addRow(e.getElement(), e.getCount()));
+        // TODO: Enable sorting. 
+        return techniqueTableBuilder.build();
     }
 
     @Override
