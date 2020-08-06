@@ -4,7 +4,6 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.EnumSet;
@@ -12,7 +11,6 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
-import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
@@ -46,8 +44,8 @@ public class PointingPair implements Hint {
     }
     
     private static House.Type getHouseType(Set<Position> positions) {
-        checkArgument(isContainedInHouse(positions, Position::getBox));
-        House house = House.inRowOrColumn(positions).orElseThrow(() -> 
+        checkArgument(House.ifInBox(positions).isPresent(), "Not contained to a box: %s", positions);
+        House house = House.ifInRowOrColumn(positions).orElseThrow(() -> 
             new IllegalArgumentException("Not contained to a single row or column"));
         return house.getType();
     }
@@ -117,15 +115,6 @@ public class PointingPair implements Hint {
                 .filter(Objects::nonNull)
                 .findAny();
     }
-    
-    // TODO: Move this to the Position class, as a static utility mehtod? Perhaps take a House.Type
-    // as input?
-    private static boolean isContainedInHouse(Collection<Position> candidates, ToIntFunction<Position> f) {
-        return (candidates.stream()
-                .mapToInt(f)
-                .distinct()
-                .count() == 1L);
-    }
 
     
     private static class Detector {
@@ -156,7 +145,7 @@ public class PointingPair implements Hint {
             ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, box);
             // Are the candidates in the same row or column? If so, collect candidate cells
             // from the same row or column, outside of this box.
-            return House.inRowOrColumn(candidates)
+            return House.ifInRowOrColumn(candidates)
                     .map(house -> house.getPositions().filter(Predicate.not(this.box::contains)))
                     .map(positions -> HintUtils.collectCandidates(grid, value, positions))
                     .filter(Predicate.not(Set::isEmpty))

@@ -109,7 +109,7 @@ public class House {
      *         positions belong to. An empty Optional is returned if the positions
      *         do not line up, or if the set contains less than two positions.
      */
-    public static Optional<House> inRowOrColumn(Set<Position> positions) {
+    public static Optional<House> ifInRowOrColumn(Set<Position> positions) {
         if (positions.size() < 2) {
             return Optional.empty();
         }
@@ -139,7 +139,28 @@ public class House {
         }
         throw new RuntimeException("Unexpected condition occurred");
     }
-
+    
+    
+    /**
+     * If the given set contains two or more positions that all are in the
+     * same Box, returns that Box.
+     * 
+     * @return an Optional containing the House representing the Box the
+     *         positions belong to. An empty Optional is returned if the positions
+     *         are not confined to a box, or if the set contains less than two positions.
+     */
+    public static Optional<House> ifInBox(Set<Position> positions) {
+        if (positions.size() < 2) {
+            return Optional.empty();
+        }
+        boolean allInSameBox = positions.stream()
+                .mapToInt(Type.BOX.houseNumberFunction)
+                .distinct()
+                .count() == 1L;
+        return allInSameBox
+                ? Optional.of(box(positions.iterator().next().getBox()))
+                : Optional.empty();
+    }
     /**
      * Returns the type of this House.
      */
