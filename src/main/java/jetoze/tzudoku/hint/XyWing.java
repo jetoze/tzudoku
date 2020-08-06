@@ -6,7 +6,6 @@ import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -127,9 +126,7 @@ public class XyWing implements Hint {
                     TwoValueCell w1 = possibleWings.get(i);
                     Value sharedValue = center.getSharedValue(w1);
                     Value wingValue = Sets.difference(w1.values, Collections.singleton(sharedValue)).iterator().next();
-                    Set<Value> otherWingValues = new HashSet<>();
-                    otherWingValues.add(wingValue);
-                    otherWingValues.add(center.getValueNotSharedWith(w1));
+                    Set<Value> otherWingValues = ImmutableSet.of(wingValue, center.getValueNotSharedWith(w1));
                     for (int j = i + 1; j < possibleWings.size(); ++j) {
                         TwoValueCell w2 = possibleWings.get(j);
                         if (!isInSameRowOrColumn(center, w1, w2) && w2.values.equals(otherWingValues)) {
@@ -138,10 +135,8 @@ public class XyWing implements Hint {
                             Set<Position> seenByBothWings = Sets.intersection(w1.seenBy(), w2.seenBy());
                             ImmutableSet<Position> targets = seenByBothWings.stream()
                                     .filter(px -> !px.equals(w1.position) && !px.equals(w2.position))
-                                    .filter(px -> {
-                                        Cell cell = grid.cellAt(px);
-                                        return !cell.hasValue() && cell.getCenterMarks().contains(wingValue);
-                                    }).collect(toImmutableSet());
+                                    .filter(HintUtils.isCandidate(grid, wingValue))
+                                    .collect(toImmutableSet());
                             if (!targets.isEmpty()) {
                                 return Optional.of(new XyWing(grid, center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
                             }
@@ -166,7 +161,6 @@ public class XyWing implements Hint {
         
         private ImmutableList<TwoValueCell> getPossibleWings(TwoValueCell center, ImmutableList<TwoValueCell> allCandidates) {
             return allCandidates.stream()
-                    .filter(c -> c != center)
                     .filter(c -> (c != center) && center.sees(c) && center.sharesExactlyOneValueWith(c))
                     .collect(toImmutableList());
             
