@@ -114,51 +114,51 @@ public class PuzzleUiController {
     }
     
     public void lookForPointingPair() {
-        runHintCheck(PointingPair::findNext, hintDisplay::showPointingPairInfo,  "Did not find any Pointing Pairs :(");
+        runHintCheck(PointingPair::findNext, hintDisplay::showHintInfo,  "Did not find any Pointing Pairs :(");
     }
     
     public void lookForBoxLineReduction() {
-        runHintCheck(BoxLineReduction::findNext, hintDisplay::showBoxLineReductionInfo, "Did not find any Box Line Reductions :(");
+        runHintCheck(BoxLineReduction::findNext, hintDisplay::showHintInfo, "Did not find any Box Line Reductions :(");
     }
     
     public void lookForHiddenSingle() {
-        runHintCheck(Single::findNextHidden, hintDisplay::showSingleInfo, "Did not find any Hidden Singles :(");
+        runHintCheck(Single::findNextHidden, hintDisplay::showHintInfo, "Did not find any Hidden Singles :(");
     }
     
     public void lookForNakedTriple() {
-        runHintCheck(NakedMultiple::findNakedTriple, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Triples :(");
+        runHintCheck(NakedMultiple::findNakedTriple, hintDisplay::showHintInfo, "Did not find any Naked Triples :(");
     }
     
     public void lookForNakedQuadruple() {
-        runHintCheck(NakedMultiple::findNakedQuadruple, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Quadruples :(");
+        runHintCheck(NakedMultiple::findNakedQuadruple, hintDisplay::showHintInfo, "Did not find any Naked Quadruples :(");
     }
     
     public void lookForHiddenPair() {
-        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Pairs :(");
+        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHintInfo, "Did not find any Hidden Pairs :(");
     }
     
     public void lookForHiddenTriple() {
-        runHintCheck(HiddenMultiple::findHiddenTriple, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Triples :(");
+        runHintCheck(HiddenMultiple::findHiddenTriple, hintDisplay::showHintInfo, "Did not find any Hidden Triples :(");
     }
     
     public void lookForHiddenQuadruple() {
-        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Quadruples :(");
+        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHintInfo, "Did not find any Hidden Quadruples :(");
     }
     
     public void lookForXWing() {
-        runHintCheck(XWing::findNext, hintDisplay::showXWingInfo, "Did not find any X-Wings :(");
+        runHintCheck(XWing::findNext, hintDisplay::showHintInfo, "Did not find any X-Wings :(");
     }
     
     public void lookForXyWing() {
-        runHintCheck(XyWing::findNext, hintDisplay::showXyWingInfo, "Did not find any XY-Wings :(");
+        runHintCheck(XyWing::findNext, hintDisplay::showHintInfo, "Did not find any XY-Wings :(");
     }
     
     public void lookForSimpleColoring() {
-        runHintCheck(SimpleColoring::findNext, hintDisplay::showSimpleColoringInfo, "Did not find any Simple Coloring hint :(");
+        runHintCheck(SimpleColoring::findNext, hintDisplay::showHintInfo, "Did not find any Simple Coloring hint :(");
     }
     
     public void lookForSwordfish() {
-        runHintCheck(Swordfish::findNext, hintDisplay::showSwordfishInfo, "Did not find any Swordfish :(");
+        runHintCheck(Swordfish::findNext, hintDisplay::showHintInfo, "Did not find any Swordfish :(");
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {

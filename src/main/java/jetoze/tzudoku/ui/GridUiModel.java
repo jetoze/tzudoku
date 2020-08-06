@@ -331,6 +331,7 @@ public class GridUiModel {
         // This is not an undoable action because this is not something the user is 
         // doing - it's done by the App itself in certain situations, such as highlighting
         // an available hint.
+        clearHighlightColors();
         highlights.forEach(hl -> {
             hl.getPositions().stream()
                 .map(cellUis::get)

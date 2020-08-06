@@ -7,7 +7,6 @@ import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.Duration;
-import java.util.Collection;
 import java.util.Collections;
 import java.util.Set;
 
@@ -20,7 +19,6 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
@@ -36,13 +34,13 @@ import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
-import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.GridSolver.Result;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
-import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
+import jetoze.tzudoku.ui.hint.HintCellDecorator;
+import jetoze.tzudoku.ui.hint.HintCellDecorators;
 
 /**
  * Attempts to auto-solve the puzzle currently loaded into the UI, giving visual feedback
@@ -51,18 +49,10 @@ import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
  */
 public class UiAutoSolver {
     
-    // TODO: When applying a hint that eliminates candidates, color the cells involved,
-    //       using a different color for the target cells than the generating cells.
-    
     /**
      * The delay between updating the UI with the next completed hint.
      */
     private static final Duration HINT_DELAY = Duration.ofMillis(750L);
-    
-    // TODO: Duplicated code in the ui.hints package. Move this class there.
-    private static final CellColor SINGLE_COLOR = CellColor.GREEN;
-    private static final CellColor FORCING_CELL_COLOR = CellColor.YELLOW;
-    private static final CellColor TARGET_CELL_COLOR = CellColor.RED;
     
     private final JFrame appFrame;
     private final GridUiModel gridModel;
@@ -85,6 +75,7 @@ public class UiAutoSolver {
         
         private final JFrame appFrame;
         private final GridUiModel model;
+        private final HintCellDecorators cellDecorators;
         private ProgressDialog progressDialog;
         private Timer timer;
         private Result result;
@@ -94,6 +85,7 @@ public class UiAutoSolver {
         public Controller(JFrame appFrame, GridUiModel model) {
             this.appFrame = appFrame;
             this.model = model;
+            this.cellDecorators = new HintCellDecorators(model);
         }
         
         public void start() {
@@ -106,7 +98,10 @@ public class UiAutoSolver {
                 model.getEliminateCandidatesProperty().set(true);
                 UiThread.offload(this::solveGrid, this::replayResult);
             });
-            progressDialog = new ProgressDialog(() -> cancelRequested = true);
+            progressDialog = new ProgressDialog(() -> {
+                cancelRequested = true;
+                model.clearHighlightColors();
+            });
             progressDialog.open(appFrame);
         }
         
@@ -166,6 +161,8 @@ public class UiAutoSolver {
             // XXX: Ugly casts here, of course.
             UiThread.run(() -> {
                 model.clearHighlightColors();
+                HintCellDecorator cellDecorator = cellDecorators.getDecorator(hint);
+                cellDecorator.decorate();
                 if (hint instanceof Single) {
                     applyHint((Single) hint);
                 } else if (hint instanceof PointingPair) {
@@ -192,7 +189,6 @@ public class UiAutoSolver {
         
         private void applyHint(Single single) {
             setStatus(single.getTechnique().getName() + ": " + single.getValue());
-            model.highlightCells(new HighlightedCells(single.getPosition(), SINGLE_COLOR));
             model.setEnterValueMode(EnterValueMode.NORMAL);
             model.enterValue(single.getPosition(), single.getValue());
         }
@@ -202,15 +198,7 @@ public class UiAutoSolver {
                     ? hint.getValues().iterator().next().toString()
                     : valuesAsSortedString(hint.getValues());
             setStatus(hint.getTechnique().getName() + ": " + valueString);
-            highlightCells(hint.getForcingPositions(), hint.getTargetPositions());
             model.removeCandidatesFromCells(hint.getTargetPositions(), hint.getValues());
-        }
-        
-        private void highlightCells(Collection<Position> forcingPositions, Collection<Position> targetPositions) {
-            model.highlightCells(ImmutableList.of(
-                    new HighlightedCells(forcingPositions, FORCING_CELL_COLOR),
-                    new HighlightedCells(targetPositions, TARGET_CELL_COLOR)
-            ));
         }
         
         private String valuesAsSortedString(Set<Value> values) {
@@ -222,8 +210,6 @@ public class UiAutoSolver {
         
         private void applyHint(HiddenMultiple multiple) {
             setStatus(multiple.getTechnique().getName() + ": " + valuesAsSortedString(multiple.getHiddenValues()));
-            // TODO: Also highlight forcing positions (currently not exposed by the HiddenMultiple class).
-            highlightCells(Collections.emptySet(), multiple.getTargets());
             // XXX: This messes up Undo-Redo, since we can't apply this change
             // as an atomic operation at the moment.
             for (Position target : multiple.getTargets()) {
@@ -233,8 +219,6 @@ public class UiAutoSolver {
         
         private void applyHint(SimpleColoring simpleColoring) {
             setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
-            // TODO: Also highlight forcing positions (currently not exposed by the SimpleColoring class).
-            highlightCells(Collections.emptySet(), simpleColoring.getTargets());
             model.removeCandidatesFromCells(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
         }
     }
