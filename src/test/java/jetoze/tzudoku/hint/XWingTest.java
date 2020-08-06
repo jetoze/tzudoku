@@ -39,14 +39,10 @@ public class XWingTest {
         assertSame(Value.THREE, xwing.getValue());
         assertEquals(
                 ImmutableSet.of(new Position(1, 2), new Position(1,  7), new Position(6, 2), new Position(6, 7)),
-                xwing.getPositions());
+                xwing.getForcingPositions());
         assertEquals(
                 ImmutableSet.of(new Position(1, 1), new Position(1, 8), new Position(6, 5), new Position(6, 6)),
-                xwing.getTargets());
-    }
-    
-    public XWingTest() {
-        // TODO Auto-generated constructor stub
+                xwing.getTargetPositions());
     }
 
 }

@@ -1,9 +1,7 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static java.util.Objects.requireNonNull;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Iterator;
 import java.util.Optional;
@@ -22,56 +20,19 @@ import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class XWing implements Hint {
-
-    private final Grid grid;
-    private final ImmutableSet<Position> positions;
-    private final Value value;
-    private final ImmutableSet<Position> targets;
+public class XWing extends EliminatingHint {
 
     public XWing(Grid grid, Set<Position> positions, Value value, Set<Position> targets) {
-        this.grid = requireNonNull(grid);
-        this.value = requireNonNull(value);
+        super(SolvingTechnique.X_WING, grid, positions, value, targets);
         checkArgument(positions.size() == 4);
-        checkArgument(!targets.isEmpty());
         checkArgument(Sets.intersection(positions, targets).isEmpty());
-        this.positions = ImmutableSet.copyOf(positions);
-        this.targets = ImmutableSet.copyOf(targets);
     }
-
-    @Override
-    public SolvingTechnique getTechnique() {
-        return SolvingTechnique.X_WING;
-    }
-
+    
     /**
-     * Returns the positions of the cells that make up the X-wing.
-     * 
-     * @return an ImmutableSet of four Positions.
-     */
-    public ImmutableSet<Position> getPositions() {
-        return positions;
-    }
-
-    /**
-     * Returns the value that can be eliminated from the target cells.
+     * Returns the value that can be eliminated.
      */
     public Value getValue() {
-        return value;
-    }
-
-    /**
-     * Returns the target cells from which the value can be eliminated.
-     * 
-     * @return an ImmutableSet containing at least one Position.
-     */
-    public ImmutableSet<Position> getTargets() {
-        return targets;
-    }
-
-    @Override
-    public void apply() {
-        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
+        return getValues().iterator().next();
     }
     
     public static Optional<XWing> findNext(Grid grid) {

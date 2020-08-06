@@ -224,10 +224,10 @@ public class PuzzleUiController {
     private void showXWingInfo(XWing xwing) {
         StringBuilder s = new StringBuilder("<html>Found an X-Wing:<br><br>");
         s.append("Positions: ");
-        s.append(xwing.getPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
+        s.append(xwing.getForcingPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
         s.append("<br><br>");
         s.append(xwing.getValue()).append(" can be eliminated from:<br>");
-        s.append(xwing.getTargets().stream().map(Object::toString).collect(Collectors.joining(" ")));
+        s.append(xwing.getTargetPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
     }

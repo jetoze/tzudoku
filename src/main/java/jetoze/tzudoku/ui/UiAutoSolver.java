@@ -217,7 +217,7 @@ public class UiAutoSolver {
         
         private void applyHint(XWing xwing) {
             setStatus(xwing.getTechnique().getName() + ": " + xwing.getValue());
-            removeCandidates(xwing.getTargets(), ImmutableSet.of(xwing.getValue()));
+            removeCandidates(xwing.getTargetPositions(), ImmutableSet.of(xwing.getValue()));
         }
         
         private void applyHint(XyWing xyWing) {
