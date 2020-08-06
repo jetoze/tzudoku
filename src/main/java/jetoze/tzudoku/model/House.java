@@ -7,6 +7,7 @@ import static java.util.Objects.requireNonNull;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -95,6 +96,45 @@ public class House {
      */
     public static House box(int boxNum) {
         return new House(Type.BOX, boxNum);
+    }
+    
+    /**
+     * If the given set contains two or more positions that all are in the
+     * same line or column, returns the corresponding row- or column-based House.
+     * 
+     * @return an Optional containing the House representing the row or column the
+     *         positions belong to. An empty Optional is returned if the positions
+     *         do not line up, or if the set contains less than two positions.
+     */
+    public static Optional<House> inRowOrColumn(Set<Position> positions) {
+        if (positions.size() < 2) {
+            return Optional.empty();
+        }
+        int row = 0;
+        int column = 0;
+        for (Position p : positions) {
+            if (row == 0 && column == 0) {
+                row = p.getRow();
+                column = p.getColumn();
+            } else {
+                if (row != p.getRow()) {
+                    row = -1;
+                }
+                if (column != p.getColumn()) {
+                    column = -1;
+                }
+            }
+            if (row == -1 && column == -1) {
+                return Optional.empty();
+            }
+        }
+        if (row > 0) {
+            return Optional.of(row(row));
+        }
+        if (column > 0) {
+            return Optional.of(column(column));
+        }
+        throw new RuntimeException("Unexpected condition occurred");
     }
 
     /**

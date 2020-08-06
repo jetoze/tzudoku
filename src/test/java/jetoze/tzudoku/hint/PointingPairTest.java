@@ -23,9 +23,10 @@ public class PointingPairTest {
         // A pointing pair of 7s in Row 1/Box 1, pointing at
         // two targets in Row 1/Box 3.
         Grid grid = GridBuilder.builder()
-                .row(1, "1[27][167] [58]39 [247][578][68]")
-                .row(2, "[345][345][345] 12[58] [247][578][68]")
-                .row(3, "[289][289][289] [467][467][467] 13[568]")
+                .row(1, "1[2357][167] [58]39 [247][578][68]")
+                .row(2, "[3456][2345][345] 1[27][578] [247][578][68]")
+                .row(3, "[289][2489][2689] [467][4678][467] 13[25678]")
+                .fullyUnknownBox(4)
                 .build();
         
         Optional<PointingPair> opt = PointingPair.findNext(grid);
@@ -36,41 +37,23 @@ public class PointingPairTest {
         assertEquals(ImmutableSet.of(new Position(1, 7), new Position(1, 8)), pp.getTargets());
     }
     
-    /**
-     * Verifies that we detect the case where a pointing pair in a box
-     * identifies targets in a different row (or column) in the same box.
-     */
     @Test
-    public void testTargetsInSameBox() {
-        // 7s are confined to Row 1 in Box 1, eliminating 7s from Rows 2 and 3 in Box 1.
+    public void anotherTestOfTargetsInOtherBox() {
+        // I came across this situation in The Daily Sudoku 2020-08-05, where a Pointing Pair
+        // should have been detected but wasn't. 8 in Box 6 is confined to r5c7 and r5c8, which
+        // eliminates 8 from r5c1 and r5c3.
         Grid grid = GridBuilder.builder()
-                .row(1, "1[27][167] [589][458]3 [2468][2469][4569]")
-                .row(2, "3[478][489] [247][578][68] 1[678][2468]")
-                .row(3, "[2478][459][457] [269][2689][467] 13[568]")
+                .row(4, "[269][59][256] 387 [25]41")
+                .row(5, "[78]1[3578] 642 [578][358]9")
+                .row(6, "48[237] 591 [27]6[37]")
                 .build();
-        
+
         Optional<PointingPair> opt = PointingPair.findNext(grid);
         
         assertTrue(opt.isPresent());
         PointingPair pp = opt.get();
-        assertSame(Value.SEVEN, pp.getValue());
-        assertEquals(ImmutableSet.of(new Position(2, 2), new Position(3, 1), new Position(3, 3)), pp.getTargets());
-    }
-    
-    @Test
-    public void pointingPairMustBeConfinedToBox() {
-        Grid grid = GridBuilder.builder()
-                .row(1, "1[2347][2347] 8[36][569] [678][459][2369]")
-                .row(2, "5[2347][23478] [5689][345]1 [2467][589][345]")
-                .row(3, "[3456][23457][1345] [23456][23457][456789] [456789][1345][23457]")
-                // Add a fourth row to make sure we don't find PointingPair along the columns of
-                // the first three rows.
-                .fullyUnknownRow(4)
-                .build();
-        
-        Optional<PointingPair> opt = PointingPair.findNext(grid);
-        
-        assertFalse(opt.isPresent());
+        assertSame(Value.EIGHT, pp.getValue());
+        assertEquals(ImmutableSet.of(new Position(5, 1), new Position(5, 3)), pp.getTargets());
     }
 
 }

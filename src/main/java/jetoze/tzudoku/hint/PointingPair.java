@@ -11,8 +11,8 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -21,7 +21,6 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
-import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -48,13 +47,9 @@ public class PointingPair implements Hint {
     
     private static House.Type getHouseType(Set<Position> positions) {
         checkArgument(isContainedInHouse(positions, Position::getBox));
-        if (isContainedInHouse(positions, Position::getRow)) {
-            return Type.ROW;
-        } else if (isContainedInHouse(positions, Position::getColumn)) {
-            return Type.COLUMN;
-        } else {
-            throw new IllegalArgumentException("Not contained to a single row or column");
-        }
+        House house = House.inRowOrColumn(positions).orElseThrow(() -> 
+            new IllegalArgumentException("Not contained to a single row or column"));
+        return house.getType();
     }
     
     private static Comparator<Position> getSortOrder(House.Type houseType) {
@@ -115,12 +110,10 @@ public class PointingPair implements Hint {
     
     public static Optional<PointingPair> findNext(Grid grid) {
         requireNonNull(grid);
-        return House.ALL.stream()
-                // Since we are only interested in candidates in the same row or column, 
-                // we do not have to look in Boxes.
-                .filter(house -> house.getType() != House.Type.BOX)
+        return IntStream.rangeClosed(1, 9)
+                .mapToObj(House.Type.BOX::createHouse)
                 .map(house -> new Detector(grid, house))
-                .map(Detector::findNext)
+                .map(Detector::find)
                 .filter(Objects::nonNull)
                 .findAny();
     }
@@ -137,16 +130,16 @@ public class PointingPair implements Hint {
     
     private static class Detector {
         private final Grid grid;
-        private final House house;
+        private final House box;
         
-        public Detector(Grid grid, House house) {
+        public Detector(Grid grid, House box) {
             this.grid = grid;
-            this.house = house;
+            this.box = box;
         }
         
         @Nullable
-        public PointingPair findNext() {
-            EnumSet<Value> remainingValues = house.getRemainingValues(grid);
+        public PointingPair find() {
+            EnumSet<Value> remainingValues = box.getRemainingValues(grid);
             if (remainingValues.size() < 2) {
                 // We need at least two positions to form a pointing pair.
                 return null;
@@ -160,34 +153,18 @@ public class PointingPair implements Hint {
         
         @Nullable
         private PointingPair examine(Value value) {
-            // Find the candidates for the given value in the House.
-            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, house);
-            // Are the candidates in the same line in the same box?
-            if (isLine(candidates) && isContainedInHouse(candidates, Position::getBox)) {
-                int boxNumber = candidates.iterator().next().getBox();
-                // We can now rule out value as a candidate from all the cells 
-                // in this row/column that are in a different box, as well as 
-                // the other cells in this box. Are there any such candidates?
-                Stream<Position> otherBoxes = house.getPositions()
-                        .filter(p -> p.getBox() != boxNumber);
-                Stream<Position> sameBox = new House(House.Type.BOX, boxNumber).getPositions()
-                        .filter(Predicate.not(candidates::contains));
-                
-                ImmutableSet<Position> targets = HintUtils.collectCandidates(grid, value, Stream.concat(otherBoxes, sameBox));
-                if (!targets.isEmpty()) {
-                    return new PointingPair(grid, value, candidates, targets);
-                }
-            }
-            return null;
-        }
-        
-        private boolean isLine(ImmutableSet<Position> candidates) {
-            if (candidates.size() < 2) {
-                // Need at least two candidates to form a line.
-                return false;
-            }
-            return isContainedInHouse(candidates, Position::getRow) ||
-                    isContainedInHouse(candidates, Position::getColumn);
+            ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, box);
+            // Are the candidates in the same row or column? If so, collect candidate cells
+            // from the same row or column, outside of this box.
+            // FIXME: This does a little too much work if the candidates are not in a line.
+            Stream<Position> positionsToLookAt = House.inRowOrColumn(candidates)
+                .stream()
+                .flatMap(House::getPositions)
+                .filter(p -> p.getBox() != this.box.getNumber());
+            ImmutableSet<Position> targets = HintUtils.collectCandidates(grid, value, positionsToLookAt);
+            return targets.isEmpty()
+                    ? null
+                    : new PointingPair(grid, value, candidates, targets);
         }
     }
 }
