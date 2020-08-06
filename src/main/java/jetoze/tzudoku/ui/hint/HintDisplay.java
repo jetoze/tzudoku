@@ -41,42 +41,36 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
     
     public void showHintInfo(Hint hint) {
         requireNonNull(hint);
-        HintCellDecorator decorator = cellDecorators.getDecorator(hint);
-        decorator.decorate();
-        try {
-            if (hint instanceof Single) {
-                showSingleInfo((Single) hint);
-            } else if (hint instanceof PointingPair) {
-                showPointingPairInfo((PointingPair) hint);
-            } else if (hint instanceof BoxLineReduction) {
-                showBoxLineReductionInfo((BoxLineReduction) hint);
-            } else if (hint instanceof NakedMultiple) {
-                showNakedMultipleInfo((NakedMultiple) hint);
-            } else if (hint instanceof HiddenMultiple) {
-                showHiddenMultipleInfo((HiddenMultiple) hint);
-            } else if (hint instanceof XWing) {
-                showXWingInfo((XWing) hint);
-            } else if (hint instanceof XyWing) {
-                showXyWingInfo((XyWing) hint);
-            } else if (hint instanceof SimpleColoring) {
-                showSimpleColoringInfo((SimpleColoring) hint);
-            } else if (hint instanceof Swordfish) {
-                showSwordfishInfo((Swordfish) hint);
-            } else {
-                throw new UnsupportedOperationException("I don't know how to display hints of type " + hint.getTechnique());
-            }
-        } finally {
-            decorator.clear();
+        if (hint instanceof Single) {
+            showSingleInfo((Single) hint);
+        } else if (hint instanceof PointingPair) {
+            showPointingPairInfo((PointingPair) hint);
+        } else if (hint instanceof BoxLineReduction) {
+            showBoxLineReductionInfo((BoxLineReduction) hint);
+        } else if (hint instanceof NakedMultiple) {
+            showNakedMultipleInfo((NakedMultiple) hint);
+        } else if (hint instanceof HiddenMultiple) {
+            showHiddenMultipleInfo((HiddenMultiple) hint);
+        } else if (hint instanceof XWing) {
+            showXWingInfo((XWing) hint);
+        } else if (hint instanceof XyWing) {
+            showXyWingInfo((XyWing) hint);
+        } else if (hint instanceof SimpleColoring) {
+            showSimpleColoringInfo((SimpleColoring) hint);
+        } else if (hint instanceof Swordfish) {
+            showSwordfishInfo((Swordfish) hint);
+        } else {
+            throw new UnsupportedOperationException("I don't know how to display hints of type " + hint.getTechnique());
         }
     }
     
-    private void showSingleInfo(Single single) {
+    public void showSingleInfo(Single single) {
         String s = "<html>Found a " + single.getTechnique().getName() + ":<br>" + single.getPosition() + 
                 "<br>Value: " + single.getValue() + "</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        showHintInfo(single, s);
     }
 
-    private void showPointingPairInfo(PointingPair pointingPair) {
+    public void showPointingPairInfo(PointingPair pointingPair) {
         String s = "<html>Found a Pointing Pair:<br><br>" +
                 "The digit " + pointingPair.getValue() + " in " +
                 pointingPair.getBox() + " is confined to positions " +
@@ -89,10 +83,10 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                     .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        showHintInfo(pointingPair, s);
     }
 
-    private void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
+    public void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
         House rowOrColumn = boxLineReduction.getRowOrColumn();
         String s = "<html>Found a Box Line Reduction:<br><br>" +
                 "The digit " + boxLineReduction.getValue() + " in " +
@@ -107,19 +101,19 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                     .sorted(Type.BOX.positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + boxLineReduction.getBox() + ".</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        showHintInfo(boxLineReduction, s);
     }
     
-    private void showNakedMultipleInfo(NakedMultiple multiple) {
+    public void showNakedMultipleInfo(NakedMultiple multiple) {
         StringBuilder s = new StringBuilder("<html>Found a ")
                 .append(multiple.getTechnique().getName())
                 .append(":<br>");
         multiple.getForcingPositions().forEach(p -> s.append(p).append("<br>"));
         s.append("Values: ").append(multiple.getValues()).append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        showHintInfo(multiple, s.toString());
     }
     
-    private void showHiddenMultipleInfo(HiddenMultiple multiple) {
+    public void showHiddenMultipleInfo(HiddenMultiple multiple) {
         StringBuilder s = new StringBuilder("<html>Found a ")
                 .append(multiple.getTechnique().getName())
                 .append(" of ")
@@ -131,10 +125,10 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                 .append(sortedStringOfValues(multiple.getValuesToEliminate(t)))
                 .append("<br>");
         }
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        showHintInfo(multiple, s.toString());
     }
     
-    private void showXWingInfo(XWing xwing) {
+    public void showXWingInfo(XWing xwing) {
         StringBuilder s = new StringBuilder("<html>Found an X-Wing:<br><br>");
         s.append("Positions: ");
         s.append(xwing.getForcingPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
@@ -142,10 +136,10 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         s.append(xwing.getValue()).append(" can be eliminated from:<br>");
         s.append(xwing.getTargetPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
         s.append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        showHintInfo(xwing, s.toString());
     }
     
-    private void showXyWingInfo(XyWing xyWing) {
+    public void showXyWingInfo(XyWing xyWing) {
         StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
         s.append(xyWing.getCenter());
         xyWing.getWings().forEach(w -> s.append("<br>").append(w));
@@ -153,18 +147,18 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
             .append(" can be eliminated from these cells:");
         xyWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        showHintInfo(xyWing, s.toString());
     }
     
-    private void showSimpleColoringInfo(SimpleColoring simpleColoring) {
+    public void showSimpleColoringInfo(SimpleColoring simpleColoring) {
         // TODO: I need to include more info
         String s = "<html>Simple Coloring eliminates the value " + simpleColoring.getValue() + 
                 " from these cells:<br><br>" + simpleColoring.getTargets().stream().map(Object::toString).collect(joining(" ")) +
                 "</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        showHintInfo(simpleColoring, s);
     }
     
-    private void showSwordfishInfo(Swordfish swordfish) {
+    public void showSwordfishInfo(Swordfish swordfish) {
         String s = "<html>A Swordfish in " +
                 String.format("%s %d, %d, and %d ", (swordfish.getHouseType() == Type.ROW ? "rows" : "columns"), 
                         swordfish.getHouses().get(0).getNumber(),
@@ -173,11 +167,21 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                 "eliminates the value " + swordfish.getValue() + 
                 " from these cells:<br><br>" + swordfish.getTargetPositions().stream().map(Object::toString).collect(joining(" ")) +
                 "</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        showHintInfo(swordfish, s);
     }
 
     private static String sortedStringOfValues(Collection<Value> values) {
         return values.stream().sorted().map(Object::toString).collect(joining(" "));
+    }
+    
+    private void showHintInfo(Hint hint, String html) {
+        HintCellDecorator decorator = cellDecorators.getDecorator(hint);
+        decorator.decorate();
+        try {
+            JOptionPane.showMessageDialog(appFrame, new JLabel(html));
+        } finally {
+            decorator.clear();
+        }
     }
 
 }
