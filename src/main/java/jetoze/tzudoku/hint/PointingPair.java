@@ -11,9 +11,9 @@ import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
-import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
 
@@ -156,15 +156,12 @@ public class PointingPair implements Hint {
             ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, box);
             // Are the candidates in the same row or column? If so, collect candidate cells
             // from the same row or column, outside of this box.
-            // FIXME: This does a little too much work if the candidates are not in a line.
-            Stream<Position> positionsToLookAt = House.inRowOrColumn(candidates)
-                .stream()
-                .flatMap(House::getPositions)
-                .filter(p -> p.getBox() != this.box.getNumber());
-            ImmutableSet<Position> targets = HintUtils.collectCandidates(grid, value, positionsToLookAt);
-            return targets.isEmpty()
-                    ? null
-                    : new PointingPair(grid, value, candidates, targets);
+            return House.inRowOrColumn(candidates)
+                    .map(house -> house.getPositions().filter(Predicate.not(this.box::contains)))
+                    .map(positions -> HintUtils.collectCandidates(grid, value, positions))
+                    .filter(Predicate.not(Set::isEmpty))
+                    .map(targets -> new PointingPair(grid, value, candidates, targets))
+                    .orElse(null);
         }
     }
 }

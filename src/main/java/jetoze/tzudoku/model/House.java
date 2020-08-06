@@ -10,6 +10,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntFunction;
 import java.util.function.Predicate;
+import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -29,13 +30,15 @@ public class House {
      * Represents the types of houses.
      */
     public static enum Type {
-        ROW(Position::positionsInRow),
-        COLUMN(Position::positionsInColumn),
-        BOX(Position::positionsInBox);
+        ROW(Position::getRow, Position::positionsInRow),
+        COLUMN(Position::getColumn, Position::positionsInColumn),
+        BOX(Position::getBox, Position::positionsInBox);
         
         private final IntFunction<Stream<Position>> positionsSupplier;
+        private final ToIntFunction<Position> houseNumberFunction;
 
-        private Type(IntFunction<Stream<Position>> positionsSupplier) {
+        private Type(ToIntFunction<Position> houseNumberFunction, IntFunction<Stream<Position>> positionsSupplier) {
+            this.houseNumberFunction = houseNumberFunction;
             this.positionsSupplier = positionsSupplier;
         }
         
@@ -171,6 +174,13 @@ public class House {
      */
     public Stream<Position> getPositions() {
         return type.positions(number);
+    }
+    
+    /**
+     * Checks if the given position is contained in this House.
+     */
+    public boolean contains(Position p) {
+        return type.houseNumberFunction.applyAsInt(p) == this.number;
     }
 
     /**
