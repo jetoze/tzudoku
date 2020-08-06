@@ -21,33 +21,23 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class XyWing implements Hint {
+public class XyWing extends EliminatingHint {
     
-    private final Grid grid;
     private final Position center;
     private final ImmutableSet<Position> wings;
-    private final Value valueThatCanBeEliminated;
-    private final ImmutableSet<Position> targets;
 
     private XyWing(Grid grid, 
                    Position center, 
                    ImmutableSet<Position> wings,
                    Value valueThatCanBeEliminated,
                    ImmutableSet<Position> targets) {
-        this.grid = requireNonNull(grid);
+        super(SolvingTechnique.XY_WING, grid, ImmutableSet.<Position>builder().add(center).addAll(wings).build(),
+                valueThatCanBeEliminated, targets);
         this.center = requireNonNull(center);
         this.wings = requireNonNull(wings);
         checkArgument(!wings.contains(center));
-        this.valueThatCanBeEliminated = requireNonNull(valueThatCanBeEliminated);
-        this.targets = requireNonNull(targets);
         checkArgument(!targets.contains(center));
         checkArgument(Sets.intersection(wings, targets).isEmpty());
-        checkArgument(targets.stream().map(grid::cellAt).noneMatch(Cell::isGiven));
-    }
-
-    @Override
-    public SolvingTechnique getTechnique() {
-        return SolvingTechnique.XY_WING;
     }
 
     /**
@@ -68,22 +58,7 @@ public class XyWing implements Hint {
      * Returns the value that can be eliminated from the target cells.
      */
     public Value getValue() {
-        return valueThatCanBeEliminated;
-    }
-
-    /**
-     * Returns the positions of the target cells, from which the XY-wing's value can be eliminated.
-     */
-    public ImmutableSet<Position> getTargets() {
-        return targets;
-    }
-
-    /**
-     * Eliminates the XY-wing's value as a candidate from the target cells.
-     */
-    @Override
-    public void apply() {
-        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(valueThatCanBeEliminated));
+        return getValues().iterator().next();
     }
 
     /**

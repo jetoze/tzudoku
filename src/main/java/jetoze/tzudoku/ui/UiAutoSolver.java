@@ -9,6 +9,7 @@ import java.awt.event.WindowEvent;
 import java.time.Duration;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -24,6 +25,7 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.tzudoku.hint.BoxLineReduction;
+import jetoze.tzudoku.hint.EliminatingHint;
 import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.NakedMultiple;
@@ -185,29 +187,23 @@ public class UiAutoSolver {
             model.enterValue(single.getValue());
         }
         
-        private void applyHint(PointingPair pointingPair) {
-            setStatus(pointingPair.getTechnique().getName() + ": " + pointingPair.getValue());
-            removeCandidates(pointingPair.getTargetPositions(), ImmutableSet.of(pointingPair.getValue()));
+        private void applyHint(EliminatingHint hint) {
+            String valueString = hint.getValues().size() == 1
+                    ? hint.getValues().iterator().next().toString()
+                    : valuesAsSortedString(hint.getValues());
+            setStatus(hint.getTechnique().getName() + ": " + valueString);
+            removeCandidates(hint.getTargetPositions(), hint.getValues());
         }
         
-        private void applyHint(BoxLineReduction boxLineReduction) {
-            setStatus(boxLineReduction.getTechnique().getName() + ": " + boxLineReduction.getValue());
-            removeCandidates(boxLineReduction.getTargetPositions(), ImmutableSet.of(boxLineReduction.getValue()));
-        }
-        
-        private void applyHint(NakedMultiple multiple) {
-            setStatus(multiple.getTechnique().getName() + ": " + multiple.getValues().stream()
+        private String valuesAsSortedString(Set<Value> values) {
+            return values.stream()
                     .sorted()
                     .map(Object::toString)
-                    .collect(joining(" ")));
-            removeCandidates(multiple.getTargetPositions(), multiple.getValues());
+                    .collect(joining(" "));
         }
         
         private void applyHint(HiddenMultiple multiple) {
-            setStatus(multiple.getTechnique().getName() + ": " + multiple.getHiddenValues().stream()
-                    .sorted()
-                    .map(Object::toString)
-                    .collect(joining(" ")));
+            setStatus(multiple.getTechnique().getName() + ": " + valuesAsSortedString(multiple.getHiddenValues()));
             // XXX: This messes up Undo-Redo, since we can't apply this change
             // as an atomic operation at the moment.
             for (Position target : multiple.getTargets()) {
@@ -215,24 +211,9 @@ public class UiAutoSolver {
             }
         }
         
-        private void applyHint(XWing xwing) {
-            setStatus(xwing.getTechnique().getName() + ": " + xwing.getValue());
-            removeCandidates(xwing.getTargetPositions(), ImmutableSet.of(xwing.getValue()));
-        }
-        
-        private void applyHint(XyWing xyWing) {
-            setStatus(xyWing.getTechnique().getName() + ": " + xyWing.getValue());
-            removeCandidates(xyWing.getTargets(), ImmutableSet.of(xyWing.getValue()));
-        }
-        
         private void applyHint(SimpleColoring simpleColoring) {
             setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
             removeCandidates(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
-        }
-        
-        private void applyHint(Swordfish swordfish) {
-            setStatus(swordfish.getTechnique().getName() + ": " + swordfish.getValue());
-            removeCandidates(swordfish.getTargets(), ImmutableSet.of(swordfish.getValue()));
         }
         
         private void removeCandidates(Collection<Position> targets, Collection<Value> values) {

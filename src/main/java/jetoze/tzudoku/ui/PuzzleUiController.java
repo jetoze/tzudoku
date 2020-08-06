@@ -242,7 +242,7 @@ public class PuzzleUiController {
         xyWing.getWings().forEach(w -> s.append("<br>").append(w));
         s.append("<br><br>").append(xyWing.getValue().toInt())
             .append(" can be eliminated from these cells:");
-        xyWing.getTargets().forEach(t -> s.append("<br>").append(t));
+        xyWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
     }
@@ -270,7 +270,7 @@ public class PuzzleUiController {
                         swordfish.getHouses().get(1).getNumber(),
                         swordfish.getHouses().get(2).getNumber()) +
                 "eliminates the value " + swordfish.getValue() + 
-                " from these cells:<br><br>" + swordfish.getTargets().stream().map(Object::toString).collect(joining(" ")) +
+                " from these cells:<br><br>" + swordfish.getTargetPositions().stream().map(Object::toString).collect(joining(" ")) +
                 "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }

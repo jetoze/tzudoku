@@ -7,6 +7,7 @@ import java.util.Set;
 
 import com.google.common.collect.ImmutableSet;
 
+import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
@@ -32,6 +33,7 @@ public abstract class EliminatingHint implements Hint {
         checkArgument(forcingPositions.size() >= 2, "Must always have at least two forcing positions (got %s)", forcingPositions.size());
         checkArgument(!values.isEmpty(), "Must provide at least one Value to eliminate");
         checkArgument(!targetPositions.isEmpty(), "Must provide at least one target position");
+        checkArgument(targetPositions.stream().map(grid::cellAt).noneMatch(Cell::hasValue));
         this.forcingPositions = ImmutableSet.copyOf(forcingPositions);
         this.values = ImmutableSet.copyOf(values);
         this.targetPositions = ImmutableSet.copyOf(targetPositions);
