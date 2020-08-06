@@ -21,6 +21,8 @@ public enum SolvingTechnique {
     
     POINTING_PAIR("Pointing Pair", PointingPair::findNext),
     
+    BOX_LINE_REDUCTION("Box Line Reduction", BoxLineReduction::findNext),
+    
     NAKED_TRIPLE("Naked Triple", NakedMultiple::findNakedTriple),
     
     NAKED_QUADRUPLE("Naked Quadruple", NakedMultiple::findNakedQuadruple),
@@ -39,7 +41,6 @@ public enum SolvingTechnique {
     
     SWORDFISH("Swordfish", Swordfish::findNext);
     
-    // TODO: Box Line Reduction
     // TODO: W-Wing
     // TODO: Two String Kite.
 

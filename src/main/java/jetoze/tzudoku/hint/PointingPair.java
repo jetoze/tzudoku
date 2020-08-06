@@ -102,6 +102,7 @@ public class PointingPair implements Hint {
         HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
     }
 
+    @Override
     public String toString() {
         return String.format("Positions: %s (Digit: %s)", positions, value);
     }

@@ -19,6 +19,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
+import jetoze.tzudoku.hint.BoxLineReduction;
 import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.NakedMultiple;
 import jetoze.tzudoku.hint.PointingPair;
@@ -29,6 +30,7 @@ import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
+import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
@@ -120,8 +122,29 @@ public class PuzzleUiController {
     }
     
     private void showPointingPairInfo(PointingPair pointingPair) {
-        // TODO: This can obviously be done in a fancier way.
         String s = "<html>Found a Pointing Pair:<br>" + pointingPair + "</html>";
+        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+    }
+    
+    public void lookForBoxLineReduction() {
+        runHintCheck(BoxLineReduction::findNext, this::showBoxLineReductionInfo, "Did not find any Box Line Reductions :(");
+    }
+
+    private void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
+        House rowOrColumn = boxLineReduction.getRowOrColumn();
+        String s = "<html>Found a Box Line Reduction:<br>" +
+                "The digit " + boxLineReduction.getValue() + " in " +
+                rowOrColumn + " is confined to positions " +
+                boxLineReduction.getPositions().stream()
+                    .sorted(rowOrColumn.getType().positionOrder())
+                    .map(Object::toString)
+                    .collect(joining(" ")) +
+                " in " + boxLineReduction.getBox() + "<br>" +
+                boxLineReduction.getValue() + " can therefore be eliminated from " +
+                boxLineReduction.getTargets().stream()
+                    .sorted(Type.BOX.positionOrder())
+                    .map(Object::toString)
+                    .collect(joining(" ")) + " in " + boxLineReduction.getBox() + ".</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
     
@@ -130,7 +153,6 @@ public class PuzzleUiController {
     }
     
     private void showSingleInfo(Single single) {
-        // TODO: This can obviously be done in a fancier way.
         String s = "<html>Found a Hidden Single:<br>" + single.getPosition() + 
                 "<br>Value: " + single.getValue() + "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));

@@ -23,6 +23,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
+import jetoze.tzudoku.hint.BoxLineReduction;
 import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.NakedMultiple;
@@ -157,6 +158,8 @@ public class UiAutoSolver {
                     applyHint((Single) hint);
                 } else if (hint instanceof PointingPair) {
                     applyHint((PointingPair) hint);
+                } else if (hint instanceof BoxLineReduction) {
+                    applyHint((BoxLineReduction) hint);
                 } else if (hint instanceof NakedMultiple) {
                     applyHint((NakedMultiple) hint);
                 } else if (hint instanceof HiddenMultiple) {
@@ -185,6 +188,11 @@ public class UiAutoSolver {
         private void applyHint(PointingPair pointingPair) {
             setStatus(pointingPair.getTechnique().getName() + ": " + pointingPair.getValue());
             removeCandidates(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
+        }
+        
+        private void applyHint(BoxLineReduction boxLineReduction) {
+            setStatus(boxLineReduction.getTechnique().getName() + ": " + boxLineReduction.getValue());
+            removeCandidates(boxLineReduction.getTargets(), ImmutableSet.of(boxLineReduction.getValue()));
         }
         
         private void applyHint(NakedMultiple multiple) {

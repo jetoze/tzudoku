@@ -188,6 +188,7 @@ public class ControlPanel {
                 new JSeparator(),
                 new JMenuItem(createAction("Look for Hidden Single", controller::lookForHiddenSingle)),
                 new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
+                new JMenuItem(createAction("Look for Box Line Reduction", controller::lookForBoxLineReduction)),
                 new JMenuItem(createAction("Look for Naked Triple", controller::lookForNakedTriple)),
                 new JMenuItem(createAction("Look for Naked Quadruple", controller::lookForNakedQuadruple)),
                 new JMenuItem(createAction("Look for Hidden Pair", controller::lookForHiddenPair)),

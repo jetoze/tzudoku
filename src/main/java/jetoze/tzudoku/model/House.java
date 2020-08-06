@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -51,8 +52,44 @@ public class House {
             return positionsSupplier.apply(num);
         }
         
+        /**
+         * Creates a House of this type with the given number.
+         */
         public final House createHouse(int num) {
             return new House(this, num);
+        }
+
+        /**
+         * Returns a Comparator that sorts Positions belonging to a House of this type
+         * in the order in which they appear in the House. The positions in a Row are sorted
+         * by their Column number, and vice versa. The positions in a Box are sorted by
+         * Row and Column.
+         */
+        public final Comparator<Position> positionOrder() {
+            switch (this) {
+            case ROW:
+                return Comparator.comparing(Position::getColumn);
+            case COLUMN:
+                return Comparator.comparing(Position::getRow);
+            case BOX:
+                return Comparator.comparing(Position::getRow).thenComparing(Position::getColumn);
+            default:
+                throw new RuntimeException("Unknown house type: " + this);
+            }
+        }
+        
+        @Override
+        public final String toString() {
+            switch (this) {
+            case ROW:
+                return "Row";
+            case COLUMN:
+                return "Column";
+            case BOX:
+                return "Box";
+            default:
+                throw new RuntimeException("Unknown house type: " + this);
+            }
         }
     };
     
