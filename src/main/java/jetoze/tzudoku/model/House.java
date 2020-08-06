@@ -153,14 +153,24 @@ public class House {
         if (positions.size() < 2) {
             return Optional.empty();
         }
-        boolean allInSameBox = positions.stream()
-                .mapToInt(Type.BOX.houseNumberFunction)
-                .distinct()
-                .count() == 1L;
-        return allInSameBox
+        return allInSameBox(positions)
                 ? Optional.of(box(positions.iterator().next().getBox()))
                 : Optional.empty();
     }
+    
+    /**
+     * Checks if the given positions all belong to the same box.
+     * 
+     * @return {@code true} for any non-empty set containing positions that all
+     *         belong to the same box.
+     */
+    public static boolean allInSameBox(Set<Position> positions) {
+        return positions.stream()
+                .mapToInt(Type.BOX.houseNumberFunction)
+                .distinct()
+                .count() == 1L;
+    }
+    
     /**
      * Returns the type of this House.
      */

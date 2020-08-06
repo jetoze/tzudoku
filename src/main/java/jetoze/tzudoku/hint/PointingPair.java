@@ -44,7 +44,7 @@ public class PointingPair implements Hint {
     }
     
     private static House.Type getHouseType(Set<Position> positions) {
-        checkArgument(House.ifInBox(positions).isPresent(), "Not contained to a box: %s", positions);
+        checkArgument(House.allInSameBox(positions), "Not contained to a box: %s", positions);
         House house = House.ifInRowOrColumn(positions).orElseThrow(() -> 
             new IllegalArgumentException("Not contained to a single row or column"));
         return house.getType();
