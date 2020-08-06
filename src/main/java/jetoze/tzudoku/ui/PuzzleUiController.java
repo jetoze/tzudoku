@@ -29,6 +29,7 @@ import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
+import jetoze.tzudoku.ui.hint.HintDisplay;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.

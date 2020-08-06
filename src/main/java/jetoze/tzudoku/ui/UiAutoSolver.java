@@ -59,6 +59,7 @@ public class UiAutoSolver {
      */
     private static final Duration HINT_DELAY = Duration.ofMillis(750L);
     
+    // TODO: Duplicated code in the ui.hints package. Move this class there.
     private static final CellColor SINGLE_COLOR = CellColor.GREEN;
     private static final CellColor FORCING_CELL_COLOR = CellColor.YELLOW;
     private static final CellColor TARGET_CELL_COLOR = CellColor.RED;

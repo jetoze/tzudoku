@@ -1,8 +1,9 @@
-package jetoze.tzudoku.ui;
+package jetoze.tzudoku.ui.hint;
 
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
@@ -11,6 +12,7 @@ import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.tzudoku.hint.BoxLineReduction;
+import jetoze.tzudoku.hint.EliminatingHint;
 import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.NakedMultiple;
@@ -21,11 +23,13 @@ import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
-import jetoze.tzudoku.model.House.Type;
+import jetoze.tzudoku.ui.GridUiModel;
+import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
 
-class HintDisplay {
+public class HintDisplay {
 
     // TODO: This is a bad name, but this class may be temporary anyway.
     private final JFrame appFrame;
@@ -62,12 +66,15 @@ class HintDisplay {
     }
     
     public void showSingleInfo(Single single) {
-        String s = "<html>Found a Hidden Single:<br>" + single.getPosition() + 
+        model.highlightCells(new HighlightedCells(single.getPosition(), HintHighlightColors.SINGLE_CELL));
+        String s = "<html>Found a " + single.getTechnique().getName() + ":<br>" + single.getPosition() + 
                 "<br>Value: " + single.getValue() + "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        model.clearHighlightColors();
     }
 
     public void showPointingPairInfo(PointingPair pointingPair) {
+        highlightCells(pointingPair);
         String s = "<html>Found a Pointing Pair:<br><br>" +
                 "The digit " + pointingPair.getValue() + " in " +
                 pointingPair.getBox() + " is confined to positions " +
@@ -81,9 +88,11 @@ class HintDisplay {
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        model.clearHighlightColors();
     }
 
     public void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
+        highlightCells(boxLineReduction);
         House rowOrColumn = boxLineReduction.getRowOrColumn();
         String s = "<html>Found a Box Line Reduction:<br><br>" +
                 "The digit " + boxLineReduction.getValue() + " in " +
@@ -99,15 +108,18 @@ class HintDisplay {
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + boxLineReduction.getBox() + ".</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        model.clearHighlightColors();
     }
     
     public void showNakedMultipleInfo(NakedMultiple multiple) {
+        highlightCells(multiple);
         StringBuilder s = new StringBuilder("<html>Found a ")
                 .append(multiple.getTechnique().getName())
                 .append(":<br>");
         multiple.getForcingPositions().forEach(p -> s.append(p).append("<br>"));
         s.append("Values: ").append(multiple.getValues()).append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        model.clearHighlightColors();
     }
     
     public void showHiddenMultipleInfo(HiddenMultiple multiple) {
@@ -126,6 +138,7 @@ class HintDisplay {
     }
     
     public void showXWingInfo(XWing xwing) {
+        highlightCells(xwing);
         StringBuilder s = new StringBuilder("<html>Found an X-Wing:<br><br>");
         s.append("Positions: ");
         s.append(xwing.getForcingPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
@@ -134,9 +147,11 @@ class HintDisplay {
         s.append(xwing.getTargetPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        model.clearHighlightColors();
     }
     
     public void showXyWingInfo(XyWing xyWing) {
+        highlightCells(xyWing);
         StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
         s.append(xyWing.getCenter());
         xyWing.getWings().forEach(w -> s.append("<br>").append(w));
@@ -145,6 +160,7 @@ class HintDisplay {
         xyWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        model.clearHighlightColors();
     }
     
     public void showSimpleColoringInfo(SimpleColoring simpleColoring) {
@@ -156,6 +172,7 @@ class HintDisplay {
     }
     
     public void showSwordfishInfo(Swordfish swordfish) {
+        highlightCells(swordfish);
         String s = "<html>A Swordfish in " +
                 String.format("%s %d, %d, and %d ", (swordfish.getHouseType() == Type.ROW ? "rows" : "columns"), 
                         swordfish.getHouses().get(0).getNumber(),
@@ -165,6 +182,14 @@ class HintDisplay {
                 " from these cells:<br><br>" + swordfish.getTargetPositions().stream().map(Object::toString).collect(joining(" ")) +
                 "</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        model.clearHighlightColors();
+    }
+    
+    private void highlightCells(EliminatingHint hint) {
+        model.highlightCells(Arrays.asList(
+                new HighlightedCells(hint.getForcingPositions(), HintHighlightColors.FORCING_CELL),
+                new HighlightedCells(hint.getTargetPositions(), HintHighlightColors.TARGET_CELL))
+        );
     }
 
     private static String sortedStringOfValues(Collection<Value> values) {
