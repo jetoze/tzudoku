@@ -1,11 +1,9 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -16,6 +14,7 @@ import java.util.stream.IntStream;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
@@ -28,42 +27,40 @@ public class PointingPair implements Hint {
     private final Value value;
     private final ImmutableSet<Position> positions;
     private final ImmutableSet<Position> targets;
+    private final House box;
+    private final House rowOrColumn;
     
     public PointingPair(Grid grid, Value value, Set<Position> positions, Set<Position> targets) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
-        checkArgument(positions.size() >= 2);
-        House.Type houseType = getHouseType(positions);
-        // Store the positions ordered by row or column depending on how they line up.
-        // Getting the comparator also verifies that the positions are indeed in a line.
-        Comparator<Position> order = getSortOrder(houseType);
-        this.positions = positions.stream()
-                .sorted(order)
-                .collect(toImmutableSet());
-        this.targets = ImmutableSet.copyOf(targets);
-    }
-    
-    private static House.Type getHouseType(Set<Position> positions) {
+        this.box = House.ifInBox(positions).orElseThrow(() -> 
+                new IllegalArgumentException("Not contained to a single box"));
         checkArgument(House.allInSameBox(positions), "Not contained to a box: %s", positions);
-        House house = House.ifInRowOrColumn(positions).orElseThrow(() -> 
+        this.rowOrColumn = House.ifInRowOrColumn(positions).orElseThrow(() -> 
             new IllegalArgumentException("Not contained to a single row or column"));
-        return house.getType();
-    }
-    
-    private static Comparator<Position> getSortOrder(House.Type houseType) {
-        switch (houseType) {
-        case ROW:
-            return Comparator.comparing(Position::getColumn);
-        case COLUMN:
-            return Comparator.comparing(Position::getRow);
-        default:
-            throw new RuntimeException("Unsupported House Type: " + houseType);
-        }
+        checkArgument(Sets.union(positions, targets).stream().allMatch(this.rowOrColumn::contains),
+                "positions and targets must all belong to the same %s", rowOrColumn.getType());
+        this.positions = ImmutableSet.copyOf(positions);
+        this.targets = ImmutableSet.copyOf(targets);
     }
     
     @Override
     public SolvingTechnique getTechnique() {
         return SolvingTechnique.POINTING_PAIR;
+    }
+
+    /**
+     * Returns the Box to which the pointing pair belongs.
+     */
+    public House getBox() {
+        return box;
+    }
+
+    /**
+     * Returns the Row or Column from which a value can be eliminated.
+     */
+    public House getRowOrColumn() {
+        return rowOrColumn;
     }
 
     /**

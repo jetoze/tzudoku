@@ -122,7 +122,18 @@ public class PuzzleUiController {
     }
     
     private void showPointingPairInfo(PointingPair pointingPair) {
-        String s = "<html>Found a Pointing Pair:<br>" + pointingPair + "</html>";
+        String s = "<html>Found a Pointing Pair:<br><br>" +
+                "The digit " + pointingPair.getValue() + " in " +
+                pointingPair.getBox() + " is confined to positions " +
+                pointingPair.getPositions().stream()
+                    .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
+                    .map(Object::toString)
+                    .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".<br>" +
+                pointingPair.getValue() + " can therefore be eliminated from " +
+                pointingPair.getTargets().stream()
+                    .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
+                    .map(Object::toString)
+                    .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".</html>";
         JOptionPane.showMessageDialog(appFrame, new JLabel(s));
     }
     
@@ -132,14 +143,14 @@ public class PuzzleUiController {
 
     private void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
         House rowOrColumn = boxLineReduction.getRowOrColumn();
-        String s = "<html>Found a Box Line Reduction:<br>" +
+        String s = "<html>Found a Box Line Reduction:<br><br>" +
                 "The digit " + boxLineReduction.getValue() + " in " +
                 rowOrColumn + " is confined to positions " +
                 boxLineReduction.getPositions().stream()
                     .sorted(rowOrColumn.getType().positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) +
-                " in " + boxLineReduction.getBox() + "<br>" +
+                " in " + boxLineReduction.getBox() + ".<br>" +
                 boxLineReduction.getValue() + " can therefore be eliminated from " +
                 boxLineReduction.getTargets().stream()
                     .sorted(Type.BOX.positionOrder())
