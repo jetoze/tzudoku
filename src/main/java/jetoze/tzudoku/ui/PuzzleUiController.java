@@ -1,21 +1,17 @@
 package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.joining;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Collection;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 import java.util.function.Function;
-import java.util.stream.Collectors;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
@@ -30,13 +26,9 @@ import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
-import jetoze.tzudoku.model.House;
-import jetoze.tzudoku.model.House.Type;
-import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
-import jetoze.tzudoku.model.Value;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
@@ -48,12 +40,15 @@ public class PuzzleUiController {
     
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
+    private final HintDisplay hintDisplay;
     private final StatusPanel statusPanel;
     
     public PuzzleUiController(JFrame appFrame, PuzzleUiModel model, StatusPanel statusPanel) {
         this.appFrame = requireNonNull(appFrame);
         this.puzzleModel = requireNonNull(model);
         this.statusPanel = requireNonNull(statusPanel);
+        // TODO: I should be injected too I think
+        this.hintDisplay = new HintDisplay(appFrame, model.getGridModel());
     }
     
     public void selectPuzzle() {
@@ -118,161 +113,51 @@ public class PuzzleUiController {
     }
     
     public void lookForPointingPair() {
-        runHintCheck(PointingPair::findNext, this::showPointingPairInfo,  "Did not find any Pointing Pairs :(");
-    }
-    
-    private void showPointingPairInfo(PointingPair pointingPair) {
-        String s = "<html>Found a Pointing Pair:<br><br>" +
-                "The digit " + pointingPair.getValue() + " in " +
-                pointingPair.getBox() + " is confined to positions " +
-                pointingPair.getForcingPositions().stream()
-                    .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".<br>" +
-                pointingPair.getValue() + " can therefore be eliminated from " +
-                pointingPair.getTargetPositions().stream()
-                    .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        runHintCheck(PointingPair::findNext, hintDisplay::showPointingPairInfo,  "Did not find any Pointing Pairs :(");
     }
     
     public void lookForBoxLineReduction() {
-        runHintCheck(BoxLineReduction::findNext, this::showBoxLineReductionInfo, "Did not find any Box Line Reductions :(");
-    }
-
-    private void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
-        House rowOrColumn = boxLineReduction.getRowOrColumn();
-        String s = "<html>Found a Box Line Reduction:<br><br>" +
-                "The digit " + boxLineReduction.getValue() + " in " +
-                rowOrColumn + " is confined to positions " +
-                boxLineReduction.getForcingPositions().stream()
-                    .sorted(rowOrColumn.getType().positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) +
-                " in " + boxLineReduction.getBox() + ".<br>" +
-                boxLineReduction.getValue() + " can therefore be eliminated from " +
-                boxLineReduction.getTargetPositions().stream()
-                    .sorted(Type.BOX.positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) + " in " + boxLineReduction.getBox() + ".</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        runHintCheck(BoxLineReduction::findNext, hintDisplay::showBoxLineReductionInfo, "Did not find any Box Line Reductions :(");
     }
     
     public void lookForHiddenSingle() {
-        runHintCheck(Single::findNextHidden, this::showSingleInfo, "Did not find any Hidden Singles :(");
-    }
-    
-    private void showSingleInfo(Single single) {
-        String s = "<html>Found a Hidden Single:<br>" + single.getPosition() + 
-                "<br>Value: " + single.getValue() + "</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        runHintCheck(Single::findNextHidden, hintDisplay::showSingleInfo, "Did not find any Hidden Singles :(");
     }
     
     public void lookForNakedTriple() {
-        runHintCheck(NakedMultiple::findNakedTriple, this::showNakedMultipleInfo, "Did not find any Naked Triples :(");
+        runHintCheck(NakedMultiple::findNakedTriple, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Triples :(");
     }
     
     public void lookForNakedQuadruple() {
-        runHintCheck(NakedMultiple::findNakedQuadruple, this::showNakedMultipleInfo, "Did not find any Naked Quadruples :(");
-    }
-    
-    private void showNakedMultipleInfo(NakedMultiple multiple) {
-        StringBuilder s = new StringBuilder("<html>Found a ")
-                .append(multiple.getTechnique().getName())
-                .append(":<br>");
-        multiple.getForcingPositions().forEach(p -> s.append(p).append("<br>"));
-        s.append("Values: ").append(multiple.getValues()).append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        runHintCheck(NakedMultiple::findNakedQuadruple, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Quadruples :(");
     }
     
     public void lookForHiddenPair() {
-        runHintCheck(HiddenMultiple::findHiddenPair, this::showHiddenMultipleInfo, "Did not find any Hidden Pairs :(");
+        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Pairs :(");
     }
     
     public void lookForHiddenTriple() {
-        runHintCheck(HiddenMultiple::findHiddenTriple, this::showHiddenMultipleInfo, "Did not find any Hidden Triples :(");
+        runHintCheck(HiddenMultiple::findHiddenTriple, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Triples :(");
     }
     
     public void lookForHiddenQuadruple() {
-        runHintCheck(HiddenMultiple::findHiddenPair, this::showHiddenMultipleInfo, "Did not find any Hidden Quadruples :(");
-    }
-    
-    private void showHiddenMultipleInfo(HiddenMultiple multiple) {
-        StringBuilder s = new StringBuilder("<html>Found a ")
-                .append(multiple.getTechnique().getName())
-                .append(" of ")
-                .append(sortedStringOfValues(multiple.getHiddenValues()))
-                .append("<br><br>Values that can be eliminated:<br>");
-        for (Position t : multiple.getTargets()) {
-            s.append(t)
-                .append(": ")
-                .append(sortedStringOfValues(multiple.getValuesToEliminate(t)))
-                .append("<br>");
-        }
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
-    }
-    
-    private static String sortedStringOfValues(Collection<Value> values) {
-        return values.stream().sorted().map(Object::toString).collect(joining(" "));
+        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Quadruples :(");
     }
     
     public void lookForXWing() {
-        runHintCheck(XWing::findNext, this::showXWingInfo, "Did not find any X-Wings :(");
-    }
-    
-    private void showXWingInfo(XWing xwing) {
-        StringBuilder s = new StringBuilder("<html>Found an X-Wing:<br><br>");
-        s.append("Positions: ");
-        s.append(xwing.getForcingPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
-        s.append("<br><br>");
-        s.append(xwing.getValue()).append(" can be eliminated from:<br>");
-        s.append(xwing.getTargetPositions().stream().map(Object::toString).collect(Collectors.joining(" ")));
-        s.append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        runHintCheck(XWing::findNext, hintDisplay::showXWingInfo, "Did not find any X-Wings :(");
     }
     
     public void lookForXyWing() {
-        runHintCheck(XyWing::findNext, this::showXyWingInfo, "Did not find any XY-Wings :(");
-    }
-    
-    private void showXyWingInfo(XyWing xyWing) {
-        StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
-        s.append(xyWing.getCenter());
-        xyWing.getWings().forEach(w -> s.append("<br>").append(w));
-        s.append("<br><br>").append(xyWing.getValue().toInt())
-            .append(" can be eliminated from these cells:");
-        xyWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
-        s.append("</html>");
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
+        runHintCheck(XyWing::findNext, hintDisplay::showXyWingInfo, "Did not find any XY-Wings :(");
     }
     
     public void lookForSimpleColoring() {
-        runHintCheck(SimpleColoring::findNext, this::showSimpleColoringInfo, "Did not find any Simple Coloring hint :(");
-    }
-    
-    private void showSimpleColoringInfo(SimpleColoring simpleColoring) {
-        // TODO: I need to include more info
-        String s = "<html>Simple Coloring eliminates the value " + simpleColoring.getValue() + 
-                " from these cells:<br><br>" + simpleColoring.getTargets().stream().map(Object::toString).collect(joining(" ")) +
-                "</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        runHintCheck(SimpleColoring::findNext, hintDisplay::showSimpleColoringInfo, "Did not find any Simple Coloring hint :(");
     }
     
     public void lookForSwordfish() {
-        runHintCheck(Swordfish::findNext, this::showSwordfishInfo, "Did not find any Swordfish :(");
-    }
-    
-    private void showSwordfishInfo(Swordfish swordfish) {
-        String s = "<html>A Swordfish in " +
-                String.format("%s %d, %d, and %d ", (swordfish.getHouseType() == Type.ROW ? "rows" : "columns"), 
-                        swordfish.getHouses().get(0).getNumber(),
-                        swordfish.getHouses().get(1).getNumber(),
-                        swordfish.getHouses().get(2).getNumber()) +
-                "eliminates the value " + swordfish.getValue() + 
-                " from these cells:<br><br>" + swordfish.getTargetPositions().stream().map(Object::toString).collect(joining(" ")) +
-                "</html>";
-        JOptionPane.showMessageDialog(appFrame, new JLabel(s));
+        runHintCheck(Swordfish::findNext, hintDisplay::showSwordfishInfo, "Did not find any Swordfish :(");
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
