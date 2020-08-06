@@ -39,6 +39,8 @@ public enum SolvingTechnique {
     
     SWORDFISH("Swordfish", Swordfish::findNext);
     
+    // TODO: Box Line Reduction
+    // TODO: W-Wing
     // TODO: Two String Kite.
 
     private final String name;
