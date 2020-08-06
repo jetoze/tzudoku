@@ -217,6 +217,9 @@ public class UiAutoSolver {
         }
         
         private void removeCandidates(Collection<Position> targets, Collection<Value> values) {
+            // TODO: Add a way to highlight cells in the grid with different colors, overriding
+            // their current background colors (that the user has assigned). Then highlight
+            // forcing positions in yellow (say) and target positions in red.
             model.selectCellsAt(targets);
             model.removeCandidatesFromCells(targets, values);
         }
