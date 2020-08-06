@@ -34,7 +34,7 @@ public class PointingPairTest {
         assertTrue(opt.isPresent());
         PointingPair pp = opt.get();
         assertSame(Value.SEVEN, pp.getValue());
-        assertEquals(ImmutableSet.of(new Position(1, 7), new Position(1, 8)), pp.getTargets());
+        assertEquals(ImmutableSet.of(new Position(1, 7), new Position(1, 8)), pp.getTargetPositions());
     }
     
     @Test
@@ -53,7 +53,7 @@ public class PointingPairTest {
         assertTrue(opt.isPresent());
         PointingPair pp = opt.get();
         assertSame(Value.EIGHT, pp.getValue());
-        assertEquals(ImmutableSet.of(new Position(5, 1), new Position(5, 3)), pp.getTargets());
+        assertEquals(ImmutableSet.of(new Position(5, 1), new Position(5, 3)), pp.getTargetPositions());
     }
 
 }

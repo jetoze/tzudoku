@@ -3,7 +3,6 @@ package jetoze.tzudoku.hint;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -17,80 +16,44 @@ import com.google.common.collect.Sets;
 
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
-import jetoze.tzudoku.model.House.Type;
 
 // FIXME: I am extremely similar to PointingPair, including how I am detected.
-public class BoxLineReduction implements Hint {
+public class BoxLineReduction extends EliminatingHint {
 
-    private final Grid grid;
-    private final Value value;
-    private final ImmutableSet<Position> positions;
-    private final ImmutableSet<Position> targets;
+    private final House rowOrColumn;
+    private final House box;
     
-    public BoxLineReduction(Grid grid, Value value, Set<Position> positions, Set<Position> targets) {
-        this.grid = requireNonNull(grid);
-        this.value = requireNonNull(value);
+    public BoxLineReduction(Grid grid, Set<Position> positions, Value value, Set<Position> targets) {
+        super(SolvingTechnique.BOX_LINE_REDUCTION, grid, positions, value, targets);
         House.ifInRowOrColumn(positions).orElseThrow(() -> 
             new IllegalArgumentException("positions must be contained to a single row or column"));
         checkArgument(House.allInSameBox(Sets.union(positions, targets)), "positions and targets must all belong to the same box");
-        this.positions = ImmutableSet.copyOf(positions);
-        this.targets = ImmutableSet.copyOf(targets);
-    }
-
-    @Override
-    public SolvingTechnique getTechnique() {
-        return SolvingTechnique.BOX_LINE_REDUCTION;
+        this.rowOrColumn = House.ifInRowOrColumn(positions).orElseThrow();
+        this.box = House.box(targets.iterator().next().getBox());
     }
     
     /**
      * Returns the Row or Column in which the forcing positions live.
      */
     public House getRowOrColumn() {
-        return House.ifInRowOrColumn(positions).orElseThrow();
+        return rowOrColumn;
     }
     
     /**
      * Returns the Box that is the subject to the reduction.
      */
     public House getBox() {
-        return House.box(targets.iterator().next().getBox());
-    }
-
-    /**
-     * Returns the value identified by this box line reduction, i.e. the value that can be
-     * eliminated from the target cells.
-     */
-    public Value getValue() {
-        return value;
-    }
-
-    /**
-     * Returns the positions that make up the reduction.
-     * 
-     * @return an ImmutableSet containing two or three positions.
-     */
-    public ImmutableSet<Position> getPositions() {
-        return positions;
-    }
-
-    /**
-     * Returns the targets that are affected by the pointing pair, i.e. the
-     * positions in the grid of those cells from which the value can be eliminated.
-     * 
-     * @return an ImmutableSet of one or more positions.
-     */
-    public ImmutableSet<Position> getTargets() {
-        return targets;
+        return box;
     }
     
     /**
-     * Removes the box line reduced value as a candidate from all target cells.
+     * Returns the value that can be eliminated.
      */
-    @Override
-    public void apply() {
-        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
+    public Value getValue() {
+        return getValues().iterator().next();
     }
 
     
@@ -137,7 +100,7 @@ public class BoxLineReduction implements Hint {
                     .map(box -> box.getPositions().filter(Predicate.not(candidates::contains)))
                     .map(positions -> HintUtils.collectCandidates(grid, value, positions))
                     .filter(Predicate.not(Set::isEmpty))
-                    .map(targets -> new BoxLineReduction(grid, value, candidates, targets))
+                    .map(targets -> new BoxLineReduction(grid, candidates, value, targets))
                     .orElse(null);
         }
     }

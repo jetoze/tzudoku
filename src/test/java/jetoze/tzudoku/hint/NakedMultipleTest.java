@@ -28,7 +28,7 @@ public class NakedMultipleTest {
         assertTrue(optTriple.isPresent());
         NakedMultiple multiple = optTriple.get();
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
-        assertEquals(ImmutableSet.of(new Position(1, 4), new Position(1, 5), new Position(1, 8)), multiple.getPositions());
+        assertEquals(ImmutableSet.of(new Position(1, 4), new Position(1, 5), new Position(1, 8)), multiple.getForcingPositions());
     }
 
     @Test
@@ -41,7 +41,7 @@ public class NakedMultipleTest {
         assertTrue(optTriple.isPresent());
         NakedMultiple multiple = optTriple.get();
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
-        assertEquals(ImmutableSet.of(new Position(4, 2), new Position(5, 2), new Position(8, 2)), multiple.getPositions());
+        assertEquals(ImmutableSet.of(new Position(4, 2), new Position(5, 2), new Position(8, 2)), multiple.getForcingPositions());
     }
     
     @Test
@@ -55,7 +55,7 @@ public class NakedMultipleTest {
         assertTrue(optTriple.isPresent());
         NakedMultiple multiple = optTriple.get();
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
-        assertEquals(ImmutableSet.of(new Position(1, 2), new Position(2, 1), new Position(3, 3)), multiple.getPositions());
+        assertEquals(ImmutableSet.of(new Position(1, 2), new Position(2, 1), new Position(3, 3)), multiple.getForcingPositions());
     }
     
 }

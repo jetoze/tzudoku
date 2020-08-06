@@ -187,12 +187,12 @@ public class UiAutoSolver {
         
         private void applyHint(PointingPair pointingPair) {
             setStatus(pointingPair.getTechnique().getName() + ": " + pointingPair.getValue());
-            removeCandidates(pointingPair.getTargets(), ImmutableSet.of(pointingPair.getValue()));
+            removeCandidates(pointingPair.getTargetPositions(), ImmutableSet.of(pointingPair.getValue()));
         }
         
         private void applyHint(BoxLineReduction boxLineReduction) {
             setStatus(boxLineReduction.getTechnique().getName() + ": " + boxLineReduction.getValue());
-            removeCandidates(boxLineReduction.getTargets(), ImmutableSet.of(boxLineReduction.getValue()));
+            removeCandidates(boxLineReduction.getTargetPositions(), ImmutableSet.of(boxLineReduction.getValue()));
         }
         
         private void applyHint(NakedMultiple multiple) {
@@ -200,7 +200,7 @@ public class UiAutoSolver {
                     .sorted()
                     .map(Object::toString)
                     .collect(joining(" ")));
-            removeCandidates(multiple.getTargets(), multiple.getValues());
+            removeCandidates(multiple.getTargetPositions(), multiple.getValues());
         }
         
         private void applyHint(HiddenMultiple multiple) {

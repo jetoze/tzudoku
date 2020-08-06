@@ -3,7 +3,6 @@ package jetoze.tzudoku.hint;
 import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collections;
 import java.util.EnumSet;
 import java.util.Objects;
 import java.util.Optional;
@@ -21,18 +20,13 @@ import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class PointingPair implements Hint {
+public class PointingPair extends EliminatingHint {
 
-    private final Grid grid;
-    private final Value value;
-    private final ImmutableSet<Position> positions;
-    private final ImmutableSet<Position> targets;
     private final House box;
     private final House rowOrColumn;
     
-    public PointingPair(Grid grid, Value value, Set<Position> positions, Set<Position> targets) {
-        this.grid = requireNonNull(grid);
-        this.value = requireNonNull(value);
+    public PointingPair(Grid grid, Set<Position> positions, Value value, Set<Position> targets) {
+        super(SolvingTechnique.POINTING_PAIR, grid, positions, value, targets);
         this.box = House.ifInBox(positions).orElseThrow(() -> 
                 new IllegalArgumentException("Not contained to a single box"));
         checkArgument(House.allInSameBox(positions), "Not contained to a box: %s", positions);
@@ -40,13 +34,6 @@ public class PointingPair implements Hint {
             new IllegalArgumentException("Not contained to a single row or column"));
         checkArgument(Sets.union(positions, targets).stream().allMatch(this.rowOrColumn::contains),
                 "positions and targets must all belong to the same %s", rowOrColumn.getType());
-        this.positions = ImmutableSet.copyOf(positions);
-        this.targets = ImmutableSet.copyOf(targets);
-    }
-    
-    @Override
-    public SolvingTechnique getTechnique() {
-        return SolvingTechnique.POINTING_PAIR;
     }
 
     /**
@@ -62,46 +49,17 @@ public class PointingPair implements Hint {
     public House getRowOrColumn() {
         return rowOrColumn;
     }
-
-    /**
-     * Returns the value identified by this pointing pair, i.e. the value that can be
-     * eliminated from the target cells.
-     */
-    public Value getValue() {
-        return value;
-    }
-
-    /**
-     * Returns the positions that make up the pointing pair.
-     * 
-     * @return an ImmutableSet containing two or three positions.
-     */
-    public ImmutableSet<Position> getPositions() {
-        return positions;
-    }
-
-    /**
-     * Returns the targets that are affected by the pointing pair, i.e. the
-     * positions in the grid of those cells from which the value can be eliminated.
-     * 
-     * @return an ImmutableSet of one or more positions.
-     */
-    public ImmutableSet<Position> getTargets() {
-        return targets;
-    }
     
     /**
-     * Removes the value of the pointing pair as a candidate from all cells seen by
-     * the pointing pair.
+     * Returns the value that can be eliminated.
      */
-    @Override
-    public void apply() {
-        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
+    public Value getValue() {
+        return getValues().iterator().next();
     }
 
     @Override
     public String toString() {
-        return String.format("Positions: %s (Digit: %s)", positions, value);
+        return String.format("Positions: %s (Digit: %s)", getForcingPositions(), getValues());
     }
     
     public static Optional<PointingPair> findNext(Grid grid) {
@@ -147,7 +105,7 @@ public class PointingPair implements Hint {
                     .map(house -> house.getPositions().filter(Predicate.not(this.box::contains)))
                     .map(positions -> HintUtils.collectCandidates(grid, value, positions))
                     .filter(Predicate.not(Set::isEmpty))
-                    .map(targets -> new PointingPair(grid, value, candidates, targets))
+                    .map(targets -> new PointingPair(grid, candidates, value, targets))
                     .orElse(null);
         }
     }

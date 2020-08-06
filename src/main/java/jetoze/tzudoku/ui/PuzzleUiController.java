@@ -125,12 +125,12 @@ public class PuzzleUiController {
         String s = "<html>Found a Pointing Pair:<br><br>" +
                 "The digit " + pointingPair.getValue() + " in " +
                 pointingPair.getBox() + " is confined to positions " +
-                pointingPair.getPositions().stream()
+                pointingPair.getForcingPositions().stream()
                     .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".<br>" +
                 pointingPair.getValue() + " can therefore be eliminated from " +
-                pointingPair.getTargets().stream()
+                pointingPair.getTargetPositions().stream()
                     .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".</html>";
@@ -146,13 +146,13 @@ public class PuzzleUiController {
         String s = "<html>Found a Box Line Reduction:<br><br>" +
                 "The digit " + boxLineReduction.getValue() + " in " +
                 rowOrColumn + " is confined to positions " +
-                boxLineReduction.getPositions().stream()
+                boxLineReduction.getForcingPositions().stream()
                     .sorted(rowOrColumn.getType().positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) +
                 " in " + boxLineReduction.getBox() + ".<br>" +
                 boxLineReduction.getValue() + " can therefore be eliminated from " +
-                boxLineReduction.getTargets().stream()
+                boxLineReduction.getTargetPositions().stream()
                     .sorted(Type.BOX.positionOrder())
                     .map(Object::toString)
                     .collect(joining(" ")) + " in " + boxLineReduction.getBox() + ".</html>";
@@ -181,7 +181,7 @@ public class PuzzleUiController {
         StringBuilder s = new StringBuilder("<html>Found a ")
                 .append(multiple.getTechnique().getName())
                 .append(":<br>");
-        multiple.getPositions().forEach(p -> s.append(p).append("<br>"));
+        multiple.getForcingPositions().forEach(p -> s.append(p).append("<br>"));
         s.append("Values: ").append(multiple.getValues()).append("</html>");
         JOptionPane.showMessageDialog(appFrame, new JLabel(s.toString()));
     }

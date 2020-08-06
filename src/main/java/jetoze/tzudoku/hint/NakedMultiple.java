@@ -22,55 +22,12 @@ import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class NakedMultiple implements Hint {
+public class NakedMultiple extends EliminatingHint {
 
-    private final Grid grid;
-    private final ImmutableSet<Position> positions;
-    private final ImmutableSet<Value> values;
-    private final ImmutableSet<Position> targets;
-    
-    public NakedMultiple(Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
-        checkArgument(positions.size() >= 2);
+    public NakedMultiple(SolvingTechnique solvingTechnique, Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
+        super(solvingTechnique, grid, positions, values, targets);
         checkArgument(positions.size() == values.size());
         checkArgument(Sets.intersection(positions, targets).isEmpty());
-        this.grid = requireNonNull(grid);
-        this.positions = ImmutableSet.copyOf(positions);
-        this.values = ImmutableSet.copyOf(values);
-        this.targets = ImmutableSet.copyOf(targets);
-    }
-
-    @Override
-    public SolvingTechnique getTechnique() {
-        switch (values.size()) {
-        case 2:
-            return SolvingTechnique.NAKED_PAIR;
-        case 3:
-            return SolvingTechnique.NAKED_TRIPLE;
-        case 4:
-            return SolvingTechnique.NAKED_QUADRUPLE;
-        default:
-            throw new RuntimeException("We need a SolvingTechnique for " + values.size() + " number of values");
-        }
-    }
-
-    public ImmutableSet<Position> getPositions() {
-        return positions;
-    }
-
-    public ImmutableSet<Value> getValues() {
-        return values;
-    }
-    
-    public ImmutableSet<Position> getTargets() {
-        return targets;
-    }
-
-    /**
-     * Removes the common values as candidates from the other positions in the same house.
-     */
-    @Override
-    public void apply() {
-        HintUtils.eliminateCandidates(grid, targets, values);
     }
 
     public static Optional<NakedMultiple> findNakedPair(Grid grid) {
@@ -137,11 +94,24 @@ public class NakedMultiple implements Hint {
                                 return !Sets.intersection(cell.getCenterMarks().getValues(), allCandidatesInGroup).isEmpty();
                             }).collect(toImmutableSet());
                     if (!targets.isEmpty()) {
-                        return new NakedMultiple(grid, group, allCandidatesInGroup, targets);
+                        return new NakedMultiple(deduceTechnique(size), grid, group, allCandidatesInGroup, targets);
                     }
                 }
             }
             return null;
+        }
+
+        private static SolvingTechnique deduceTechnique(int size) {
+            switch (size) {
+            case 2:
+                return SolvingTechnique.NAKED_PAIR;
+            case 3:
+                return SolvingTechnique.NAKED_TRIPLE;
+            case 4:
+                return SolvingTechnique.NAKED_QUADRUPLE;
+            default:
+                throw new RuntimeException("We need a SolvingTechnique for " + size + " number of values");
+            }
         }
     }
     
