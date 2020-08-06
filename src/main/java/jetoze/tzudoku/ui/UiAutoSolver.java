@@ -20,6 +20,7 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
@@ -35,11 +36,13 @@ import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.GridSolver.Result;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
+import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
 
 /**
  * Attempts to auto-solve the puzzle currently loaded into the UI, giving visual feedback
@@ -55,6 +58,10 @@ public class UiAutoSolver {
      * The delay between updating the UI with the next completed hint.
      */
     private static final Duration HINT_DELAY = Duration.ofMillis(750L);
+    
+    private static final CellColor SINGLE_COLOR = CellColor.GREEN;
+    private static final CellColor FORCING_CELL_COLOR = CellColor.YELLOW;
+    private static final CellColor TARGET_CELL_COLOR = CellColor.RED;
     
     private final JFrame appFrame;
     private final GridUiModel gridModel;
@@ -141,6 +148,7 @@ public class UiAutoSolver {
             UiThread.throwIfNotUiThread();
             timer.stop();
             progressDialog.close();
+            model.clearHighlightColors();
             if (model.getGrid().isSolved()) {
                 showSuccessMessage();
             } else {
@@ -156,6 +164,7 @@ public class UiAutoSolver {
         public void updateUi(Hint hint) {
             // XXX: Ugly casts here, of course.
             UiThread.run(() -> {
+                model.clearHighlightColors();
                 if (hint instanceof Single) {
                     applyHint((Single) hint);
                 } else if (hint instanceof PointingPair) {
@@ -182,9 +191,9 @@ public class UiAutoSolver {
         
         private void applyHint(Single single) {
             setStatus(single.getTechnique().getName() + ": " + single.getValue());
+            model.highlightCells(new HighlightedCells(single.getPosition(), SINGLE_COLOR));
             model.setEnterValueMode(EnterValueMode.NORMAL);
-            model.selectCellAt(single.getPosition());
-            model.enterValue(single.getValue());
+            model.enterValue(single.getPosition(), single.getValue());
         }
         
         private void applyHint(EliminatingHint hint) {
@@ -192,7 +201,15 @@ public class UiAutoSolver {
                     ? hint.getValues().iterator().next().toString()
                     : valuesAsSortedString(hint.getValues());
             setStatus(hint.getTechnique().getName() + ": " + valueString);
-            removeCandidates(hint.getTargetPositions(), hint.getValues());
+            highlightCells(hint.getForcingPositions(), hint.getTargetPositions());
+            model.removeCandidatesFromCells(hint.getTargetPositions(), hint.getValues());
+        }
+        
+        private void highlightCells(Collection<Position> forcingPositions, Collection<Position> targetPositions) {
+            model.highlightCells(ImmutableList.of(
+                    new HighlightedCells(forcingPositions, FORCING_CELL_COLOR),
+                    new HighlightedCells(targetPositions, TARGET_CELL_COLOR)
+            ));
         }
         
         private String valuesAsSortedString(Set<Value> values) {
@@ -204,24 +221,20 @@ public class UiAutoSolver {
         
         private void applyHint(HiddenMultiple multiple) {
             setStatus(multiple.getTechnique().getName() + ": " + valuesAsSortedString(multiple.getHiddenValues()));
+            // TODO: Also highlight forcing positions (currently not exposed by the HiddenMultiple class).
+            highlightCells(Collections.emptySet(), multiple.getTargets());
             // XXX: This messes up Undo-Redo, since we can't apply this change
             // as an atomic operation at the moment.
             for (Position target : multiple.getTargets()) {
-                removeCandidates(Collections.singleton(target), multiple.getValuesToEliminate(target));
+                model.removeCandidatesFromCells(Collections.singleton(target), multiple.getValuesToEliminate(target));
             }
         }
         
         private void applyHint(SimpleColoring simpleColoring) {
             setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
-            removeCandidates(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
-        }
-        
-        private void removeCandidates(Collection<Position> targets, Collection<Value> values) {
-            // TODO: Add a way to highlight cells in the grid with different colors, overriding
-            // their current background colors (that the user has assigned). Then highlight
-            // forcing positions in yellow (say) and target positions in red.
-            model.selectCellsAt(targets);
-            model.removeCandidatesFromCells(targets, values);
+            // TODO: Also highlight forcing positions (currently not exposed by the SimpleColoring class).
+            highlightCells(Collections.emptySet(), simpleColoring.getTargets());
+            model.removeCandidatesFromCells(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
         }
     }
     

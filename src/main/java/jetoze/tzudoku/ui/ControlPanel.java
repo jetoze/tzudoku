@@ -167,14 +167,14 @@ public class ControlPanel {
     }
 
     private PopupMenuButton createOptionsButton() {
-        JCheckBoxMenuItem highlightDuplicatesChoice = new JCheckBoxMenuItem("Highlight Duplicates");
+        JCheckBoxMenuItem showDuplicates = new JCheckBoxMenuItem("Show Duplicates");
         BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
-                Selectable.of(highlightDuplicatesChoice));
+                Selectable.of(showDuplicates));
         JCheckBoxMenuItem eliminateCandidatesChoice = new JCheckBoxMenuItem("Eliminate Candidates");
         BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
                 Selectable.of(eliminateCandidatesChoice));
         PopupMenuButton optionsButton = new PopupMenuButton("Options...", 
-                highlightDuplicatesChoice, 
+                showDuplicates, 
                 eliminateCandidatesChoice,
                 new JSeparator(),
                 new JMenuItem(createAction("Analyze...", controller::analyze)));

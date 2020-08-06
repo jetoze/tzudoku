@@ -7,9 +7,11 @@ import java.awt.Graphics2D;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import javax.annotation.Nullable;
 import javax.swing.JComponent;
 
 import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -19,6 +21,8 @@ class CellUi extends JComponent {
     private final BoardSize boardSize;
     private boolean selected;
     private boolean invalid;
+    @Nullable
+    private CellColor highlightColor;
 
     public CellUi(Position position, Cell cell, BoardSize boardSize) {
         this.position = requireNonNull(position);
@@ -66,12 +70,24 @@ class CellUi extends JComponent {
     public void setInvalid(boolean invalid) {
         this.invalid = invalid;
     }
+    
+    // TODO: Come up with a better name for this.
+    public void setHighlightColor(CellColor color) {
+        this.highlightColor = requireNonNull(color);
+    }
+    
+    public void clearHighlightColor() {
+        this.highlightColor = null;
+    }
 
     @Override
     protected void paintComponent(Graphics g) {
         super.paintComponent(g);
         Graphics2D g2 = (Graphics2D) g;
-        UiLook.fillCellBackground(g2, boardSize.getCellSize(), cell.getColor(), selected, invalid);
+        CellColor color = (this.highlightColor != null)
+                ? this.highlightColor
+                : cell.getColor();
+        UiLook.fillCellBackground(g2, boardSize.getCellSize(), color, selected, invalid);
         cell.getValue().ifPresentOrElse(value -> renderValue(g2, value), () -> renderPencilMarks(g2));
     }
 

@@ -44,8 +44,8 @@ public class GridUiModel {
     private ImmutableMap<Position, CellUi> cellUis;
     @Nullable
     private CellUi lastSelectedCell;
-    private final Property<Boolean> highlightDuplicateCells = Properties.newProperty(
-            "highlightDuplicateCells", Boolean.FALSE);
+    private final Property<Boolean> decorateDuplicateCells = Properties.newProperty(
+            "decoratetDuplicateCells", Boolean.FALSE);
     private final Property<Boolean> eliminateCandidates = Properties.newProperty(
             "eliminateDuplicates", Boolean.FALSE);
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
@@ -65,7 +65,7 @@ public class GridUiModel {
         this.cellUis = grid.getCells().entrySet().stream()
                 .collect(ImmutableMap.toImmutableMap(Entry::getKey, 
                         e -> new CellUi(e.getKey(), e.getValue(), size)));
-        this.highlightDuplicateCells.addListener(e -> onHighlightDuplicateCellsSelectionChanged());
+        this.decorateDuplicateCells.addListener(e -> onDecorateDuplicateCellsSelectionChanged());
     }
     
     public void setPuzzle(Puzzle puzzle) {
@@ -140,28 +140,28 @@ public class GridUiModel {
         }
     }
     
-    public void setHighlightDuplicateCells(boolean b) {
-        if (b == this.highlightDuplicateCells.get()) {
+    public void setDecorateDuplicateCells(boolean b) {
+        if (b == this.decorateDuplicateCells.get()) {
             return;
         }
-        this.highlightDuplicateCells.set(b);
-        onHighlightDuplicateCellsSelectionChanged();
+        this.decorateDuplicateCells.set(b);
+        onDecorateDuplicateCellsSelectionChanged();
     }
     
-    private void onHighlightDuplicateCellsSelectionChanged() {
+    private void onDecorateDuplicateCellsSelectionChanged() {
         // TODO: What if we are also currently displaying a ValidationResult?
         // See decorateInvalidCells(). --> Perhaps let that mode take precedence, 
         // and do the decoration here only if we're not currently displaying a 
         // validation result?
-        if (highlightDuplicateCells.get()) {
-            highlightDuplicateCells();
+        if (decorateDuplicateCells.get()) {
+            decorateDuplicateCells();
             notifyListeners(GridUiModelListener::onCellStateChanged);
         } else {
             removeInvalidCellsDecoration();
         }
     }
     
-    private void highlightDuplicateCells() {
+    private void decorateDuplicateCells() {
         ImmutableSet<Position> duplicates = grid.getCellsWithDuplicateValues();
         cellUis.forEach((p, c) -> c.setInvalid(duplicates.contains(p)));
     }
@@ -180,6 +180,14 @@ public class GridUiModel {
 
     public void enterValue(Value value) {
         Stream<Position> positions = getSelectedPositionsForValueInput();
+        enterValue(positions, value);
+    }
+    
+    public void enterValue(Position position, Value value) {
+        enterValue(Stream.of(position), value);
+    }
+    
+    private void enterValue(Stream<Position> positions, Value value) {
         applyValueToCells(positions, value);
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
@@ -308,11 +316,32 @@ public class GridUiModel {
     }
     
     public Property<Boolean> getHighlightDuplicateCellsProperty() {
-        return highlightDuplicateCells;
+        return decorateDuplicateCells;
     }
     
     public Property<Boolean> getEliminateCandidatesProperty() {
         return eliminateCandidates;
+    }
+    
+    public void highlightCells(HighlightedCells highlight) {
+        highlightCells(ImmutableSet.of(highlight));
+    }
+    
+    public void highlightCells(Collection<HighlightedCells> highlights) {
+        // This is not an undoable action because this is not something the user is 
+        // doing - it's done by the App itself in certain situations, such as highlighting
+        // an available hint.
+        highlights.forEach(hl -> {
+            hl.getPositions().stream()
+                .map(cellUis::get)
+                .forEach(cellUi -> cellUi.setHighlightColor(hl.getColor()));
+        });
+        notifyListeners(GridUiModelListener::onCellStateChanged);
+    }
+    
+    public void clearHighlightColors() {
+        cellUis.values().forEach(CellUi::clearHighlightColor);
+        notifyListeners(GridUiModelListener::onCellStateChanged);
     }
 
     public void undo() {
@@ -336,8 +365,8 @@ public class GridUiModel {
     }
 
     private void onCellValuesChanged() {
-        if (highlightDuplicateCells.get()) {
-            highlightDuplicateCells();
+        if (decorateDuplicateCells.get()) {
+            decorateDuplicateCells();
         }
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
@@ -585,4 +614,27 @@ public class GridUiModel {
         }
     }
 
+    
+    public static class HighlightedCells {
+        private final ImmutableSet<Position> positions;
+        private final CellColor color;
+
+        public HighlightedCells(Position position, CellColor color) {
+            this(ImmutableSet.of(position), color);
+        }
+        
+        public HighlightedCells(Collection<Position> positions, CellColor color) {
+            this.positions = ImmutableSet.copyOf(positions);
+            this.color = requireNonNull(color);
+        }
+
+        public ImmutableSet<Position> getPositions() {
+            return positions;
+        }
+
+        public CellColor getColor() {
+            return color;
+        }
+    }
+    
 }
