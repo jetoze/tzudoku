@@ -4,11 +4,17 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Collection;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
+
+import org.apache.commons.text.StringSubstitutor;
+
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.hint.BoxLineReduction;
 import jetoze.tzudoku.hint.HiddenMultiple;
@@ -70,38 +76,43 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         showHintInfo(single, s);
     }
 
-    public void showPointingPairInfo(PointingPair pointingPair) {
-        String s = "<html>Found a Pointing Pair:<br><br>" +
-                "The digit " + pointingPair.getValue() + " in " +
-                pointingPair.getBox() + " is confined to positions " +
-                pointingPair.getForcingPositions().stream()
-                    .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".<br>" +
-                pointingPair.getValue() + " can therefore be eliminated from " +
-                pointingPair.getTargetPositions().stream()
-                    .sorted(pointingPair.getRowOrColumn().getType().positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) + " in " + pointingPair.getRowOrColumn() + ".</html>";
-        showHintInfo(pointingPair, s);
+    public void showPointingPairInfo(PointingPair hint) {
+        String template = "<html>Found a Pointing Pair:<br><br>" +
+                "The digit ${value} in ${box} is confined to ${positions} in ${rowOrColumn}.<br>" +
+                "${value} can therefore be eliminated from ${targets} in ${rowOrColumn}.</html>";
+        String forcingPositions = toStringInOrder(hint.getForcingPositions(), hint.getRowOrColumn());
+        String targetPositions = toStringInOrder(hint.getTargetPositions(), hint.getRowOrColumn());
+        Map<String, Object> args = ImmutableMap.of(
+                "value", hint.getValue(),
+                "box", hint.getBox(),
+                "positions", forcingPositions,
+                "targets", targetPositions,
+                "rowOrColumn", hint.getRowOrColumn());
+        String html = new StringSubstitutor(args).replace(template);
+        showHintInfo(hint, html);
+    }
+    
+    private static String toStringInOrder(ImmutableSet<Position> positions, House house) {
+        return positions.stream()
+                .sorted(house.getType().positionOrder())
+                .map(Object::toString)
+                .collect(joining(" "));
     }
 
-    public void showBoxLineReductionInfo(BoxLineReduction boxLineReduction) {
-        House rowOrColumn = boxLineReduction.getRowOrColumn();
-        String s = "<html>Found a Box Line Reduction:<br><br>" +
-                "The digit " + boxLineReduction.getValue() + " in " +
-                rowOrColumn + " is confined to positions " +
-                boxLineReduction.getForcingPositions().stream()
-                    .sorted(rowOrColumn.getType().positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) +
-                " in " + boxLineReduction.getBox() + ".<br>" +
-                boxLineReduction.getValue() + " can therefore be eliminated from " +
-                boxLineReduction.getTargetPositions().stream()
-                    .sorted(Type.BOX.positionOrder())
-                    .map(Object::toString)
-                    .collect(joining(" ")) + " in " + boxLineReduction.getBox() + ".</html>";
-        showHintInfo(boxLineReduction, s);
+    public void showBoxLineReductionInfo(BoxLineReduction hint) {
+        String template = "<html>Found a Box Line Reduction:<br><br>" +
+                "The digit ${value} in ${rowOrColumn} is confined to positions ${positions} in ${box}.<br>" +
+                "${value} can therefore be eliminated from ${targets} in ${box}.</html>";
+        String forcingPositions = toStringInOrder(hint.getForcingPositions(), hint.getRowOrColumn());
+        String targetPositions = toStringInOrder(hint.getTargetPositions(), hint.getBox());
+        Map<String, Object> args = ImmutableMap.of(
+                "value", hint.getValue(),
+                "rowOrColumn", hint.getRowOrColumn(),
+                "positions", forcingPositions,
+                "targets", targetPositions,
+                "box", hint.getBox());
+        String html = new StringSubstitutor(args).replace(template);
+        showHintInfo(hint, html);
     }
     
     public void showNakedMultipleInfo(NakedMultiple multiple) {
