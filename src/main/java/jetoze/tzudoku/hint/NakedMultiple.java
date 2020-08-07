@@ -24,10 +24,26 @@ import jetoze.tzudoku.model.Value;
 
 public class NakedMultiple extends EliminatingHint {
 
-    public NakedMultiple(SolvingTechnique solvingTechnique, Grid grid, Set<Position> positions, Set<Value> values, Set<Position> targets) {
+    private final House house;
+    
+    public NakedMultiple(SolvingTechnique solvingTechnique, 
+                         Grid grid,
+                         House house,
+                         Set<Position> positions, 
+                         Set<Value> values, 
+                         Set<Position> targets) {
         super(solvingTechnique, grid, positions, values, targets);
+        this.house = requireNonNull(house);
         checkArgument(positions.size() == values.size());
         checkArgument(Sets.intersection(positions, targets).isEmpty());
+        checkArgument(Sets.union(positions, targets).stream().allMatch(house::contains));
+    }
+
+    /**
+     * Returns the House in which the multiple is confined.
+     */
+    public House getHouse() {
+        return house;
     }
 
     public static Optional<NakedMultiple> findNakedPair(Grid grid) {
@@ -94,7 +110,7 @@ public class NakedMultiple extends EliminatingHint {
                                 return !Sets.intersection(cell.getCenterMarks().getValues(), allCandidatesInGroup).isEmpty();
                             }).collect(toImmutableSet());
                     if (!targets.isEmpty()) {
-                        return new NakedMultiple(deduceTechnique(size), grid, group, allCandidatesInGroup, targets);
+                        return new NakedMultiple(deduceTechnique(size), grid, house, group, allCandidatesInGroup, targets);
                     }
                 }
             }

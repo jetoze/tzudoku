@@ -33,7 +33,7 @@ public class HiddenMultiple implements Hint {
     
     public HiddenMultiple(Grid grid, Set<Value> hiddenValues, Multimap<Position, Value> valuesToEliminate) {
         this.grid = requireNonNull(grid);
-        checkArgument(hiddenValues.size() > 2);
+        checkArgument(hiddenValues.size() >= 2);
         checkArgument(!valuesToEliminate.isEmpty());
         checkArgument(Sets.intersection(hiddenValues, new HashSet<>(valuesToEliminate.values())).isEmpty());
         this.hiddenValues = ImmutableSet.copyOf(hiddenValues);

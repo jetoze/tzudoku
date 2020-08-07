@@ -14,7 +14,6 @@ import javax.swing.JOptionPane;
 import org.apache.commons.text.StringSubstitutor;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.hint.BoxLineReduction;
 import jetoze.tzudoku.hint.HiddenMultiple;
@@ -80,8 +79,8 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         String template = "<html>Found a Pointing Pair:<br><br>" +
                 "The digit ${value} in ${box} is confined to ${positions} in ${rowOrColumn}.<br>" +
                 "${value} can therefore be eliminated from ${targets} in ${rowOrColumn}.</html>";
-        String forcingPositions = toStringInOrder(hint.getForcingPositions(), hint.getRowOrColumn());
-        String targetPositions = toStringInOrder(hint.getTargetPositions(), hint.getRowOrColumn());
+        String forcingPositions = positionsInOrder(hint.getForcingPositions(), hint.getRowOrColumn());
+        String targetPositions = positionsInOrder(hint.getTargetPositions(), hint.getRowOrColumn());
         Map<String, Object> args = ImmutableMap.of(
                 "value", hint.getValue(),
                 "box", hint.getBox(),
@@ -91,20 +90,13 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         String html = new StringSubstitutor(args).replace(template);
         showHintInfo(hint, html);
     }
-    
-    private static String toStringInOrder(ImmutableSet<Position> positions, House house) {
-        return positions.stream()
-                .sorted(house.getType().positionOrder())
-                .map(Object::toString)
-                .collect(joining(" "));
-    }
 
     public void showBoxLineReductionInfo(BoxLineReduction hint) {
         String template = "<html>Found a Box Line Reduction:<br><br>" +
                 "The digit ${value} in ${rowOrColumn} is confined to positions ${positions} in ${box}.<br>" +
                 "${value} can therefore be eliminated from ${targets} in ${box}.</html>";
-        String forcingPositions = toStringInOrder(hint.getForcingPositions(), hint.getRowOrColumn());
-        String targetPositions = toStringInOrder(hint.getTargetPositions(), hint.getBox());
+        String forcingPositions = positionsInOrder(hint.getForcingPositions(), hint.getRowOrColumn());
+        String targetPositions = positionsInOrder(hint.getTargetPositions(), hint.getBox());
         Map<String, Object> args = ImmutableMap.of(
                 "value", hint.getValue(),
                 "rowOrColumn", hint.getRowOrColumn(),
@@ -115,25 +107,31 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         showHintInfo(hint, html);
     }
     
-    public void showNakedMultipleInfo(NakedMultiple multiple) {
-        StringBuilder s = new StringBuilder("<html>Found a ")
-                .append(multiple.getTechnique().getName())
-                .append(":<br>");
-        multiple.getForcingPositions().forEach(p -> s.append(p).append("<br>"));
-        s.append("Values: ").append(multiple.getValues()).append("</html>");
-        showHintInfo(multiple, s.toString());
+    public void showNakedMultipleInfo(NakedMultiple hint) {
+        String template = "<html>Found a ${technique}:<br><br>" +
+                "The digits ${values} are confined to cells ${positions} in ${house}.<br>" +
+                "These values can therefore be eliminated from all other positions in the ${houseType}:<br>" +
+                "${targets}</html>";
+        Map<String, Object> args = ImmutableMap.of(
+                "technique", hint.getTechnique(),
+                "values", valuesInOrder(hint.getValues()),
+                "positions", positionsInOrder(hint.getForcingPositions(), hint.getHouse()),
+                "houseType", hint.getHouse().getType(),
+                "targets", positionsInOrder(hint.getTargetPositions(), hint.getHouse()));
+        String html = new StringSubstitutor(args).replace(template);
+        showHintInfo(hint, html);
     }
     
     public void showHiddenMultipleInfo(HiddenMultiple multiple) {
         StringBuilder s = new StringBuilder("<html>Found a ")
                 .append(multiple.getTechnique().getName())
                 .append(" of ")
-                .append(sortedStringOfValues(multiple.getHiddenValues()))
+                .append(valuesInOrder(multiple.getHiddenValues()))
                 .append("<br><br>Values that can be eliminated:<br>");
         for (Position t : multiple.getTargets()) {
             s.append(t)
                 .append(": ")
-                .append(sortedStringOfValues(multiple.getValuesToEliminate(t)))
+                .append(valuesInOrder(multiple.getValuesToEliminate(t)))
                 .append("<br>");
         }
         showHintInfo(multiple, s.toString());
@@ -181,10 +179,6 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         showHintInfo(swordfish, s);
     }
 
-    private static String sortedStringOfValues(Collection<Value> values) {
-        return values.stream().sorted().map(Object::toString).collect(joining(" "));
-    }
-    
     private void showHintInfo(Hint hint, String html) {
         HintCellDecorator decorator = cellDecorators.getDecorator(hint);
         decorator.decorate();
@@ -193,6 +187,17 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         } finally {
             decorator.clear();
         }
+    }
+
+    private static String valuesInOrder(Collection<Value> values) {
+        return values.stream().sorted().map(Object::toString).collect(joining(" "));
+    }
+    
+    private static String positionsInOrder(Collection<Position> positions, House house) {
+        return positions.stream()
+                .sorted(house.getType().positionOrder())
+                .map(Object::toString)
+                .collect(joining(" "));
     }
 
 }

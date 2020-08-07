@@ -3,8 +3,7 @@ package jetoze.tzudoku.hint;
 import static jetoze.tzudoku.model.Value.FIVE;
 import static jetoze.tzudoku.model.Value.FOUR;
 import static jetoze.tzudoku.model.Value.SIX;
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 import java.util.EnumSet;
 import java.util.Optional;
@@ -14,6 +13,7 @@ import org.junit.jupiter.api.Test;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 
 public class NakedMultipleTest {
@@ -27,6 +27,8 @@ public class NakedMultipleTest {
         Optional<NakedMultiple> optTriple = NakedMultiple.findNakedTriple(grid);
         assertTrue(optTriple.isPresent());
         NakedMultiple multiple = optTriple.get();
+        assertSame(SolvingTechnique.NAKED_TRIPLE, multiple.getTechnique());
+        assertEquals(House.row(1), multiple.getHouse());
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
         assertEquals(ImmutableSet.of(new Position(1, 4), new Position(1, 5), new Position(1, 8)), multiple.getForcingPositions());
     }
@@ -40,6 +42,8 @@ public class NakedMultipleTest {
         Optional<NakedMultiple> optTriple = NakedMultiple.findNakedTriple(grid);
         assertTrue(optTriple.isPresent());
         NakedMultiple multiple = optTriple.get();
+        assertSame(SolvingTechnique.NAKED_TRIPLE, multiple.getTechnique());
+        assertEquals(House.column(2), multiple.getHouse());
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
         assertEquals(ImmutableSet.of(new Position(4, 2), new Position(5, 2), new Position(8, 2)), multiple.getForcingPositions());
     }
@@ -54,6 +58,8 @@ public class NakedMultipleTest {
         Optional<NakedMultiple> optTriple = NakedMultiple.findNakedTriple(grid);
         assertTrue(optTriple.isPresent());
         NakedMultiple multiple = optTriple.get();
+        assertSame(SolvingTechnique.NAKED_TRIPLE, multiple.getTechnique());
+        assertEquals(House.box(1), multiple.getHouse());
         assertEquals(EnumSet.of(FOUR, FIVE, SIX), multiple.getValues());
         assertEquals(ImmutableSet.of(new Position(1, 2), new Position(2, 1), new Position(3, 3)), multiple.getForcingPositions());
     }
