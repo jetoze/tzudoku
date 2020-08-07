@@ -6,9 +6,9 @@ class HintHighlightColors {
 
     static final CellColor SINGLE_CELL = CellColor.GREEN;
     
-    static final CellColor FORCING_CELL = CellColor.YELLOW;
+    static final CellColor FORCING_CELL = CellColor.GRAY;
     
-    static final CellColor TARGET_CELL = CellColor.RED;
+    static final CellColor TARGET_CELL = CellColor.GREEN;
     
     private HintHighlightColors() {/**/}
 

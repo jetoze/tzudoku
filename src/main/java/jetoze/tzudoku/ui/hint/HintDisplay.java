@@ -112,12 +112,14 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                 "The digits ${values} are confined to cells ${positions} in ${house}.<br>" +
                 "These values can therefore be eliminated from all other positions in the ${houseType}:<br>" +
                 "${targets}</html>";
-        Map<String, Object> args = ImmutableMap.of(
-                "technique", hint.getTechnique(),
-                "values", valuesInOrder(hint.getValues()),
-                "positions", positionsInOrder(hint.getForcingPositions(), hint.getHouse()),
-                "houseType", hint.getHouse().getType(),
-                "targets", positionsInOrder(hint.getTargetPositions(), hint.getHouse()));
+        Map<String, Object> args = ImmutableMap.<String, Object>builder()
+                .put("technique", hint.getTechnique())
+                .put("values", valuesInOrder(hint.getValues()))
+                .put("positions", positionsInOrder(hint.getForcingPositions(), hint.getHouse()))
+                .put("house", hint.getHouse())
+                .put("houseType", hint.getHouse().getType())
+                .put("targets", positionsInOrder(hint.getTargetPositions(), hint.getHouse()))
+                .build();
         String html = new StringSubstitutor(args).replace(template);
         showHintInfo(hint, html);
     }
