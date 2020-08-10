@@ -60,8 +60,8 @@ public final class InventoryUi implements Widget {
                         puzzleInfo.getName(), puzzleInfo.getState(), lastUpdated);
             }
         });
-        ListBinding.bindAndSyncUi(model.getListItems(), list);
-        BooleanBinding.bindAndSyncUi(model.getShowCompletedPuzzles(), showCompletedPuzzlesCheckBox);
+        ListBinding.bind(model.getListItems(), list);
+        BooleanBinding.bind(model.getShowCompletedPuzzles(), showCompletedPuzzlesCheckBox);
         Binding.oneWayBinding(model.getListFilter(), list.getModel()::setFilter).syncUi();;
     }
     

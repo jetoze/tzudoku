@@ -50,7 +50,7 @@ public final class PuzzleBuilderUi implements Widget {
         nameField.selectAllWhenFocused();
         // TODO: Do we need to dispose the binding at some point? What is the 
         // lifetime of the model compared to the UI?
-        TextBinding.bindAndSyncUi(model.getPuzzleNameProperty(), nameField);
+        TextBinding.bind(model.getPuzzleNameProperty(), nameField);
     }
     
     public void setSaveAction(Runnable action) {

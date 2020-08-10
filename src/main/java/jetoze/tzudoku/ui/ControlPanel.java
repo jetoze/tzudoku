@@ -70,7 +70,8 @@ public class ControlPanel {
         UiLook.makeOverLarge(cornerPencilMarkModeButton);
         UiLook.makeOverLarge(centerPencilMarkModeButton);
         UiLook.makeOverLarge(colorModeButton);
-        EnumBinding.bindAndSyncUi(model.getEnterValueModeProperty(), ImmutableMap.of(
+        ToggleButtonWidget.makeExclusive(normalModeButton, cornerPencilMarkModeButton, centerPencilMarkModeButton);
+        EnumBinding.bind(model.getEnterValueModeProperty(), ImmutableMap.of(
                 EnterValueMode.NORMAL, normalModeButton,
                 EnterValueMode.CORNER_PENCIL_MARK, cornerPencilMarkModeButton,
                 EnterValueMode.CENTER_PENCIL_MARK, centerPencilMarkModeButton,
@@ -142,10 +143,10 @@ public class ControlPanel {
 
     private PopupMenuButton createOptionsButton() {
         JCheckBoxMenuItem showDuplicates = new JCheckBoxMenuItem("Show Duplicates");
-        BooleanBinding.bindAndSyncUi(model.getHighlightDuplicateCellsProperty(), 
+        BooleanBinding.bind(model.getHighlightDuplicateCellsProperty(), 
                 Selectable.of(showDuplicates));
         JCheckBoxMenuItem eliminateCandidatesChoice = new JCheckBoxMenuItem("Eliminate Candidates");
-        BooleanBinding.bindAndSyncUi(model.getEliminateCandidatesProperty(), 
+        BooleanBinding.bind(model.getEliminateCandidatesProperty(), 
                 Selectable.of(eliminateCandidatesChoice));
         PopupMenuButton optionsButton = new PopupMenuButton("Options...", 
                 showDuplicates, 
