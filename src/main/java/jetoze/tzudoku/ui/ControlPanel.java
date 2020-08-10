@@ -12,42 +12,43 @@ import java.util.List;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.ButtonGroup;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
-import javax.swing.JToggleButton;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 
 import jetoze.gunga.UiThread;
+import jetoze.gunga.binding.Binding;
 import jetoze.gunga.binding.BooleanBinding;
+import jetoze.gunga.binding.EnumBinding;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.PopupMenuButton;
 import jetoze.gunga.widget.Selectable;
+import jetoze.gunga.widget.ToggleButtonWidget;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
     // TODO: Move more things to the controller.
+    // TODO: The ControlPanel installs some Bindings on model properties. Is there a chance that
+    //       the model will outlive the ControlPanel? If so, we must dispose the bindings when we 
+    //       no longer need the ControlPanel.
     
     private final GridUiModel model;
     private final PuzzleUiController controller;
 
-    private final JToggleButton normalModeButton = new JToggleButton(
-            new SetEnterValueModeAction(EnterValueMode.NORMAL, "Normal"));
+    private final ToggleButtonWidget normalModeButton = new ToggleButtonWidget("Normal");
 
-    private final JToggleButton cornerPencilMarkModeButton = new JToggleButton(
-            new SetEnterValueModeAction(EnterValueMode.CORNER_PENCIL_MARK, "Corner"));
+    private final ToggleButtonWidget cornerPencilMarkModeButton = new ToggleButtonWidget("Corner");
 
-    private final JToggleButton centerPencilMarkModeButton = new JToggleButton(
-            new SetEnterValueModeAction(EnterValueMode.CENTER_PENCIL_MARK, "Center"));
+    private final ToggleButtonWidget centerPencilMarkModeButton = new ToggleButtonWidget("Center");
 
-    private final JToggleButton colorModeButton = new JToggleButton(
-            new SetEnterValueModeAction(EnterValueMode.COLOR, "Color"));
+    private final ToggleButtonWidget colorModeButton = new ToggleButtonWidget("Color");
     
     private final ImmutableList<EnterValueAction> valueActions;
     
@@ -60,42 +61,20 @@ public class ControlPanel {
                 .map(EnterValueAction::new)
                 .collect(toImmutableList());
         configureValueModeButtons();
-        // TODO: This should be done via an EnumBinding.
-        model.getEnterValueModeProperty().addListener(e -> onNewValueMode((EnterValueMode) e.getNewValue()));
+        Binding.oneWayBinding(model.getEnterValueModeProperty(), mode -> valueActions.forEach(a -> a.update(mode)));
         this.ui = layoutUi();
     }
 
     private void configureValueModeButtons() {
-        ButtonGroup buttonGroup = new ButtonGroup();
-        buttonGroup.add(normalModeButton);
-        buttonGroup.add(cornerPencilMarkModeButton);
-        buttonGroup.add(centerPencilMarkModeButton);
-        buttonGroup.add(colorModeButton);
         UiLook.makeOverLarge(normalModeButton);
         UiLook.makeOverLarge(cornerPencilMarkModeButton);
         UiLook.makeOverLarge(centerPencilMarkModeButton);
         UiLook.makeOverLarge(colorModeButton);
-        onNewValueMode(model.getEnterValueMode());
-    }
-
-    private void onNewValueMode(EnterValueMode mode) {
-        getValueModeButton(mode).setSelected(true);
-        valueActions.forEach(a -> a.update(mode));
-    }
-
-    private JToggleButton getValueModeButton(EnterValueMode mode) {
-        switch (mode) {
-        case NORMAL:
-            return normalModeButton;
-        case CORNER_PENCIL_MARK:
-            return cornerPencilMarkModeButton;
-        case CENTER_PENCIL_MARK:
-            return centerPencilMarkModeButton;
-        case COLOR:
-            return colorModeButton;
-        default:
-            throw new RuntimeException("Unknown mode: " + mode);
-        }
+        EnumBinding.bindAndSyncUi(model.getEnterValueModeProperty(), ImmutableMap.of(
+                EnterValueMode.NORMAL, normalModeButton,
+                EnterValueMode.CORNER_PENCIL_MARK, cornerPencilMarkModeButton,
+                EnterValueMode.CENTER_PENCIL_MARK, centerPencilMarkModeButton,
+                EnterValueMode.COLOR, colorModeButton));
     }
     
     public JPanel getUi() {
@@ -110,13 +89,13 @@ public class ControlPanel {
         c.gridx = 0;
         c.gridy = 0;
         c.gridwidth = 2;
-        top.add(normalModeButton, c);
+        top.add(normalModeButton.getUi(), c);
         c.gridy = 1;
-        top.add(cornerPencilMarkModeButton, c);
+        top.add(cornerPencilMarkModeButton.getUi(), c);
         c.gridy = 2;
-        top.add(centerPencilMarkModeButton, c);
+        top.add(centerPencilMarkModeButton.getUi(), c);
         c.gridy = 3;
-        top.add(colorModeButton, c);
+        top.add(colorModeButton.getUi(), c);
 
         c.gridx = 2;
         c.gridy = 3;
@@ -216,20 +195,7 @@ public class ControlPanel {
         };
     }
 
-    private class SetEnterValueModeAction extends AbstractAction {
-        private final EnterValueMode mode;
-
-        public SetEnterValueModeAction(EnterValueMode mode, String name) {
-            super(name);
-            this.mode = mode;
-        }
-
-        @Override
-        public void actionPerformed(ActionEvent e) {
-            UiThread.runLater(() -> model.setEnterValueMode(mode));
-        }
-    }
-
+    
     private class EnterValueAction extends AbstractAction {
         private final Value value;
 
