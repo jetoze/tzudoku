@@ -209,9 +209,10 @@ public class GridUiModel {
         updateContentOfSelectedCells(value, EnterValueMode.CENTER_PENCIL_MARK);
     }
     
-    // TODO: I should take a CellColor as input.
-    public void setCellColor(Value value) {
-        updateContentOfSelectedCells(value, EnterValueMode.COLOR);
+    public void setCellColor(CellColor color) {
+        requireNonNull(color);
+        SetColorAction action = new SetColorAction(color, getSelectedPositionsForValueInput(EnterValueMode.COLOR));
+        applyAction(action);
     }
     
     private void updateContentOfSelectedCells(Value value, EnterValueMode mode) {
@@ -221,6 +222,10 @@ public class GridUiModel {
     
     private void updateContentOfCells(Stream<Position> positions, Value value, EnterValueMode mode) {
         UndoableAction action = getApplyValueAction(positions, value, mode);
+        applyAction(action);
+    }
+
+    private void applyAction(UndoableAction action) {
         if (action.isNoOp()) {
             return;
         }
@@ -237,8 +242,7 @@ public class GridUiModel {
         case CENTER_PENCIL_MARK:
             return new TogglePencilMarkAction(value, Cell::getCenterMarks, positions);
         case COLOR:
-            CellColor color = CellColor.fromValue(value);
-            return new SetColorAction(color, positions);
+            throw new IllegalArgumentException("I should not be called with mode = " + EnterValueMode.COLOR.name());
         default:
             throw new RuntimeException("Unexpected mode: " + mode);
         }

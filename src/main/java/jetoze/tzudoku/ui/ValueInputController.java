@@ -9,6 +9,7 @@ import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.gunga.KeyBindings;
 import jetoze.gunga.KeyStrokes;
+import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Value;
 
 /**
@@ -68,7 +69,8 @@ public class ValueInputController { // TODO: Come up with a better name. "Value"
             model.toggleCenterMark(value);
             break;
         case COLOR:
-            model.setCellColor(value);
+            CellColor color = CellColor.fromValue(value);
+            model.setCellColor(color);
             break;
         default:
             throw new RuntimeException("Unknown mode: " + enterValueMode.get());
