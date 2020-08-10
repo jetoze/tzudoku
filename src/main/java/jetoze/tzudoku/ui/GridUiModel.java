@@ -48,14 +48,18 @@ public class GridUiModel {
             "decoratetDuplicateCells", Boolean.FALSE);
     private final Property<Boolean> eliminateCandidates = Properties.newProperty(
             "eliminateDuplicates", Boolean.FALSE);
-    private final Property<EnterValueMode> enterValueMode = Properties.newProperty(
-            "enterValueMode", EnterValueMode.NORMAL);
     private NavigationMode navigationMode = NavigationMode.WRAP_AROUND;
     // XXX: Does the Sandwiches really belong here?
     private final Property<Sandwiches> sandwiches;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
 
+
+    @Deprecated
+    private final Property<EnterValueMode> enterValueMode = Properties.newProperty(
+            "enterValueMode", EnterValueMode.NORMAL);
+
+    
     public GridUiModel(Puzzle puzzle, BoardSize size) {
         this(puzzle.getGrid(), puzzle.getSandwiches(), size);
     }
@@ -176,30 +180,58 @@ public class GridUiModel {
         cellUis.forEach((p, c) -> c.setInvalid(duplicates.contains(p)));
     }
 
+    @Deprecated
     public EnterValueMode getEnterValueMode() {
         return enterValueMode.get();
     }
 
+    @Deprecated
     public void setEnterValueMode(EnterValueMode enterValueMode) {
         this.enterValueMode.set(enterValueMode);
     }
 
+    /**
+     * Enters the given value into the currently selected cells. Any {@link Cell#isGiven() given} 
+     * cells in the selection are ignored. If any of the selected cells already contains a value,
+     * the old value is overwritten with the new one.
+     */
     public void enterValue(Value value) {
-        Stream<Position> positions = getSelectedPositionsForValueInput();
-        enterValue(positions, value);
+        updateContentOfSelectedCells(value, EnterValueMode.NORMAL);
     }
     
+    /**
+     * Enters the given value into the cell at the given position. If the cell already
+     * contains a value, that value is overwritten.
+     * 
+     * @throws IllegalArgumentException if position contains a cell that is
+     * {@link Cell#isGiven() given}.
+     */
     public void enterValue(Position position, Value value) {
-        enterValue(Stream.of(position), value);
+        requireNonNull(position);
+        checkArgument(!cellUis.get(position).isGiven(), "Cannot set the value of a given cell (at position %s)", position);
+        updateContentOfCells(Stream.of(position), value, EnterValueMode.NORMAL);
     }
     
-    private void enterValue(Stream<Position> positions, Value value) {
-        applyValueToCells(positions, value);
-        notifyListeners(GridUiModelListener::onCellStateChanged);
+    public void toggleCornerMark(Value value) {
+        updateContentOfSelectedCells(value, EnterValueMode.CORNER_PENCIL_MARK);
     }
-
-    private void applyValueToCells(Stream<Position> positions, Value value) {
-        UndoableAction action = getApplyValueAction(positions, value);
+    
+    public void toggleCenterMark(Value value) {
+        updateContentOfSelectedCells(value, EnterValueMode.CENTER_PENCIL_MARK);
+    }
+    
+    // TODO: I should take a CellColor as input.
+    public void setCellColor(Value value) {
+        updateContentOfSelectedCells(value, EnterValueMode.COLOR);
+    }
+    
+    private void updateContentOfSelectedCells(Value value, EnterValueMode mode) {
+        Stream<Position> positions = getSelectedPositionsForValueInput();
+        updateContentOfCells(positions, value, mode);;
+    }
+    
+    private void updateContentOfCells(Stream<Position> positions, Value value, EnterValueMode mode) {
+        UndoableAction action = getApplyValueAction(positions, value, mode);
         if (action.isNoOp()) {
             return;
         }
@@ -207,8 +239,8 @@ public class GridUiModel {
         action.perform();
     }
 
-    private UndoableAction getApplyValueAction(Stream<Position> positions, Value value) {
-        switch (enterValueMode.get()) {
+    private UndoableAction getApplyValueAction(Stream<Position> positions, Value value, EnterValueMode mode) {
+        switch (mode) {
         case NORMAL:
             return new SetValueAction(value, positions);
         case CORNER_PENCIL_MARK:
