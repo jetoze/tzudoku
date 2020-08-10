@@ -55,7 +55,7 @@ public class TzudokuApp {
         PuzzleUiController controller = new PuzzleUiController(frame, model, statusPanel);
         
         GridUi gridUi = new GridUi(model.getGridModel());
-        ValueInputController valueInputController = new ValueInputController(model.getGridModel());
+        ValueInputController valueInputController = ValueInputController.forSolving(model.getGridModel());
         ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, valueInputController);
         GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
         

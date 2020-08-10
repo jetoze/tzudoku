@@ -1,5 +1,6 @@
 package jetoze.tzudoku.ui;
 
+import static com.google.common.base.Preconditions.*;
 import static java.util.Objects.requireNonNull;
 
 import java.awt.event.KeyEvent;
@@ -16,7 +17,22 @@ import jetoze.tzudoku.model.Value;
  */
 public class ValueInputController { // TODO: Come up with a better name. "Value" is overloaded.
 
+    /**
+     * Creates a ValueInputController for use when solving a puzzle.
+     */
+    public static ValueInputController forSolving(GridUiModel model) {
+        return new ValueInputController(model, true);
+    }
+
+    /**
+     * Creates a ValueInputController for use when building a puzzle.
+     */
+    public static ValueInputController forBuilding(GridUiModel model) {
+        return new ValueInputController(model, false);
+    }
+    
     private final GridUiModel model;
+    private final boolean supportsPencilMarks;
     private final Property<EnterValueMode> enterValueMode = Properties.newProperty(
             "enterValueMode", EnterValueMode.NORMAL);
     
@@ -24,8 +40,9 @@ public class ValueInputController { // TODO: Come up with a better name. "Value"
     //       That would allow us to implement the puzzle builder mode where the next cell is
     //       automatically selected when a new value is entered.
 
-    public ValueInputController(GridUiModel model) {
+    private ValueInputController(GridUiModel model, boolean supportsPencilMarks) {
         this.model = requireNonNull(model);
+        this.supportsPencilMarks = supportsPencilMarks;
     }
 
     public Property<EnterValueMode> getEnterValueModeProperty() {
@@ -43,9 +60,11 @@ public class ValueInputController { // TODO: Come up with a better name. "Value"
             model.enterValue(value);
             break;
         case CORNER_PENCIL_MARK:
+            checkState(supportsPencilMarks, "Pencil marks are not supported");
             model.toggleCornerMark(value);
             break;
         case CENTER_PENCIL_MARK:
+            checkState(supportsPencilMarks, "Pencil marks are not supported");
             model.toggleCenterMark(value);
             break;
         case COLOR:
@@ -61,12 +80,14 @@ public class ValueInputController { // TODO: Come up with a better name. "Value"
             keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_0 + v.toInt()), "enter-" + v, 
                     () -> updateModel(v));
         }
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_N), "normal-value-mode",
-                () -> setEnterValueMode(EnterValueMode.NORMAL));
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_R), "corner-value-mode",
-                () -> setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_C), "center-value-mode",
-                () -> setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
+        if (supportsPencilMarks) {
+            keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_N), "normal-value-mode",
+                    () -> setEnterValueMode(EnterValueMode.NORMAL));
+            keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_R), "corner-value-mode",
+                    () -> setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
+            keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_C), "center-value-mode",
+                    () -> setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
+        }
     }
 
 }
