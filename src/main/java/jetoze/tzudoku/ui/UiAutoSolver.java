@@ -189,7 +189,6 @@ public class UiAutoSolver {
         
         private void applyHint(Single single) {
             setStatus(single.getTechnique().getName() + ": " + single.getValue());
-            model.setEnterValueMode(EnterValueMode.NORMAL);
             model.enterValue(single.getPosition(), single.getValue());
         }
         

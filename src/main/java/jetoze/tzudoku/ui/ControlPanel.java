@@ -40,28 +40,28 @@ public class ControlPanel {
     //       no longer need the ControlPanel.
     
     private final GridUiModel model;
-    private final PuzzleUiController controller;
+    private final PuzzleUiController puzzleController;
+    private final ValueInputController valueInputController;
 
     private final ToggleButtonWidget normalModeButton = new ToggleButtonWidget("Normal");
-
     private final ToggleButtonWidget cornerPencilMarkModeButton = new ToggleButtonWidget("Corner");
-
     private final ToggleButtonWidget centerPencilMarkModeButton = new ToggleButtonWidget("Center");
-
     private final ToggleButtonWidget colorModeButton = new ToggleButtonWidget("Color");
     
     private final ImmutableList<EnterValueAction> valueActions;
     
     private final JPanel ui;
 
-    public ControlPanel(GridUiModel model, PuzzleUiController controller) {
+    public ControlPanel(GridUiModel model, PuzzleUiController puzzleController, ValueInputController valueInputController) {
         this.model = requireNonNull(model);
-        this.controller = requireNonNull(controller);
+        this.puzzleController = requireNonNull(puzzleController);
+        this.valueInputController = requireNonNull(valueInputController);
         this.valueActions = Value.ALL.stream()
                 .map(EnterValueAction::new)
                 .collect(toImmutableList());
         configureValueModeButtons();
-        Binding.oneWayBinding(model.getEnterValueModeProperty(), mode -> valueActions.forEach(a -> a.update(mode)));
+        Binding.oneWayBinding(valueInputController.getEnterValueModeProperty(), 
+                mode -> valueActions.forEach(a -> a.update(mode)));
         this.ui = layoutUi();
     }
 
@@ -70,8 +70,8 @@ public class ControlPanel {
         UiLook.makeOverLarge(cornerPencilMarkModeButton);
         UiLook.makeOverLarge(centerPencilMarkModeButton);
         UiLook.makeOverLarge(colorModeButton);
-        ToggleButtonWidget.makeExclusive(normalModeButton, cornerPencilMarkModeButton, centerPencilMarkModeButton);
-        EnumBinding.bind(model.getEnterValueModeProperty(), ImmutableMap.of(
+        ToggleButtonWidget.makeExclusive(normalModeButton, cornerPencilMarkModeButton, centerPencilMarkModeButton, colorModeButton);
+        EnumBinding.bind(valueInputController.getEnterValueModeProperty(), ImmutableMap.of(
                 EnterValueMode.NORMAL, normalModeButton,
                 EnterValueMode.CORNER_PENCIL_MARK, cornerPencilMarkModeButton,
                 EnterValueMode.CENTER_PENCIL_MARK, centerPencilMarkModeButton,
@@ -124,7 +124,7 @@ public class ControlPanel {
         bottom.add(largeButton("Undo", model::undo));
         bottom.add(largeButton("Redo", model::redo));
         bottom.add(largeButton("Restart", model::reset));
-        bottom.add(largeButton("Check", controller::checkSolution));        
+        bottom.add(largeButton("Check", puzzleController::checkSolution));        
         
         PopupMenuButton optionsButton = createOptionsButton();
         bottom.add(optionsButton.getUi());
@@ -132,8 +132,8 @@ public class ControlPanel {
         PopupMenuButton hintsButton = createHintsButton();
         bottom.add(hintsButton.getUi());
         
-        bottom.add(largeButton("Save", controller::saveProgress));
-        bottom.add(largeButton("Load", controller::selectPuzzle));
+        bottom.add(largeButton("Save", puzzleController::saveProgress));
+        bottom.add(largeButton("Load", puzzleController::selectPuzzle));
         
         return Layouts.border(0, 10)
                 .north(top)
@@ -152,7 +152,7 @@ public class ControlPanel {
                 showDuplicates, 
                 eliminateCandidatesChoice,
                 new JSeparator(),
-                new JMenuItem(createAction("Analyze...", controller::analyze)));
+                new JMenuItem(createAction("Analyze...", puzzleController::analyze)));
         UiLook.makeOverLarge(optionsButton);
         return optionsButton;
     }
@@ -161,20 +161,20 @@ public class ControlPanel {
         PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
                 new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
                 new JSeparator(),
-                new JMenuItem(createAction("Look for Hidden Single", controller::lookForHiddenSingle)),
-                new JMenuItem(createAction("Look for Pointing Pair", controller::lookForPointingPair)),
-                new JMenuItem(createAction("Look for Box Line Reduction", controller::lookForBoxLineReduction)),
-                new JMenuItem(createAction("Look for Naked Triple", controller::lookForNakedTriple)),
-                new JMenuItem(createAction("Look for Naked Quadruple", controller::lookForNakedQuadruple)),
-                new JMenuItem(createAction("Look for Hidden Pair", controller::lookForHiddenPair)),
-                new JMenuItem(createAction("Look for Hidden Triple", controller::lookForHiddenTriple)),
-                new JMenuItem(createAction("Look for Hidden Quadruple", controller::lookForHiddenQuadruple)),
-                new JMenuItem(createAction("Look for X-Wing", controller::lookForXWing)),
-                new JMenuItem(createAction("Look for XY-Wing", controller::lookForXyWing)),
-                new JMenuItem(createAction("Look for Simple Coloring", controller::lookForSimpleColoring)),
-                new JMenuItem(createAction("Look for Swordfish", controller::lookForSwordfish)),
+                new JMenuItem(createAction("Look for Hidden Single", puzzleController::lookForHiddenSingle)),
+                new JMenuItem(createAction("Look for Pointing Pair", puzzleController::lookForPointingPair)),
+                new JMenuItem(createAction("Look for Box Line Reduction", puzzleController::lookForBoxLineReduction)),
+                new JMenuItem(createAction("Look for Naked Triple", puzzleController::lookForNakedTriple)),
+                new JMenuItem(createAction("Look for Naked Quadruple", puzzleController::lookForNakedQuadruple)),
+                new JMenuItem(createAction("Look for Hidden Pair", puzzleController::lookForHiddenPair)),
+                new JMenuItem(createAction("Look for Hidden Triple", puzzleController::lookForHiddenTriple)),
+                new JMenuItem(createAction("Look for Hidden Quadruple", puzzleController::lookForHiddenQuadruple)),
+                new JMenuItem(createAction("Look for X-Wing", puzzleController::lookForXWing)),
+                new JMenuItem(createAction("Look for XY-Wing", puzzleController::lookForXyWing)),
+                new JMenuItem(createAction("Look for Simple Coloring", puzzleController::lookForSimpleColoring)),
+                new JMenuItem(createAction("Look for Swordfish", puzzleController::lookForSwordfish)),
                 new JSeparator(),
-                new JMenuItem(createAction("Auto-solve", controller::startAutoSolver)));
+                new JMenuItem(createAction("Auto-solve", puzzleController::startAutoSolver)));
         UiLook.makeOverLarge(hintsButton);
         return hintsButton;
     }
@@ -207,7 +207,7 @@ public class ControlPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            UiThread.runLater(() -> model.enterValue(value));
+            UiThread.runLater(() -> valueInputController.updateModel(value));
         }
         
         public void update(EnterValueMode mode) {

@@ -19,6 +19,7 @@ import jetoze.tzudoku.ui.PuzzleUiController;
 import jetoze.tzudoku.ui.PuzzleUiModel;
 import jetoze.tzudoku.ui.StatusPanel;
 import jetoze.tzudoku.ui.UiLook;
+import jetoze.tzudoku.ui.ValueInputController;
 
 public class TzudokuApp {
 
@@ -54,7 +55,9 @@ public class TzudokuApp {
         PuzzleUiController controller = new PuzzleUiController(frame, model, statusPanel);
         
         GridUi gridUi = new GridUi(model.getGridModel());
-        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller);
+        // TODO: Should the ValueInputController be part of the PuzzleUiController?
+        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, 
+                new ValueInputController(model.getGridModel()));
         GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
         
         Layouts.border()
