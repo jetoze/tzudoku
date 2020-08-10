@@ -3,13 +3,26 @@ package jetoze.tzudoku.ui;
 import jetoze.tzudoku.model.Position;
 
 /**
- * Defines the behavior when navigating left, right, up, or down from a given cell, in particular
- * when the given cell is on the edge of the grid.
+ * Defines the behavior when navigating (with arrow keys) left, right, up, or down from a given cell, 
+ * in particular when the given cell is on the edge of the grid.
  * <p>
- * TODO: Fill me in.
+ * In {@link #WRAP_AROUND} mode, navigating left or right is confined to a single row of the grid.
+ * For example, navigating right from r4c9 "wraps around" to r4c1, staying in the same row. Likewise,
+ * navigating up and down is confined to a single column: navigating up from r1c6 wraps around to r9c6,
+ * staying in the same column.
+ * <p>
+ * {{@link #TRAVERSE} mode, on the other hand, allows the user to traverse the entire grid with the use of
+ * a single navigation direction (any one will do). In this case, navigating right from r4c9 takes you to
+ * r5c1, i.e. a jump to the next row. And navigating up from r1c6 takes you to r9c5, i.e. moving one column 
+ * to the left. This way, starting at r1c1 80 ARROW RIGHTs take you all the way to r9c9.
+ * <p>
+ * A {@link GridUiModel} has a NavigationMode property that determines what navigation mode is used by 
+ * the grid.
  */
 public enum NavigationMode {
 
+    // TODO: Clean up this implementation. It is clumsy.
+    
     WRAP_AROUND {
 
         @Override
