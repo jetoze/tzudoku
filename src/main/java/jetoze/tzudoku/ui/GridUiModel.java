@@ -53,12 +53,6 @@ public class GridUiModel {
     private final Property<Sandwiches> sandwiches;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
-
-
-    @Deprecated
-    private final Property<EnterValueMode> enterValueMode = Properties.newProperty(
-            "enterValueMode", EnterValueMode.NORMAL);
-
     
     public GridUiModel(Puzzle puzzle, BoardSize size) {
         this(puzzle.getGrid(), puzzle.getSandwiches(), size);
@@ -179,15 +173,10 @@ public class GridUiModel {
         ImmutableSet<Position> duplicates = grid.getCellsWithDuplicateValues();
         cellUis.forEach((p, c) -> c.setInvalid(duplicates.contains(p)));
     }
-
+    
     @Deprecated
-    public EnterValueMode getEnterValueMode() {
-        return enterValueMode.get();
-    }
-
-    @Deprecated
-    public void setEnterValueMode(EnterValueMode enterValueMode) {
-        this.enterValueMode.set(enterValueMode);
+    public void setEnterValueMode(EnterValueMode mode) {
+        throw new UnsupportedOperationException();
     }
 
     /**
@@ -226,7 +215,7 @@ public class GridUiModel {
     }
     
     private void updateContentOfSelectedCells(Value value, EnterValueMode mode) {
-        Stream<Position> positions = getSelectedPositionsForValueInput();
+        Stream<Position> positions = getSelectedPositionsForValueInput(mode);
         updateContentOfCells(positions, value, mode);;
     }
     
@@ -251,12 +240,12 @@ public class GridUiModel {
             CellColor color = CellColor.fromValue(value);
             return new SetColorAction(color, positions);
         default:
-            throw new RuntimeException("Unexpected mode: " + enterValueMode);
+            throw new RuntimeException("Unexpected mode: " + mode);
         }
     }
     
-    private Stream<Position> getSelectedPositionsForValueInput() {
-        Predicate<? super CellUi> condition = (enterValueMode.get() == EnterValueMode.COLOR)
+    private Stream<Position> getSelectedPositionsForValueInput(EnterValueMode mode) {
+        Predicate<? super CellUi> condition = (mode == EnterValueMode.COLOR)
                 ? c -> true // all cells can have a color
                 : Predicate.not(CellUi::isGiven);
         return getSelectedPositions(condition);
@@ -351,10 +340,6 @@ public class GridUiModel {
         }
         undoRedoState.add(action);
         action.perform();
-    }
-    
-    public Property<EnterValueMode> getEnterValueModeProperty() {
-        return enterValueMode;
     }
     
     public Property<Boolean> getHighlightDuplicateCellsProperty() {
