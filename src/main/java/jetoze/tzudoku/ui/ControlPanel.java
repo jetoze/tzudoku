@@ -60,13 +60,8 @@ public class ControlPanel {
                 .map(EnterValueAction::new)
                 .collect(toImmutableList());
         configureValueModeButtons();
-        model.addListener(new GridUiModelListener() {
-
-            @Override
-            public void onNewEnterValueModeSelected(EnterValueMode newMode) {
-                onNewValueMode(newMode);
-            }
-        });
+        // TODO: This should be done via an EnumBinding.
+        model.getEnterValueModeProperty().addListener(e -> onNewValueMode((EnterValueMode) e.getNewValue()));
         this.ui = layoutUi();
     }
 

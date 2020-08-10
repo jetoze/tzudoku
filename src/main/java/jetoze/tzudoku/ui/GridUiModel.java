@@ -48,7 +48,8 @@ public class GridUiModel {
             "decoratetDuplicateCells", Boolean.FALSE);
     private final Property<Boolean> eliminateCandidates = Properties.newProperty(
             "eliminateDuplicates", Boolean.FALSE);
-    private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
+    private final Property<EnterValueMode> enterValueMode = Properties.newProperty(
+            "enterValueMode", EnterValueMode.NORMAL);
     private NavigationMode navigationMode = NavigationMode.WRAP_AROUND;
     // XXX: Does the Sandwiches really belong here?
     private final Property<Sandwiches> sandwiches;
@@ -176,15 +177,11 @@ public class GridUiModel {
     }
 
     public EnterValueMode getEnterValueMode() {
-        return enterValueMode;
+        return enterValueMode.get();
     }
 
     public void setEnterValueMode(EnterValueMode enterValueMode) {
-        requireNonNull(enterValueMode);
-        if (enterValueMode != this.enterValueMode) {
-            this.enterValueMode = enterValueMode;
-            notifyListeners(lst -> lst.onNewEnterValueModeSelected(enterValueMode));
-        }
+        this.enterValueMode.set(enterValueMode);
     }
 
     public void enterValue(Value value) {
@@ -211,7 +208,7 @@ public class GridUiModel {
     }
 
     private UndoableAction getApplyValueAction(Stream<Position> positions, Value value) {
-        switch (enterValueMode) {
+        switch (enterValueMode.get()) {
         case NORMAL:
             return new SetValueAction(value, positions);
         case CORNER_PENCIL_MARK:
@@ -227,7 +224,7 @@ public class GridUiModel {
     }
     
     private Stream<Position> getSelectedPositionsForValueInput() {
-        Predicate<? super CellUi> condition = (enterValueMode == EnterValueMode.COLOR)
+        Predicate<? super CellUi> condition = (enterValueMode.get() == EnterValueMode.COLOR)
                 ? c -> true // all cells can have a color
                 : Predicate.not(CellUi::isGiven);
         return getSelectedPositions(condition);
@@ -322,6 +319,10 @@ public class GridUiModel {
         }
         undoRedoState.add(action);
         action.perform();
+    }
+    
+    public Property<EnterValueMode> getEnterValueModeProperty() {
+        return enterValueMode;
     }
     
     public Property<Boolean> getHighlightDuplicateCellsProperty() {

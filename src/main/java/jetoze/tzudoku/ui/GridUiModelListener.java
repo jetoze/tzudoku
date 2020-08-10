@@ -6,6 +6,4 @@ public interface GridUiModelListener {
     
     default void onCellStateChanged() {/**/}
 
-    default void onNewEnterValueModeSelected(EnterValueMode newMode) {/**/}
-
 }
