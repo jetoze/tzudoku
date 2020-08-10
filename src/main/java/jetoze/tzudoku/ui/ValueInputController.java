@@ -2,8 +2,12 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.event.KeyEvent;
+
 import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
+import jetoze.gunga.KeyBindings;
+import jetoze.gunga.KeyStrokes;
 import jetoze.tzudoku.model.Value;
 
 /**
@@ -50,6 +54,19 @@ public class ValueInputController { // TODO: Come up with a better name. "Value"
         default:
             throw new RuntimeException("Unknown mode: " + enterValueMode.get());
         }
+    }
+
+    public void registerActions(KeyBindings keyBindings) {    
+        for (Value v : Value.values()) {
+            keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_0 + v.toInt()), "enter-" + v, 
+                    () -> updateModel(v));
+        }
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_N), "normal-value-mode",
+                () -> setEnterValueMode(EnterValueMode.NORMAL));
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_R), "corner-value-mode",
+                () -> setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
+        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_C), "center-value-mode",
+                () -> setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
     }
 
 }

@@ -55,9 +55,8 @@ public class TzudokuApp {
         PuzzleUiController controller = new PuzzleUiController(frame, model, statusPanel);
         
         GridUi gridUi = new GridUi(model.getGridModel());
-        // TODO: Should the ValueInputController be part of the PuzzleUiController?
-        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, 
-                new ValueInputController(model.getGridModel()));
+        ValueInputController valueInputController = new ValueInputController(model.getGridModel());
+        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, valueInputController);
         GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
         
         Layouts.border()
@@ -67,7 +66,7 @@ public class TzudokuApp {
 
         KeyBindings keyBindings = KeyBindings.whenInFocusedWindow(frame.getRootPane());
         gridUi.registerDefaultActions(keyBindings);
-        gridUi.registerValueModeActions(keyBindings);
+        valueInputController.registerActions(keyBindings);
 
         frame.pack();
         frame.setLocationRelativeTo(null);

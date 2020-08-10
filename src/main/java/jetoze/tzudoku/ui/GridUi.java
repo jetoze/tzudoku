@@ -19,7 +19,6 @@ import jetoze.gunga.KeyBindings;
 import jetoze.gunga.KeyStrokes;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.Position;
-import jetoze.tzudoku.model.Value;
 
 public class GridUi implements Widget {
     private final GridUiModel model;
@@ -65,10 +64,6 @@ public class GridUi implements Widget {
     }
 
     public void registerDefaultActions(KeyBindings keyBindings) {
-        for (Value v : Value.values()) {
-            keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_0 + v.toInt()), "enter-" + v, 
-                    () -> model.enterValue(v));
-        }
         keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_BACK_SPACE), "clear-cells-via-backspace", model::delete);
         registerSelectionActions(keyBindings, KeyEvent.VK_LEFT, NavigationMode::left);
         registerSelectionActions(keyBindings, KeyEvent.VK_RIGHT, NavigationMode::right);
@@ -76,15 +71,6 @@ public class GridUi implements Widget {
         registerSelectionActions(keyBindings, KeyEvent.VK_DOWN, NavigationMode::down);
         keyBindings.add(KeyStrokes.commandDown(KeyEvent.VK_Z), "undo", model::undo);
         keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_Z), "redo", model::redo);
-    }
-
-    public void registerValueModeActions(KeyBindings keyBindings) {    
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_N), "normal-value-mode",
-                () -> model.setEnterValueMode(EnterValueMode.NORMAL));
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_R), "corner-value-mode",
-                () -> model.setEnterValueMode(EnterValueMode.CORNER_PENCIL_MARK));
-        keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_C), "center-value-mode",
-                () -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
     }
 
     private void registerSelectionActions(KeyBindings keyBindings, int keyCode, BiFunction<NavigationMode, Position, Position> nextPosition) {
