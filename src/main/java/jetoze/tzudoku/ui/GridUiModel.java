@@ -49,6 +49,7 @@ public class GridUiModel {
     private final Property<Boolean> eliminateCandidates = Properties.newProperty(
             "eliminateDuplicates", Boolean.FALSE);
     private EnterValueMode enterValueMode = EnterValueMode.NORMAL;
+    private NavigationMode navigationMode = NavigationMode.WRAP_AROUND;
     // XXX: Does the Sandwiches really belong here?
     private final Property<Sandwiches> sandwiches;
     private final UndoRedoState undoRedoState = new UndoRedoState();
@@ -83,6 +84,14 @@ public class GridUiModel {
         return grid;
     }
     
+    public NavigationMode getNavigationMode() {
+        return navigationMode;
+    }
+
+    public void setNavigationMode(NavigationMode navigationMode) {
+        this.navigationMode = requireNonNull(navigationMode);
+    }
+
     public Sandwiches getSandwiches() {
         return sandwiches.get();
     }

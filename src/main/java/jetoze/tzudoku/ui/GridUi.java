@@ -9,7 +9,7 @@ import java.awt.Graphics2D;
 import java.awt.Toolkit;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
-import java.util.function.UnaryOperator;
+import java.util.function.BiFunction;
 
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -70,10 +70,10 @@ public class GridUi implements Widget {
                     () -> model.enterValue(v));
         }
         keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_BACK_SPACE), "clear-cells-via-backspace", model::delete);
-        registerSelectionActions(keyBindings, KeyEvent.VK_LEFT, Position::left);
-        registerSelectionActions(keyBindings, KeyEvent.VK_RIGHT, Position::right);
-        registerSelectionActions(keyBindings, KeyEvent.VK_UP, Position::up);
-        registerSelectionActions(keyBindings, KeyEvent.VK_DOWN, Position::down);
+        registerSelectionActions(keyBindings, KeyEvent.VK_LEFT, NavigationMode::left);
+        registerSelectionActions(keyBindings, KeyEvent.VK_RIGHT, NavigationMode::right);
+        registerSelectionActions(keyBindings, KeyEvent.VK_UP, NavigationMode::up);
+        registerSelectionActions(keyBindings, KeyEvent.VK_DOWN, NavigationMode::down);
         keyBindings.add(KeyStrokes.commandDown(KeyEvent.VK_Z), "undo", model::undo);
         keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_Z), "redo", model::redo);
     }
@@ -87,16 +87,19 @@ public class GridUi implements Widget {
                 () -> model.setEnterValueMode(EnterValueMode.CENTER_PENCIL_MARK));
     }
 
-    private void registerSelectionActions(KeyBindings keyBindings, int keyCode, UnaryOperator<Position> nextPosition) {
+    private void registerSelectionActions(KeyBindings keyBindings, int keyCode, BiFunction<NavigationMode, Position, Position> nextPosition) {
         keyBindings.add(KeyStrokes.forKey(keyCode), keyCode + "-single-select",
                 () -> selectNext(nextPosition, false));
         keyBindings.add(KeyStrokes.commandDown(keyCode), keyCode + "-multi-select",
                 () -> selectNext(nextPosition, true));
     }
 
-    private void selectNext(UnaryOperator<Position> nextPosition, boolean isMultiSelect) {
-        model.getLastSelectedCell().map(CellUi::getPosition).map(nextPosition).map(model::getCell)
-                .ifPresentOrElse(c -> model.selectCell(c, isMultiSelect), this::selectTopLeftCell);
+    private void selectNext(BiFunction<NavigationMode, Position, Position> nextPosition, boolean isMultiSelect) {
+        model.getLastSelectedCell()
+            .map(CellUi::getPosition)
+            .map(p -> nextPosition.apply(model.getNavigationMode(), p))
+            .map(model::getCell)
+            .ifPresentOrElse(c -> model.selectCell(c, isMultiSelect), this::selectTopLeftCell);
     }
 
     private void selectTopLeftCell() {

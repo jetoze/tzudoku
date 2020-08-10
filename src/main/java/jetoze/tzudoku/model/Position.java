@@ -53,22 +53,6 @@ public class Position {
                 (this.column == other.column) ||
                 (this.getBox() == other.getBox());
     }
-
-    public Position left() {
-        return new Position(row, column > 1 ? column - 1 : 9);
-    }
-
-    public Position right() {
-        return new Position(row, (column < 9) ? column + 1 : 1);
-    }
-
-    public Position up() {
-        return new Position(row > 1 ? row - 1 : 9, column);
-    }
-
-    public Position down() {
-        return new Position((row < 9) ? row + 1 : 1, column);
-    }
     
     /**
      * Returns a stream of all the other positions in the grid that is seen by this position.

@@ -17,6 +17,7 @@ public class PuzzleBuilderModel {
     public PuzzleBuilderModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
         this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, BoardSize.SMALL);
+        this.gridModel.setNavigationMode(NavigationMode.TRAVERSE);
         this.gridModel.setDecorateDuplicateCells(true);
         this.puzzleNameProperty = Properties.newProperty("puzzleName", 
                 inventory.getAvailablePuzzleName("New Puzzle"));
