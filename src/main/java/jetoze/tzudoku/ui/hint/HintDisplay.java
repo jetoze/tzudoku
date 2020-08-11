@@ -25,8 +25,8 @@ import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
-import jetoze.tzudoku.hint.YWing;
 import jetoze.tzudoku.hint.XyzWing;
+import jetoze.tzudoku.hint.YWing;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
@@ -62,6 +62,8 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
             showXWingInfo((XWing) hint);
         } else if (hint instanceof YWing) {
             showYWingInfo((YWing) hint);
+        } else if (hint instanceof XyzWing) {
+            showXyzWingInfo((XyzWing) hint);
         } else if (hint instanceof SimpleColoring) {
             showSimpleColoringInfo((SimpleColoring) hint);
         } else if (hint instanceof Swordfish) {
@@ -166,14 +168,15 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
     }
     
     public void showYWingInfo(YWing yWing) {
-        StringBuilder s = new StringBuilder("<html>Found a Y-Wing:<br>");
-        s.append(yWing.getPivot());
-        yWing.getWings().forEach(w -> s.append("<br>").append(w));
-        s.append("<br><br>").append(yWing.getValue().toInt())
-            .append(" can be eliminated from these cells:");
-        yWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
-        s.append("</html>");
-        showHintInfo(yWing, s.toString());
+        String template = "<html>A Y-Wing with its pivot cell at ${pivot} and wings at ${wings} eliminates<br>"
+                + "the digit ${value} from ${targets}</html>";
+        Map<String, Object> args = ImmutableMap.of(
+                "pivot", yWing.getPivot(),
+                "wings", positions(yWing.getWings()),
+                "value", yWing.getValue(),
+                "targets", positions(yWing.getTargetPositions()));
+        String html = new StringSubstitutor(args).replace(template);
+        showHintInfo(yWing, html);
     }
     
     public void showSimpleColoringInfo(SimpleColoring simpleColoring) {
