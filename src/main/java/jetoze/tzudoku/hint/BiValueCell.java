@@ -43,17 +43,62 @@ class BiValueCell {
         return Optional.empty();
     }
 
+    /**
+     * Returns the position of this cell in the grid.
+     */
     public Position getPosition() {
         return position;
     }
 
+    /**
+     * Returns this cell's candidate values.
+     * 
+     * @return an ImmutableSet of exactly two elements.
+     */
     public ImmutableSet<Value> getCandidates() {
         return candidates;
+    }
+    
+    /**
+     * Checks if this BiValueCell sees the other BiValueCell (i.e. if they share a house).
+     */
+    public boolean sees(BiValueCell other) {
+        return this.position.sees(other.position);
+    }
+    
+    /**
+     * Returns the candidate values (if any) this BiValueCell shares with another BiValueCell.
+     * 
+     * @return an unmodifiable Set of zero, one, or two elements.
+     */
+    public Set<Value> getSharedValues(BiValueCell other) {
+        return Sets.intersection(this.candidates, other.candidates);
+    }
+    
+    /**
+     * Returns the candidate values (if any) this BiValueCell has but the other BiValueCell has not.
+     * 
+     * @return an unmodifiable Set of zero, one, or two elements.
+     */
+    public Set<Value> getValuesNotShared(BiValueCell other) {
+        return Sets.difference(this.candidates, other.candidates);
+    }
+    
+    /**
+     * Checks if this BiValueCell shares exactly one candidate value with another BiValueCell.
+     * 
+     * @see {@link #getSingleSharedValue(BiValueCell)}
+     */
+    public boolean isSharingSingleValue(BiValueCell other) {
+        Set<Value> intersection = Sets.intersection(this.candidates, other.candidates);
+        return intersection.size() == 1;
     }
 
     /**
      * If this BiValueCell shares exactly one candidate value with the other BiValueCell,
      * that candidate value is returned.
+     * 
+     * @see {@link #isSharingSingleValue(BiValueCell)}
      */
     public Optional<Value> getSingleSharedValue(BiValueCell other) {
         Set<Value> intersection = Sets.intersection(this.candidates, other.candidates);

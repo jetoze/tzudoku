@@ -79,7 +79,7 @@ public class YWing extends EliminatingHint implements HingeAndWingsHint {
             // TODO: I need to be cleaned up a bit. And I should have unit tests!
             // Collect all remaining cells that have exactly two possible values, according
             // to their center pencil marks.
-            ImmutableList<TwoValueCell> twoValueCells = Position.all()
+            ImmutableList<BiValueCell> twoValueCells = Position.all()
                     .map(this::lookAt)
                     .filter(Objects::nonNull)
                     .collect(toImmutableList());
@@ -87,29 +87,30 @@ public class YWing extends EliminatingHint implements HingeAndWingsHint {
                 // A y-wing requires three cells.
                 return Optional.empty();
             }
-            for (TwoValueCell center : twoValueCells) {
+            for (BiValueCell pivot : twoValueCells) {
                 // See if we can find two matching wings for this center cell
-                ImmutableList<TwoValueCell> possibleWings = getPossibleWings(center, twoValueCells);
+                ImmutableList<BiValueCell> possibleWings = getPossibleWings(pivot, twoValueCells);
                 if (possibleWings.size() < 2) {
                     continue;
                 }
                 for (int i = 0; i < (possibleWings.size() - 1); ++i) {
-                    TwoValueCell w1 = possibleWings.get(i);
-                    Value sharedValue = center.getSharedValue(w1);
-                    Value wingValue = Sets.difference(w1.values, Collections.singleton(sharedValue)).iterator().next();
-                    Set<Value> otherWingValues = ImmutableSet.of(wingValue, center.getValueNotSharedWith(w1));
+                    BiValueCell w1 = possibleWings.get(i);
+                    Value sharedValue = pivot.getSingleSharedValue(w1).orElseThrow(() -> new IllegalStateException(
+                            "We should not have reached this point unless the two BiValueCells shares exactly one Value"));
+                    Value wingValue = Sets.difference(w1.getCandidates(), Collections.singleton(sharedValue)).iterator().next();
+                    Set<Value> otherWingValues = ImmutableSet.of(wingValue, pivot.getValuesNotShared(w1).iterator().next());
                     for (int j = i + 1; j < possibleWings.size(); ++j) {
-                        TwoValueCell w2 = possibleWings.get(j);
-                        if (!isInSameRowOrColumn(center, w1, w2) && w2.values.equals(otherWingValues)) {
+                        BiValueCell w2 = possibleWings.get(j);
+                        if (!isInSameRowOrColumn(pivot, w1, w2) && w2.getCandidates().equals(otherWingValues)) {
                             // Now check if w1 and w2 are both seen by any cells that have wingValue as
                             // a candidate. Exclude the wings themselves.
-                            Set<Position> seenByBothWings = Sets.intersection(w1.seenBy(), w2.seenBy());
+                            Set<Position> seenByBothWings = Sets.intersection(seenBy(w1), seenBy(w2));
                             ImmutableSet<Position> targets = seenByBothWings.stream()
-                                    .filter(px -> !px.equals(w1.position) && !px.equals(w2.position))
+                                    .filter(px -> !px.equals(w1.getPosition()) && !px.equals(w2.getPosition()))
                                     .filter(HintUtils.isCandidate(grid, wingValue))
                                     .collect(toImmutableSet());
                             if (!targets.isEmpty()) {
-                                return Optional.of(new YWing(grid, center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
+                                return Optional.of(new YWing(grid, pivot.getPosition(), ImmutableSet.of(w1.getPosition(), w2.getPosition()), wingValue, targets));
                             }
                         }
                     }
@@ -119,67 +120,32 @@ public class YWing extends EliminatingHint implements HingeAndWingsHint {
         }
         
         @Nullable
-        private TwoValueCell lookAt(Position p) {
+        private BiValueCell lookAt(Position p) {
             Cell cell = grid.cellAt(p);
             if (cell.hasValue()) {
                 return null;
             }
             ImmutableSet<Value> possibleValues = cell.getCenterMarks().getValues();
             return possibleValues.size() == 2
-                    ? new TwoValueCell(p, possibleValues)
+                    ? new BiValueCell(p, possibleValues)
                     : null;
         }
         
-        private ImmutableList<TwoValueCell> getPossibleWings(TwoValueCell center, ImmutableList<TwoValueCell> allCandidates) {
+        private ImmutableList<BiValueCell> getPossibleWings(BiValueCell pivot, ImmutableList<BiValueCell> allCandidates) {
             return allCandidates.stream()
-                    .filter(c -> (c != center) && center.sees(c) && center.sharesExactlyOneValueWith(c))
+                    .filter(c -> (c != pivot) && pivot.sees(c) && pivot.isSharingSingleValue(c))
                     .collect(toImmutableList());
             
         }
         
-        private static boolean isInSameRowOrColumn(TwoValueCell center, TwoValueCell w1, TwoValueCell w2) {
-            return (center.position.getRow() == w1.position.getRow() && center.position.getRow() == w2.position.getRow()) ||
-                    (center.position.getColumn() == w1.position.getColumn() && center.position.getColumn() == w2.position.getColumn());
+        private static boolean isInSameRowOrColumn(BiValueCell pivot, BiValueCell w1, BiValueCell w2) {
+            return (pivot.getPosition().getRow() == w1.getPosition().getRow() && pivot.getPosition().getRow() == w2.getPosition().getRow()) ||
+                    (pivot.getPosition().getColumn() == w1.getPosition().getColumn() && pivot.getPosition().getColumn() == w2.getPosition().getColumn());
         }
         
-        
-        /**
-         * A Y-wing candidate cell, having two possible values.
-         */
-        private static class TwoValueCell { // TODO: Replace me with the top-level BiValueCell.
-            public final Position position;
-            public final ImmutableSet<Value> values;
-            
-            public TwoValueCell(Position position, ImmutableSet<Value> values) {
-                this.position = requireNonNull(position);
-                this.values = requireNonNull(values);
-                checkArgument(values.size() == 2);
-            }
-            
-            public ImmutableSet<Position> seenBy() {
-                return position.seenBy().collect(toImmutableSet());
-            }
-            
-            public boolean sees(TwoValueCell other) {
-                return this.position.sees(other.position);
-            }
-            
-            public boolean sharesExactlyOneValueWith(TwoValueCell other) {
-                return Sets.intersection(this.values, other.values).size() == 1;
-            }
-            
-            public Value getSharedValue(TwoValueCell other) {
-                Set<Value> shared = Sets.intersection(this.values, other.values);
-                checkArgument(shared.size() == 1);
-                return shared.iterator().next();
-            }
-            
-            public Value getValueNotSharedWith(TwoValueCell other) {
-                Set<Value> difference = Sets.difference(this.values, other.values);
-                checkArgument(difference.size() == 1);
-                return difference.iterator().next();
-            }
+        private static ImmutableSet<Position> seenBy(BiValueCell cell) {
+            return cell.getPosition().seenBy().collect(toImmutableSet());
         }
     }
-    
+        
 }
