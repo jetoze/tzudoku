@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -62,12 +63,13 @@ public class Position {
     
     /**
      * Returns a stream of all the other positions in the grid that is seen by this position.
+     * This position itself is not included in the Stream.
      */
     public Stream<Position> seenBy() {
         Stream<Position> othersInRow = positionsInRow(row)
-                .filter(p -> p != this);
+                .filter(Predicate.not(this::equals));
         Stream<Position> othersInColumn = positionsInColumn(column)
-                .filter(p -> p != this);
+                .filter(Predicate.not(this::equals));
         Stream<Position> othersInBox = positionsInBox(getBox())
                 .filter(p -> p.getRow() != row && p.getColumn() != column);
         return Streams.concat(othersInRow, othersInColumn, othersInBox);
@@ -134,6 +136,22 @@ public class Position {
                 Position.of(firstRow + 1, firstCol + 1), Position.of(firstRow + 1, firstCol + 2),
                 Position.of(firstRow + 2, firstCol), Position.of(firstRow + 2, firstCol + 1),
                 Position.of(firstRow + 2, firstCol + 2));
+    }
+    
+    /**
+     * Returns a Stream of all Positions that are seen by the given positions, not including
+     * the positions themselves.
+     * 
+     * @throws IllegalArgumentException if {@code positions} contains less than two elements.
+     */
+    public static Stream<Position> seenByAll(Position... positions) {
+        Position p0 = positions[0];
+        Predicate<Position> filter = p -> true;
+        for (int n = 1; n < positions.length; ++n) {
+            Position pn = positions[n];
+            filter = filter.and(pn::sees);
+        }
+        return p0.seenBy().filter(filter);
     }
     
 }

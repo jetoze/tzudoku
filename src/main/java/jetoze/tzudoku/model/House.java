@@ -165,19 +165,18 @@ public class House {
                 }
             }
             if (row == -1 && column == -1) {
-                return Optional.empty();
+                break;
             }
         }
         if (row > 0) {
             return Optional.of(row(row));
-        }
-        if (column > 0) {
+        } else if (column > 0) {
             return Optional.of(column(column));
+        } else {
+            return Optional.empty();
         }
-        throw new RuntimeException("Unexpected condition occurred");
     }
-    
-    
+        
     /**
      * If the given set contains two or more positions that all are in the
      * same Box, returns that Box.
@@ -208,6 +207,53 @@ public class House {
                 .count() == 1L;
     }
     
+    /**
+     * If the given set contains two or more positions that all are in the same
+     * House, returns the corresponding House.
+     * 
+     * @return an Optional containing the House to which the positions belong to. An
+     *         empty Optional is returned if the positions all not all in the same
+     *         House, or if the set contains less than two positions.
+     */
+    public static Optional<House> ifInSameHouse(Set<Position> positions) {
+        if (positions.size() < 2) {
+            return Optional.empty();
+        }
+        int row = 0;
+        int column = 0;
+        int box = 0;
+        for (Position p : positions) {
+            if (row == 0) {
+                // The first position we're looking at
+                row = p.getRow();
+                column = p.getColumn();
+                box = p.getBox();
+            } else {
+                if (row != p.getRow()) {
+                    row = -1;
+                }
+                if (column != p.getColumn()) {
+                    column = -1;
+                }
+                if (box != p.getBox()) {
+                    box = -1;
+                }
+            }
+            if (row == -1 && column == -1 && box == -1) {
+                break;
+            }
+        }
+        if (row > 0) {
+            return Optional.of(row(row));
+        } else if (column > 0) {
+            return Optional.of(column(column));
+        } else if (box > 0) {
+            return Optional.of(box(box));
+        } else {
+            return Optional.empty();
+        }
+    }
+
     /**
      * Returns the type of this House.
      */

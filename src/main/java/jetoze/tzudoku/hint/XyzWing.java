@@ -9,7 +9,6 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -18,6 +17,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -72,21 +72,21 @@ public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
         }
         
         public Optional<XyzWing> find() {
-            return collectPossibleCenterCells()
+            return collectPossiblePivots()
                     .map(this::check)
                     .filter(Objects::nonNull)
                     .findFirst();
         }
         
-        private Stream<TriValueCell> collectPossibleCenterCells() {
+        private Stream<TriValueCell> collectPossiblePivots() {
             return Position.all()
                     .map(p -> TriValueCell.examine(grid, p))
                     .flatMap(Optional::stream);
         }
         
         @Nullable
-        private XyzWing check(TriValueCell centerCell) {
-            ImmutableList<BiValueCell> possibleWings = collectPossibleWings(centerCell);
+        private XyzWing check(TriValueCell pivot) {
+            ImmutableList<BiValueCell> possibleWings = collectPossibleWings(pivot);
             if (possibleWings.size() < 2) {
                 // We need two wing cells
                 return null;
@@ -99,13 +99,17 @@ public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
                     BiValueCell wing2 = possibleWings.get(j);
                     Value sharedValue = wing1.getSingleSharedValue(wing2).orElse(null);
                     if (sharedValue != null) {
-                        // We have found a center and two wings that fulfills the XYZ-wing requirements.
+                        // We have found a pivot and two wings that fulfills the XYZ-wing requirements.
+                        if (areAllInSameHouse(pivot, wing1, wing2)) {
+                            // This is in fact a Naked Triple, not an XYZ-wing.
+                            return null;
+                        }
                         // Last thing to check is if there are any cells that sees all these three cells,
                         // and have the shared value we just found as a candidate.
                         ImmutableSet<Position> targets = matchingPositionsSeenByAllThreeCells(
-                                centerCell, wing1, wing2, sharedValue);
+                                pivot, wing1, wing2, sharedValue);
                         if (!targets.isEmpty()) {
-                            return new XyzWing(grid, centerCell.getPosition(), 
+                            return new XyzWing(grid, pivot.getPosition(), 
                                     ImmutableSet.of(wing1.getPosition(), wing2.getPosition()), 
                                     sharedValue, targets);
                         }
@@ -115,29 +119,28 @@ public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
             return null;
         }
         
-        private ImmutableList<BiValueCell> collectPossibleWings(TriValueCell centerCell) {
-            return centerCell.getPosition().seenBy()
+        private ImmutableList<BiValueCell> collectPossibleWings(TriValueCell pivot) {
+            return pivot.getPosition().seenBy()
                     .map(p -> BiValueCell.examine(grid, p))
                     .flatMap(Optional::stream)
-                    .filter(c -> centerCell.getCandidates().containsAll(c.getCandidates()))
+                    .filter(c -> pivot.getCandidates().containsAll(c.getCandidates()))
                     .collect(toImmutableList());
         }
         
         private ImmutableSet<Position> matchingPositionsSeenByAllThreeCells(
-                TriValueCell center, 
+                TriValueCell pivot, 
                 BiValueCell wing1, 
                 BiValueCell wing2, Value value) {
-            return Position.all()
-                    .filter(sees(center.getPosition()).and(
-                            sees(wing1.getPosition()).and(
-                            sees(wing2.getPosition()))))
+            return Position.seenByAll(pivot.getPosition(), wing1.getPosition(), wing2.getPosition())
                     .filter(HintUtils.isCandidate(grid, value))
                     .collect(toImmutableSet());
         }
-        
-        private Predicate<Position> sees(Position p) {
-            return p::sees;
-        }
     }
     
+    private static boolean areAllInSameHouse(TriValueCell pivot, BiValueCell w1, BiValueCell w2) {
+        return House.ifInSameHouse(ImmutableSet.of(pivot.getPosition(), w1.getPosition(), w2.getPosition()))
+                .map(h -> true)
+                .orElse(false);
+    }
+
 }

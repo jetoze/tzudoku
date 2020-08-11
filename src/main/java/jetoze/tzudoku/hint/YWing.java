@@ -110,9 +110,7 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
                     if (!isInSameRowOrColumn(pivot, w1, w2) && w2.getCandidates().equals(otherWingValues)) {
                         // Now check if w1 and w2 are both seen by any cells that have wingValue as
                         // a candidate. Exclude the wings themselves.
-                        Set<Position> seenByBothWings = Sets.intersection(seenBy(w1), seenBy(w2));
-                        ImmutableSet<Position> targets = seenByBothWings.stream()
-                                .filter(px -> !px.equals(w1.getPosition()) && !px.equals(w2.getPosition()))
+                        ImmutableSet<Position> targets = Position.seenByAll(w1.getPosition(), w2.getPosition())
                                 .filter(HintUtils.isCandidate(grid, wingValue))
                                 .collect(toImmutableSet());
                         if (!targets.isEmpty()) {
@@ -128,16 +126,11 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
             return allCandidates.stream()
                     .filter(c -> (c != pivot) && pivot.sees(c) && pivot.isSharingSingleValue(c))
                     .collect(toImmutableList());
-            
         }
         
         private static boolean isInSameRowOrColumn(BiValueCell pivot, BiValueCell w1, BiValueCell w2) {
             Set<Position> positions = ImmutableSet.of(pivot.getPosition(), w1.getPosition(), w2.getPosition());
             return House.ifInRowOrColumn(positions).isPresent();
-        }
-        
-        private static ImmutableSet<Position> seenBy(BiValueCell cell) {
-            return cell.getPosition().seenBy().collect(toImmutableSet());
         }
     }
         
