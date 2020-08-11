@@ -1,6 +1,6 @@
 package jetoze.tzudoku.ui.hint;
 
-import static jetoze.tzudoku.ui.hint.HintUiUtils.positionsInOrder;
+import static jetoze.tzudoku.ui.hint.HintUiUtils.*;
 
 import java.util.Map;
 

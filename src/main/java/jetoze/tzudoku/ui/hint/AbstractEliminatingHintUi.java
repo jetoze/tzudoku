@@ -1,6 +1,7 @@
 package jetoze.tzudoku.ui.hint;
 
 import static java.util.Objects.*;
+import static jetoze.tzudoku.ui.hint.HintUiUtils.valuesInOrder;
 
 import jetoze.tzudoku.hint.EliminatingHint;
 import jetoze.tzudoku.ui.GridUiModel;
@@ -16,6 +17,18 @@ abstract class AbstractEliminatingHintUi<T extends EliminatingHint> implements H
     @Override
     public final void apply(GridUiModel model) {
         model.removeCandidatesFromCells(hint.getTargetPositions(), hint.getValues());
+    }
+
+    @Override
+    public final String getShortDescription() {
+        return createShortDescription(hint);
+    }
+    
+    protected String createShortDescription(T hint) {
+        String valueString = hint.getValues().size() == 1
+                ? hint.getValues().iterator().next().toString()
+                : valuesInOrder(hint.getValues());
+        return hint.getTechnique().getName() + ": " + valueString;
     }
 
     @Override

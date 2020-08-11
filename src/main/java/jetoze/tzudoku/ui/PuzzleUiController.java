@@ -31,6 +31,7 @@ import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.ui.hint.HintDisplay;
+import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
@@ -183,7 +184,7 @@ public class PuzzleUiController {
     }
     
     public void startAutoSolver() {
-        UiAutoSolver autoSolver = new UiAutoSolver(appFrame, puzzleModel.getGridModel());
+        UiAutoSolver autoSolver = new UiAutoSolver(appFrame, puzzleModel.getGridModel(), new HintUiFactory());
         autoSolver.start();
     }
     

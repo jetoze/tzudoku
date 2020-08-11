@@ -15,8 +15,10 @@ public interface HintUi { // TODO: What's a good name for this interface?
     // that the Grid in the model is the same Grid as the hint itself is operating on?
     void apply(GridUiModel model);
     
+    String getShortDescription();
+    
     /**
-     * Returns an HTML snippet describing the hint.
+     * Returns an HTML snippet describing the hint in more detail than {@link #getShortDescription()}.
      */
     String getHtmlInfo();
     

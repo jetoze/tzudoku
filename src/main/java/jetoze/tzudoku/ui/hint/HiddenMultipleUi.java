@@ -27,6 +27,11 @@ class HiddenMultipleUi implements HintUi {
     }
 
     @Override
+    public String getShortDescription() {
+        return hint.getTechnique().getName() + ": " + valuesInOrder(hint.getHiddenValues());
+    }
+
+    @Override
     public String getHtmlInfo() {
         StringBuilder s = new StringBuilder("<html>Found a ")
                 .append(hint.getTechnique().getName())

@@ -23,6 +23,11 @@ class SimpleColoringUi implements HintUi {
     }
 
     @Override
+    public String getShortDescription() {
+        return hint.getTechnique().getName() + ": " + hint.getValue();
+    }
+
+    @Override
     public String getHtmlInfo() {
         // TODO: I need much more information.
         return "<html>Simple Coloring eliminates the value " + hint.getValue() + 

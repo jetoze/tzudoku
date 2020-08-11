@@ -28,6 +28,11 @@ class SingleUi implements HintUi {
     }
 
     @Override
+    public String getShortDescription() {
+        return single.getTechnique().getName() + ": " + single.getValue();
+    }
+
+    @Override
     public String getHtmlInfo() {
         if (single.isNaked()) {
             return "<html>" + single.getPosition() + " is a Naked Single: " + single.getValue() + "</html>";
