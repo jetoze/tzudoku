@@ -171,6 +171,7 @@ public class ControlPanel {
                 new JMenuItem(createAction("Look for Hidden Quadruple", puzzleController::lookForHiddenQuadruple)),
                 new JMenuItem(createAction("Look for X-Wing", puzzleController::lookForXWing)),
                 new JMenuItem(createAction("Look for XY-Wing", puzzleController::lookForXyWing)),
+                new JMenuItem(createAction("Look for XYZ-Wing", puzzleController::lookForXyzWing)),
                 new JMenuItem(createAction("Look for Simple Coloring", puzzleController::lookForSimpleColoring)),
                 new JMenuItem(createAction("Look for Swordfish", puzzleController::lookForSwordfish)),
                 new JSeparator(),

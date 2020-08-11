@@ -37,6 +37,8 @@ public enum SolvingTechnique {
     
     XY_WING("XY-Wing", XyWing::findNext),
     
+    XYZ_WING("XYZ-Wing", XyzWing::findNext),
+    
     SIMPLE_COLORING("Simple Coloring", SimpleColoring::findNext),
     
     SWORDFISH("Swordfish", Swordfish::findNext);

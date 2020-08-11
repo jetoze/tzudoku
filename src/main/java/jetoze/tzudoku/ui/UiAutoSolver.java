@@ -34,6 +34,7 @@ import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.GridSolver.Result;
@@ -181,6 +182,8 @@ public class UiAutoSolver {
                     applyHint((SimpleColoring) hint);
                 } else if (hint instanceof Swordfish) {
                     applyHint((Swordfish) hint);
+                } else if (hint instanceof XyzWing) {
+                    applyHint((XyzWing) hint);
                 } else {
                     throw new RuntimeException("Unknown hint: " + hint);
                 }
