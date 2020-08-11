@@ -24,6 +24,7 @@ import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.Puzzle;
@@ -159,6 +160,10 @@ public class PuzzleUiController {
     
     public void lookForSwordfish() {
         runHintCheck(Swordfish::findNext, hintDisplay::showSwordfishInfo, "Did not find any Swordfish :(");
+    }
+    
+    public void lookForXyzWing() {
+        runHintCheck(XyzWing::findNext, hintDisplay::showXyzWingInfo, "Did not find any XYZ-Wings :(");
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {

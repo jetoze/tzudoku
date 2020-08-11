@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.joining;
 
 import java.util.Collection;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -25,6 +26,7 @@ import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
 import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
@@ -176,9 +178,23 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                         swordfish.getHouses().get(1).getNumber(),
                         swordfish.getHouses().get(2).getNumber()) +
                 "eliminates the value " + swordfish.getValue() + 
-                " from these cells:<br><br>" + swordfish.getTargetPositions().stream().map(Object::toString).collect(joining(" ")) +
+                " from these cells:<br><br>" + positions(swordfish.getTargetPositions()) +
                 "</html>";
         showHintInfo(swordfish, s);
+    }
+    
+    public void showXyzWingInfo(XyzWing hint) {
+        String template = "<html>An XYZ-Wing centered at ${center} and with wings at ${wing1} and ${wing2}<br>" +
+                "eliminates the value ${value} from ${targets}.</html>";
+        Iterator<Position> itWings = hint.getWings().iterator();
+        Map<String, Object> args = ImmutableMap.of(
+                "center", hint.getCenter(),
+                "wing1", itWings.next(),
+                "wing2", itWings.next(),
+                "value", hint.getValue(),
+                "targets", positions(hint.getTargetPositions()));
+        String html = new StringSubstitutor(args).replace(template);
+        showHintInfo(hint, html);
     }
 
     private void showHintInfo(Hint hint, String html) {
@@ -193,6 +209,12 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
 
     private static String valuesInOrder(Collection<Value> values) {
         return values.stream().sorted().map(Object::toString).collect(joining(" "));
+    }
+    
+    private static String positions(Collection<Position> positions) {
+        return positions.stream()
+                .map(Object::toString)
+                .collect(joining(" "));
     }
     
     private static String positionsInOrder(Collection<Position> positions, House house) {
