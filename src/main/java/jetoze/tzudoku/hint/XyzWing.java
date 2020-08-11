@@ -128,15 +128,15 @@ public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
                 BiValueCell wing1, 
                 BiValueCell wing2, Value value) {
             return Position.all()
-                    .filter(seesButIsNot(center.getPosition()).and(
-                            seesButIsNot(wing1.getPosition()).and(
-                            seesButIsNot(wing2.getPosition()))))
+                    .filter(sees(center.getPosition()).and(
+                            sees(wing1.getPosition()).and(
+                            sees(wing2.getPosition()))))
                     .filter(HintUtils.isCandidate(grid, value))
                     .collect(toImmutableSet());
         }
         
-        private Predicate<Position> seesButIsNot(Position other) {
-            return p -> p.sees(other) && !p.equals(other);
+        private Predicate<Position> sees(Position p) {
+            return p::sees;
         }
     }
     

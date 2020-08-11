@@ -48,10 +48,16 @@ public class Position {
         return minBox + (column - 1) / 3;
     }
     
+    /**
+     * Checks if this position sees the other position, i.e. if the two positions
+     * share at least one house. In this context, a position is not considered to see
+     * itself, so this method returns false if {@code other} is the same position
+     * as {@code this} position.
+     */
     public boolean sees(Position other) {
-        return (this.row == other.row) ||
+        return ((this.row == other.row) ||
                 (this.column == other.column) ||
-                (this.getBox() == other.getBox());
+                (this.getBox() == other.getBox())) && !this.equals(other);
     }
     
     /**

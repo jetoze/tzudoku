@@ -15,8 +15,8 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -69,65 +69,59 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
     
     private static class Detector {
         private final Grid grid;
+        // All BiValueCells in the grid
+        private final ImmutableList<BiValueCell> twoValueCells;
         
         public Detector(Grid grid) {
             this.grid = requireNonNull(grid);
+            this.twoValueCells = Position.all()
+                    .map(p -> BiValueCell.examine(grid, p))
+                    .flatMap(Optional::stream)
+                    .collect(toImmutableList());
         }
-        
+
         public Optional<YWing> findNext() {
             // TODO: I need to be cleaned up a bit. And I should have unit tests!
-            // Collect all remaining cells that have exactly two possible values, according
-            // to their center pencil marks.
-            ImmutableList<BiValueCell> twoValueCells = Position.all()
-                    .map(this::lookAt)
-                    .filter(Objects::nonNull)
-                    .collect(toImmutableList());
             if (twoValueCells.size() < 3) {
                 // A y-wing requires three cells.
                 return Optional.empty();
             }
-            for (BiValueCell pivot : twoValueCells) {
-                // See if we can find two matching wings for this center cell
-                ImmutableList<BiValueCell> possibleWings = getPossibleWings(pivot, twoValueCells);
-                if (possibleWings.size() < 2) {
-                    continue;
-                }
-                for (int i = 0; i < (possibleWings.size() - 1); ++i) {
-                    BiValueCell w1 = possibleWings.get(i);
-                    Set<Value> valuesNotShared = w1.getValuesNotShared(pivot);
-                    assert valuesNotShared.size() == 1 : "We should not have reached this point unless the two BiValueCells shares exactly one Value";
-                    Value wingValue = valuesNotShared.iterator().next();
-                    Set<Value> otherWingValues = ImmutableSet.of(wingValue, pivot.getValuesNotShared(w1).iterator().next());
-                    for (int j = i + 1; j < possibleWings.size(); ++j) {
-                        BiValueCell w2 = possibleWings.get(j);
-                        if (!isInSameRowOrColumn(pivot, w1, w2) && w2.getCandidates().equals(otherWingValues)) {
-                            // Now check if w1 and w2 are both seen by any cells that have wingValue as
-                            // a candidate. Exclude the wings themselves.
-                            Set<Position> seenByBothWings = Sets.intersection(seenBy(w1), seenBy(w2));
-                            ImmutableSet<Position> targets = seenByBothWings.stream()
-                                    .filter(px -> !px.equals(w1.getPosition()) && !px.equals(w2.getPosition()))
-                                    .filter(HintUtils.isCandidate(grid, wingValue))
-                                    .collect(toImmutableSet());
-                            if (!targets.isEmpty()) {
-                                return Optional.of(new YWing(grid, pivot.getPosition(), ImmutableSet.of(w1.getPosition(), w2.getPosition()), wingValue, targets));
-                            }
+            return twoValueCells.stream()
+                    .map(this::examinePossiblePivot)
+                    .filter(Objects::nonNull)
+                    .findAny();
+        }
+        
+        @Nullable
+        private YWing examinePossiblePivot(BiValueCell pivot) {
+            // See if we can find two matching wings for this center cell
+            ImmutableList<BiValueCell> possibleWings = getPossibleWings(pivot, twoValueCells);
+            if (possibleWings.size() < 2) {
+                return null;
+            }
+            for (int i = 0; i < (possibleWings.size() - 1); ++i) {
+                BiValueCell w1 = possibleWings.get(i);
+                Set<Value> valuesNotShared = w1.getValuesNotShared(pivot);
+                assert valuesNotShared.size() == 1 : "We should not have reached this point unless the two BiValueCells shares exactly one Value";
+                Value wingValue = valuesNotShared.iterator().next();
+                Set<Value> otherWingValues = ImmutableSet.of(wingValue, pivot.getValuesNotShared(w1).iterator().next());
+                for (int j = i + 1; j < possibleWings.size(); ++j) {
+                    BiValueCell w2 = possibleWings.get(j);
+                    if (!isInSameRowOrColumn(pivot, w1, w2) && w2.getCandidates().equals(otherWingValues)) {
+                        // Now check if w1 and w2 are both seen by any cells that have wingValue as
+                        // a candidate. Exclude the wings themselves.
+                        Set<Position> seenByBothWings = Sets.intersection(seenBy(w1), seenBy(w2));
+                        ImmutableSet<Position> targets = seenByBothWings.stream()
+                                .filter(px -> !px.equals(w1.getPosition()) && !px.equals(w2.getPosition()))
+                                .filter(HintUtils.isCandidate(grid, wingValue))
+                                .collect(toImmutableSet());
+                        if (!targets.isEmpty()) {
+                            return new YWing(grid, pivot.getPosition(), ImmutableSet.of(w1.getPosition(), w2.getPosition()), wingValue, targets);
                         }
                     }
                 }
             }
-            return Optional.empty();
-        }
-        
-        @Nullable
-        private BiValueCell lookAt(Position p) {
-            Cell cell = grid.cellAt(p);
-            if (cell.hasValue()) {
-                return null;
-            }
-            ImmutableSet<Value> possibleValues = cell.getCenterMarks().getValues();
-            return possibleValues.size() == 2
-                    ? new BiValueCell(p, possibleValues)
-                    : null;
+            return null;
         }
         
         private ImmutableList<BiValueCell> getPossibleWings(BiValueCell pivot, ImmutableList<BiValueCell> allCandidates) {
@@ -138,8 +132,8 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
         }
         
         private static boolean isInSameRowOrColumn(BiValueCell pivot, BiValueCell w1, BiValueCell w2) {
-            return (pivot.getPosition().getRow() == w1.getPosition().getRow() && pivot.getPosition().getRow() == w2.getPosition().getRow()) ||
-                    (pivot.getPosition().getColumn() == w1.getPosition().getColumn() && pivot.getPosition().getColumn() == w2.getPosition().getColumn());
+            Set<Position> positions = ImmutableSet.of(pivot.getPosition(), w1.getPosition(), w2.getPosition());
+            return House.ifInRowOrColumn(positions).isPresent();
         }
         
         private static ImmutableSet<Position> seenBy(BiValueCell cell) {
