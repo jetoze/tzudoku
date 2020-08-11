@@ -20,28 +20,28 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class YWing extends EliminatingHint implements HingeAndWingsHint {
+public class YWing extends EliminatingHint implements PivotAndWingsHint {
     
-    private final Position hinge;
+    private final Position pivot;
     private final ImmutableSet<Position> wings;
 
     private YWing(Grid grid, 
-                  Position hinge, 
+                  Position pivot, 
                   ImmutableSet<Position> wings,
                   Value valueThatCanBeEliminated,
                   ImmutableSet<Position> targets) {
-        super(SolvingTechnique.Y_WING, grid, ImmutableSet.<Position>builder().add(hinge).addAll(wings).build(),
+        super(SolvingTechnique.Y_WING, grid, ImmutableSet.<Position>builder().add(pivot).addAll(wings).build(),
                 valueThatCanBeEliminated, targets);
-        this.hinge = requireNonNull(hinge);
+        this.pivot = requireNonNull(pivot);
         this.wings = requireNonNull(wings);
-        checkArgument(!wings.contains(hinge));
-        checkArgument(!targets.contains(hinge));
+        checkArgument(!wings.contains(pivot));
+        checkArgument(!targets.contains(pivot));
         checkArgument(Sets.intersection(wings, targets).isEmpty());
     }
 
     @Override
-    public Position getHinge() {
-        return hinge;
+    public Position getPivot() {
+        return pivot;
     }
 
     @Override

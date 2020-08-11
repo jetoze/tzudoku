@@ -35,7 +35,7 @@ public class YWingTest {
         YWing hint = opt.get();
         
         assertEquals(Value.SEVEN, hint.getValue());
-        assertEquals(new Position(2, 4), hint.getHinge());
+        assertEquals(new Position(2, 4), hint.getPivot());
         assertEquals(ImmutableSet.of(new Position(3, 5), new Position(6, 4)), hint.getWings());
         assertEquals(ImmutableSet.of(new Position(4, 5), new Position(6, 5)), hint.getTargetPositions());
 

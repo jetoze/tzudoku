@@ -21,32 +21,32 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class XyzWing extends EliminatingHint implements HingeAndWingsHint {
+public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
 
-    private final Position hinge;
+    private final Position pivot;
     private final ImmutableSet<Position> wings;
     
     // TODO: Should the constructor take a TriValueCell and two BiValuesCells as input?
-    public XyzWing(Grid grid, Position hingePosition, Set<Position> wingPositions, Value value, Set<Position> targetPositions) {
-        super(SolvingTechnique.XYZ_WING, grid, collectForcingPositions(hingePosition, wingPositions), value, targetPositions);
-        this.hinge = requireNonNull(hingePosition);
-        this.wings = ImmutableSet.copyOf(wingPositions);
+    public XyzWing(Grid grid, Position pivot, Set<Position> wings, Value value, Set<Position> targetPositions) {
+        super(SolvingTechnique.XYZ_WING, grid, collectForcingPositions(pivot, wings), value, targetPositions);
+        this.pivot = requireNonNull(pivot);
+        this.wings = ImmutableSet.copyOf(wings);
     }
     
-    private static ImmutableSet<Position> collectForcingPositions(Position hingePosition, Set<Position> wingPositions) {
-        requireNonNull(hingePosition);
-        checkArgument(wingPositions.size() == 2);
-        checkArgument(!wingPositions.contains(hingePosition));
-        Iterator<Position> it = wingPositions.iterator();
+    private static ImmutableSet<Position> collectForcingPositions(Position pivot, Set<Position> wings) {
+        requireNonNull(pivot);
+        checkArgument(wings.size() == 2);
+        checkArgument(!wings.contains(pivot));
+        Iterator<Position> it = wings.iterator();
         Position wing1 = it.next();
         Position wing2 = it.next();
-        checkArgument(hingePosition.sees(wing1) && hingePosition.sees(wing2));
-        return ImmutableSet.of(hingePosition, wing1, wing2);
+        checkArgument(pivot.sees(wing1) && pivot.sees(wing2));
+        return ImmutableSet.of(pivot, wing1, wing2);
     }
     
     @Override
-    public Position getHinge() {
-        return hinge;
+    public Position getPivot() {
+        return pivot;
     }
 
     @Override

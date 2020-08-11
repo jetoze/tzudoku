@@ -10,7 +10,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.hint.EliminatingHint;
 import jetoze.tzudoku.hint.HiddenMultiple;
-import jetoze.tzudoku.hint.HingeAndWingsHint;
+import jetoze.tzudoku.hint.PivotAndWingsHint;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
@@ -33,9 +33,9 @@ public class HintCellDecorators {
         if (hint instanceof Single) {
             return new SingleHintCellDecorator(model, (Single) hint);
         } else if (hint instanceof YWing) {
-            return new HingeAndWingsCellDecorator<>(model, ((YWing) hint));
+            return new PivotAndWingsCellDecorator<>(model, ((YWing) hint));
         } else if (hint instanceof XyzWing) {
-            return new HingeAndWingsCellDecorator<>(model, ((XyzWing) hint));
+            return new PivotAndWingsCellDecorator<>(model, ((XyzWing) hint));
         } else if (hint instanceof EliminatingHint) {
             return new EliminatingHintCellDecorator(model, (EliminatingHint) hint);
         } else if (hint instanceof HiddenMultiple) {
@@ -101,16 +101,16 @@ public class HintCellDecorators {
     }
     
     
-    private static class HingeAndWingsCellDecorator<T extends EliminatingHint & HingeAndWingsHint> extends CellHighlightDecorator<T> {
+    private static class PivotAndWingsCellDecorator<T extends EliminatingHint & PivotAndWingsHint> extends CellHighlightDecorator<T> {
 
-        public HingeAndWingsCellDecorator(GridUiModel model, T hint) {
+        public PivotAndWingsCellDecorator(GridUiModel model, T hint) {
             super(model, hint);
         }
 
         @Override
         protected Collection<HighlightedCells> getHighlights(T hint) {
             return Arrays.asList(
-                    new HighlightedCells(hint.getHinge(), HintHighlightColors.CENTER_CELL),
+                    new HighlightedCells(hint.getPivot(), HintHighlightColors.CENTER_CELL),
                     new HighlightedCells(hint.getWings(), HintHighlightColors.WING_CELL),
                     new HighlightedCells(hint.getTargetPositions(), HintHighlightColors.TARGET_CELL));
         }
