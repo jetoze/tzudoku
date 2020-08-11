@@ -122,8 +122,16 @@ public class PuzzleUiController {
         runHintCheck(BoxLineReduction::findNext, hintDisplay::showBoxLineReductionInfo, "Did not find any Box Line Reductions :(");
     }
     
+    public void lookForNakedSingle() {
+        runHintCheck(Single::findNextNaked, hintDisplay::showSingleInfo, "Did not find any Naked Singles :(");
+    }
+    
     public void lookForHiddenSingle() {
         runHintCheck(Single::findNextHidden, hintDisplay::showSingleInfo, "Did not find any Hidden Singles :(");
+    }
+    
+    public void lookForNakedPair() {
+        runHintCheck(NakedMultiple::findNakedPair, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Pairs :(");
     }
     
     public void lookForNakedTriple() {

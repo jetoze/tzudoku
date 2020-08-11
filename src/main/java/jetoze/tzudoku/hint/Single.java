@@ -26,7 +26,7 @@ public class Single implements Hint {
     private final SolvingTechnique technique;
     private final Grid grid;
     private final Value value;
-    private final House house; // XXX: Superfluous, really, since we have the position too.
+    private final House house;
     private final Position position;
     
     // TODO: Replace with factory methods naked() and hidden().

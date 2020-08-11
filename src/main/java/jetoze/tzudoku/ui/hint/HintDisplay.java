@@ -72,9 +72,22 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
     }
     
     public void showSingleInfo(Single single) {
-        String s = "<html>Found a " + single.getTechnique().getName() + ":<br>" + single.getPosition() + 
-                "<br>Value: " + single.getValue() + "</html>";
+        String s = getSingleInfoText(single);
         showHintInfo(single, s);
+    }
+    
+    private String getSingleInfoText(Single single) {
+        if (single.isNaked()) {
+            return "<html>" + single.getPosition() + " is a Naked Single: " + single.getValue() + "</html>";
+        } else {
+            String template = "<html>${cell} is a Hidden Single. It is the only cell in ${house} where "
+                    + "the digit ${value} can be placed.</html>";
+            Map<String, Object> args = ImmutableMap.of(
+                    "cell", single.getPosition(),
+                    "house", single.getHouse(),
+                    "value", single.getValue());
+            return new StringSubstitutor(args).replace(template);
+        }
     }
 
     public void showPointingPairInfo(PointingPair hint) {
