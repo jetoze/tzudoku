@@ -13,6 +13,7 @@ import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.ui.GridUiModel;
 import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
@@ -29,6 +30,8 @@ public class HintCellDecorators {
         requireNonNull(hint);
         if (hint instanceof Single) {
             return new SingleHintCellDecorator(model, (Single) hint);
+        } else if (hint instanceof XyzWing) {
+            return new XyzWingCellDecorator(model, ((XyzWing) hint));
         } else if (hint instanceof EliminatingHint) {
             return new EliminatingHintCellDecorator(model, (EliminatingHint) hint);
         } else if (hint instanceof HiddenMultiple) {
@@ -89,6 +92,22 @@ public class HintCellDecorators {
         protected Collection<HighlightedCells> getHighlights(EliminatingHint hint) {
             return Arrays.asList(
                     new HighlightedCells(hint.getForcingPositions(), HintHighlightColors.FORCING_CELL),
+                    new HighlightedCells(hint.getTargetPositions(), HintHighlightColors.TARGET_CELL));
+        }
+    }
+    
+    
+    private static class XyzWingCellDecorator extends CellHighlightDecorator<XyzWing> {
+
+        public XyzWingCellDecorator(GridUiModel model, XyzWing hint) {
+            super(model, hint);
+        }
+
+        @Override
+        protected Collection<HighlightedCells> getHighlights(XyzWing hint) {
+            return Arrays.asList(
+                    new HighlightedCells(hint.getCenter(), HintHighlightColors.CENTER_CELL),
+                    new HighlightedCells(hint.getWings(), HintHighlightColors.WING_CELL),
                     new HighlightedCells(hint.getTargetPositions(), HintHighlightColors.TARGET_CELL));
         }
     }
