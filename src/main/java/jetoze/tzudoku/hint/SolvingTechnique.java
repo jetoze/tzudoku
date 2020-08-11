@@ -43,8 +43,6 @@ public enum SolvingTechnique {
     
     SWORDFISH("Swordfish", Swordfish::findNext);
     
-    // TODO: XYZ-wing. See The Daily Sudoku 2020-08-09 for a couple of examples.
-    // TODO: Y-Wing. See The Daily Sudoku 2020-08-09 for an example.
     // TODO: W-Wing
     // TODO: Two String Kite.
 
