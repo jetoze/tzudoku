@@ -17,7 +17,6 @@ import javax.annotation.Nullable;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
@@ -77,15 +76,15 @@ public class XyzWing extends EliminatingHint {
                     .findFirst();
         }
         
-        private Stream<Center> collectPossibleCenterCells() {
+        private Stream<TriValueCell> collectPossibleCenterCells() {
             return Position.all()
-                    .map(p -> Center.examine(grid, p))
-                    .filter(Objects::nonNull);
+                    .map(p -> TriValueCell.examine(grid, p))
+                    .flatMap(Optional::stream);
         }
         
         @Nullable
-        private XyzWing check(Center centerCell) {
-            ImmutableList<BiValueCell> possibleWings = centerCell.collectPossibleWings(grid);
+        private XyzWing check(TriValueCell centerCell) {
+            ImmutableList<BiValueCell> possibleWings = collectPossibleWings(centerCell);
             if (possibleWings.size() < 2) {
                 // We need two wing cells
                 return null;
@@ -101,9 +100,11 @@ public class XyzWing extends EliminatingHint {
                         // We have found a center and two wings that fulfills the XYZ-wing requirements.
                         // Last thing to check is if there are any cells that sees all these three cells,
                         // and have the shared value we just found as a candidate.
-                        ImmutableSet<Position> targets = matchingPositionsSeenByAllThreeCells(centerCell, wing1, wing2, sharedValue);
+                        ImmutableSet<Position> targets = matchingPositionsSeenByAllThreeCells(
+                                centerCell, wing1, wing2, sharedValue);
                         if (!targets.isEmpty()) {
-                            return new XyzWing(grid, centerCell.position, ImmutableSet.of(wing1.getPosition(), wing2.getPosition()), 
+                            return new XyzWing(grid, centerCell.getPosition(), 
+                                    ImmutableSet.of(wing1.getPosition(), wing2.getPosition()), 
                                     sharedValue, targets);
                         }
                     }
@@ -112,12 +113,20 @@ public class XyzWing extends EliminatingHint {
             return null;
         }
         
+        private ImmutableList<BiValueCell> collectPossibleWings(TriValueCell centerCell) {
+            return centerCell.getPosition().seenBy()
+                    .map(p -> BiValueCell.examine(grid, p))
+                    .flatMap(Optional::stream)
+                    .filter(c -> centerCell.getCandidates().containsAll(c.getCandidates()))
+                    .collect(toImmutableList());
+        }
+        
         private ImmutableSet<Position> matchingPositionsSeenByAllThreeCells(
-                Center center, 
+                TriValueCell center, 
                 BiValueCell wing1, 
                 BiValueCell wing2, Value value) {
             return Position.all()
-                    .filter(seesButIsNot(center.position).and(
+                    .filter(seesButIsNot(center.getPosition()).and(
                             seesButIsNot(wing1.getPosition()).and(
                             seesButIsNot(wing2.getPosition()))))
                     .filter(HintUtils.isCandidate(grid, value))
@@ -126,38 +135,6 @@ public class XyzWing extends EliminatingHint {
         
         private Predicate<Position> seesButIsNot(Position other) {
             return p -> p.sees(other) && !p.equals(other);
-        }
-    }
-    
-    
-    private static class Center {
-        private final Position position;
-        private final ImmutableSet<Value> candidates;
-        
-        public Center(Position position, ImmutableSet<Value> candidates) {
-            assert candidates.size() == 3;
-            this.position = position;
-            this.candidates = candidates;
-        }
-        
-        @Nullable
-        public static Center examine(Grid grid, Position position) {
-            Cell cell = grid.cellAt(position);
-            if (!cell.hasValue()) {
-                ImmutableSet<Value> candidates = cell.getCenterMarks().getValues();
-                if (candidates.size() == 3) {
-                    return new Center(position, candidates);
-                }
-            }
-            return null;
-        }
-        
-        public ImmutableList<BiValueCell> collectPossibleWings(Grid grid) {
-            return position.seenBy()
-                    .map(p -> BiValueCell.examine(grid, p))
-                    .flatMap(Optional::stream)
-                    .filter(c -> this.candidates.containsAll(c.getCandidates()))
-                    .collect(toImmutableList());
         }
     }
     
