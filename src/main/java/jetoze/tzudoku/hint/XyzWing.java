@@ -21,33 +21,35 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class XyzWing extends EliminatingHint {
+public class XyzWing extends EliminatingHint implements HingeAndWingsHint {
 
-    private final Position center;
+    private final Position hinge;
     private final ImmutableSet<Position> wings;
     
     // TODO: Should the constructor take a TriValueCell and two BiValuesCells as input?
-    public XyzWing(Grid grid, Position centerPosition, Set<Position> wingPositions, Value value, Set<Position> targetPositions) {
-        super(SolvingTechnique.XYZ_WING, grid, collectForcingPositions(centerPosition, wingPositions), value, targetPositions);
-        this.center = requireNonNull(centerPosition);
+    public XyzWing(Grid grid, Position hingePosition, Set<Position> wingPositions, Value value, Set<Position> targetPositions) {
+        super(SolvingTechnique.XYZ_WING, grid, collectForcingPositions(hingePosition, wingPositions), value, targetPositions);
+        this.hinge = requireNonNull(hingePosition);
         this.wings = ImmutableSet.copyOf(wingPositions);
     }
     
-    private static ImmutableSet<Position> collectForcingPositions(Position center, Set<Position> wingPositions) {
-        requireNonNull(center);
+    private static ImmutableSet<Position> collectForcingPositions(Position hingePosition, Set<Position> wingPositions) {
+        requireNonNull(hingePosition);
         checkArgument(wingPositions.size() == 2);
-        checkArgument(!wingPositions.contains(center));
+        checkArgument(!wingPositions.contains(hingePosition));
         Iterator<Position> it = wingPositions.iterator();
         Position wing1 = it.next();
         Position wing2 = it.next();
-        checkArgument(center.sees(wing1) && center.sees(wing2));
-        return ImmutableSet.of(center, wing1, wing2);
+        checkArgument(hingePosition.sees(wing1) && hingePosition.sees(wing2));
+        return ImmutableSet.of(hingePosition, wing1, wing2);
     }
     
-    public Position getCenter() {
-        return center;
+    @Override
+    public Position getHinge() {
+        return hinge;
     }
 
+    @Override
     public ImmutableSet<Position> getWings() {
         return wings;
     }

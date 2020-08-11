@@ -167,7 +167,7 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
     
     public void showXyWingInfo(XyWing xyWing) {
         StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
-        s.append(xyWing.getCenter());
+        s.append(xyWing.getHinge());
         xyWing.getWings().forEach(w -> s.append("<br>").append(w));
         s.append("<br><br>").append(xyWing.getValue().toInt())
             .append(" can be eliminated from these cells:");
@@ -201,7 +201,7 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
                 "eliminates the value ${value} from ${targets}.</html>";
         Iterator<Position> itWings = hint.getWings().iterator();
         Map<String, Object> args = ImmutableMap.of(
-                "center", hint.getCenter(),
+                "center", hint.getHinge(),
                 "wing1", itWings.next(),
                 "wing2", itWings.next(),
                 "value", hint.getValue(),

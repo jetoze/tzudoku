@@ -35,7 +35,7 @@ public class XyzWingTest {
         
         XyzWing hint = opt.get();
         assertSame(Value.ONE, hint.getValue());
-        assertEquals(new Position(1, 5), hint.getCenter());
+        assertEquals(new Position(1, 5), hint.getHinge());
         assertEquals(ImmutableSet.of(new Position(1, 4), new Position(5, 5)), hint.getWings());
         assertEquals(ImmutableSet.of(new Position(3, 5)), hint.getTargetPositions());
         
@@ -64,7 +64,7 @@ public class XyzWingTest {
         
         XyzWing hint = opt.get();
         assertSame(Value.SEVEN, hint.getValue());
-        assertEquals(new Position(2, 6), hint.getCenter());
+        assertEquals(new Position(2, 6), hint.getHinge());
         assertEquals(ImmutableSet.of(new Position(2, 9), new Position(3, 5)), hint.getWings());
         assertEquals(ImmutableSet.of(new Position(2, 4)), hint.getTargetPositions());
         
@@ -93,7 +93,7 @@ public class XyzWingTest {
         
         XyzWing hint = opt.get();
         assertSame(Value.ONE, hint.getValue());
-        assertEquals(new Position(8, 9), hint.getCenter());
+        assertEquals(new Position(8, 9), hint.getHinge());
         assertEquals(ImmutableSet.of(new Position(8, 3), new Position(9, 9)), hint.getWings());
         assertEquals(ImmutableSet.of(new Position(8, 8)), hint.getTargetPositions());
         

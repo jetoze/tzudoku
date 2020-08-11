@@ -21,35 +21,31 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class XyWing extends EliminatingHint {
+public class XyWing extends EliminatingHint implements HingeAndWingsHint {
     
-    private final Position center;
+    private final Position hinge;
     private final ImmutableSet<Position> wings;
 
     private XyWing(Grid grid, 
-                   Position center, 
+                   Position hinge, 
                    ImmutableSet<Position> wings,
                    Value valueThatCanBeEliminated,
                    ImmutableSet<Position> targets) {
-        super(SolvingTechnique.XY_WING, grid, ImmutableSet.<Position>builder().add(center).addAll(wings).build(),
+        super(SolvingTechnique.XY_WING, grid, ImmutableSet.<Position>builder().add(hinge).addAll(wings).build(),
                 valueThatCanBeEliminated, targets);
-        this.center = requireNonNull(center);
+        this.hinge = requireNonNull(hinge);
         this.wings = requireNonNull(wings);
-        checkArgument(!wings.contains(center));
-        checkArgument(!targets.contains(center));
+        checkArgument(!wings.contains(hinge));
+        checkArgument(!targets.contains(hinge));
         checkArgument(Sets.intersection(wings, targets).isEmpty());
     }
 
-    /**
-     * Returns the position of the center (or pivot) cell.
-     */
-    public Position getCenter() {
-        return center;
+    @Override
+    public Position getHinge() {
+        return hinge;
     }
 
-    /**
-     * Returns the positions of the wings.
-     */
+    @Override
     public ImmutableSet<Position> getWings() {
         return wings;
     }

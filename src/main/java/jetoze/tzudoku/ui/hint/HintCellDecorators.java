@@ -10,9 +10,11 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.hint.EliminatingHint;
 import jetoze.tzudoku.hint.HiddenMultiple;
+import jetoze.tzudoku.hint.HingeAndWingsHint;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
+import jetoze.tzudoku.hint.XyWing;
 import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.ui.GridUiModel;
@@ -30,8 +32,10 @@ public class HintCellDecorators {
         requireNonNull(hint);
         if (hint instanceof Single) {
             return new SingleHintCellDecorator(model, (Single) hint);
+        } else if (hint instanceof XyWing) {
+            return new HingeAndWingsCellDecorator<>(model, ((XyWing) hint));
         } else if (hint instanceof XyzWing) {
-            return new XyzWingCellDecorator(model, ((XyzWing) hint));
+            return new HingeAndWingsCellDecorator<>(model, ((XyzWing) hint));
         } else if (hint instanceof EliminatingHint) {
             return new EliminatingHintCellDecorator(model, (EliminatingHint) hint);
         } else if (hint instanceof HiddenMultiple) {
@@ -97,22 +101,22 @@ public class HintCellDecorators {
     }
     
     
-    private static class XyzWingCellDecorator extends CellHighlightDecorator<XyzWing> {
+    private static class HingeAndWingsCellDecorator<T extends EliminatingHint & HingeAndWingsHint> extends CellHighlightDecorator<T> {
 
-        public XyzWingCellDecorator(GridUiModel model, XyzWing hint) {
+        public HingeAndWingsCellDecorator(GridUiModel model, T hint) {
             super(model, hint);
         }
 
         @Override
-        protected Collection<HighlightedCells> getHighlights(XyzWing hint) {
+        protected Collection<HighlightedCells> getHighlights(T hint) {
             return Arrays.asList(
-                    new HighlightedCells(hint.getCenter(), HintHighlightColors.CENTER_CELL),
+                    new HighlightedCells(hint.getHinge(), HintHighlightColors.CENTER_CELL),
                     new HighlightedCells(hint.getWings(), HintHighlightColors.WING_CELL),
                     new HighlightedCells(hint.getTargetPositions(), HintHighlightColors.TARGET_CELL));
         }
     }
-    
-    
+
+
     // TODO: This class should hopefully only be temporary, until we've implemented proper
     // decorators for all hints.
     private static class TargetCellsDecorator implements HintCellDecorator {
