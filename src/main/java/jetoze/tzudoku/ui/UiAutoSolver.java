@@ -203,13 +203,6 @@ public class UiAutoSolver {
             model.removeCandidatesFromCells(hint.getTargetPositions(), hint.getValues());
         }
         
-        private String valuesAsSortedString(Set<Value> values) {
-            return values.stream()
-                    .sorted()
-                    .map(Object::toString)
-                    .collect(joining(" "));
-        }
-        
         private void applyHint(HiddenMultiple multiple) {
             setStatus(multiple.getTechnique().getName() + ": " + valuesAsSortedString(multiple.getHiddenValues()));
             // XXX: This messes up Undo-Redo, since we can't apply this change
@@ -222,6 +215,13 @@ public class UiAutoSolver {
         private void applyHint(SimpleColoring simpleColoring) {
             setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
             model.removeCandidatesFromCells(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
+        }
+        
+        private String valuesAsSortedString(Set<Value> values) {
+            return values.stream()
+                    .sorted()
+                    .map(Object::toString)
+                    .collect(joining(" "));
         }
     }
     
