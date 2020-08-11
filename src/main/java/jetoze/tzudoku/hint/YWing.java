@@ -5,7 +5,6 @@ import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
-import java.util.Collections;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
@@ -95,9 +94,9 @@ public class YWing extends EliminatingHint implements HingeAndWingsHint {
                 }
                 for (int i = 0; i < (possibleWings.size() - 1); ++i) {
                     BiValueCell w1 = possibleWings.get(i);
-                    Value sharedValue = pivot.getSingleSharedValue(w1).orElseThrow(() -> new IllegalStateException(
-                            "We should not have reached this point unless the two BiValueCells shares exactly one Value"));
-                    Value wingValue = Sets.difference(w1.getCandidates(), Collections.singleton(sharedValue)).iterator().next();
+                    Set<Value> valuesNotShared = w1.getValuesNotShared(pivot);
+                    assert valuesNotShared.size() == 1 : "We should not have reached this point unless the two BiValueCells shares exactly one Value";
+                    Value wingValue = valuesNotShared.iterator().next();
                     Set<Value> otherWingValues = ImmutableSet.of(wingValue, pivot.getValuesNotShared(w1).iterator().next());
                     for (int j = i + 1; j < possibleWings.size(); ++j) {
                         BiValueCell w2 = possibleWings.get(j);
