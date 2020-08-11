@@ -14,7 +14,7 @@ import jetoze.tzudoku.hint.HingeAndWingsHint;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
-import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.YWing;
 import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.ui.GridUiModel;
@@ -32,8 +32,8 @@ public class HintCellDecorators {
         requireNonNull(hint);
         if (hint instanceof Single) {
             return new SingleHintCellDecorator(model, (Single) hint);
-        } else if (hint instanceof XyWing) {
-            return new HingeAndWingsCellDecorator<>(model, ((XyWing) hint));
+        } else if (hint instanceof YWing) {
+            return new HingeAndWingsCellDecorator<>(model, ((YWing) hint));
         } else if (hint instanceof XyzWing) {
             return new HingeAndWingsCellDecorator<>(model, ((XyzWing) hint));
         } else if (hint instanceof EliminatingHint) {

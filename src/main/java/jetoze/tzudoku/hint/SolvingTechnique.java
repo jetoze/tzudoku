@@ -35,7 +35,7 @@ public enum SolvingTechnique {
     
     X_WING("X-Wing", XWing::findNext),
     
-    XY_WING("XY-Wing", XyWing::findNext),
+    Y_WING("Y-Wing", YWing::findNext),
     
     XYZ_WING("XYZ-Wing", XyzWing::findNext),
     

@@ -23,16 +23,7 @@ import jetoze.tzudoku.hint.SolvingTechnique;
  * </li>
  * </ul>
  * <p>
- * The current solving techniques are currently implemented:
- * <ul>
- * <li>Naked and Hidden Singles</li>
- * <li>Naked Pairs</li>
- * <li>Pointing Pairs</li>
- * <li>Triples and Quadruples</li>
- * <li>X-Wings</li>
- * <li>XY-Wings</li>
- * </ul> 
- *
+ * See {@link SolvingTechnique} for the techniques that are supported by this solver.
  */
 public class GridSolver {
     

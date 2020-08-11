@@ -25,7 +25,7 @@ import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
-import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.YWing;
 import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.House.Type;
@@ -60,8 +60,8 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
             showHiddenMultipleInfo((HiddenMultiple) hint);
         } else if (hint instanceof XWing) {
             showXWingInfo((XWing) hint);
-        } else if (hint instanceof XyWing) {
-            showXyWingInfo((XyWing) hint);
+        } else if (hint instanceof YWing) {
+            showYWingInfo((YWing) hint);
         } else if (hint instanceof SimpleColoring) {
             showSimpleColoringInfo((SimpleColoring) hint);
         } else if (hint instanceof Swordfish) {
@@ -165,15 +165,15 @@ public class HintDisplay { // TODO: This is a bad name, but this class may be te
         showHintInfo(xwing, s.toString());
     }
     
-    public void showXyWingInfo(XyWing xyWing) {
-        StringBuilder s = new StringBuilder("<html>Found an XY-Wing:<br>");
-        s.append(xyWing.getHinge());
-        xyWing.getWings().forEach(w -> s.append("<br>").append(w));
-        s.append("<br><br>").append(xyWing.getValue().toInt())
+    public void showYWingInfo(YWing yWing) {
+        StringBuilder s = new StringBuilder("<html>Found a Y-Wing:<br>");
+        s.append(yWing.getHinge());
+        yWing.getWings().forEach(w -> s.append("<br>").append(w));
+        s.append("<br><br>").append(yWing.getValue().toInt())
             .append(" can be eliminated from these cells:");
-        xyWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
+        yWing.getTargetPositions().forEach(t -> s.append("<br>").append(t));
         s.append("</html>");
-        showHintInfo(xyWing, s.toString());
+        showHintInfo(yWing, s.toString());
     }
     
     public void showSimpleColoringInfo(SimpleColoring simpleColoring) {

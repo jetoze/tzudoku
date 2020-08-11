@@ -23,7 +23,7 @@ import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
-import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.YWing;
 import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
@@ -158,8 +158,8 @@ public class PuzzleUiController {
         runHintCheck(XWing::findNext, hintDisplay::showXWingInfo, "Did not find any X-Wings :(");
     }
     
-    public void lookForXyWing() {
-        runHintCheck(XyWing::findNext, hintDisplay::showXyWingInfo, "Did not find any XY-Wings :(");
+    public void lookForYWing() {
+        runHintCheck(YWing::findNext, hintDisplay::showYWingInfo, "Did not find any Y-Wings :(");
     }
     
     public void lookForSimpleColoring() {

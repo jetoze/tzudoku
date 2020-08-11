@@ -33,7 +33,7 @@ import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.Single;
 import jetoze.tzudoku.hint.Swordfish;
 import jetoze.tzudoku.hint.XWing;
-import jetoze.tzudoku.hint.XyWing;
+import jetoze.tzudoku.hint.YWing;
 import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
@@ -176,8 +176,8 @@ public class UiAutoSolver {
                     applyHint((HiddenMultiple) hint);
                 } else if (hint instanceof XWing) {
                     applyHint((XWing) hint);
-                } else if (hint instanceof XyWing) {
-                    applyHint((XyWing) hint);
+                } else if (hint instanceof YWing) {
+                    applyHint((YWing) hint);
                 } else if (hint instanceof SimpleColoring) {
                     applyHint((SimpleColoring) hint);
                 } else if (hint instanceof Swordfish) {

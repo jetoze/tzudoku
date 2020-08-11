@@ -21,17 +21,17 @@ import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-public class XyWing extends EliminatingHint implements HingeAndWingsHint {
+public class YWing extends EliminatingHint implements HingeAndWingsHint {
     
     private final Position hinge;
     private final ImmutableSet<Position> wings;
 
-    private XyWing(Grid grid, 
-                   Position hinge, 
-                   ImmutableSet<Position> wings,
-                   Value valueThatCanBeEliminated,
-                   ImmutableSet<Position> targets) {
-        super(SolvingTechnique.XY_WING, grid, ImmutableSet.<Position>builder().add(hinge).addAll(wings).build(),
+    private YWing(Grid grid, 
+                  Position hinge, 
+                  ImmutableSet<Position> wings,
+                  Value valueThatCanBeEliminated,
+                  ImmutableSet<Position> targets) {
+        super(SolvingTechnique.Y_WING, grid, ImmutableSet.<Position>builder().add(hinge).addAll(wings).build(),
                 valueThatCanBeEliminated, targets);
         this.hinge = requireNonNull(hinge);
         this.wings = requireNonNull(wings);
@@ -58,12 +58,12 @@ public class XyWing extends EliminatingHint implements HingeAndWingsHint {
     }
 
     /**
-     * Looks for an XY-wing in the given grid.
+     * Looks for a Y-wing in the given grid.
      * 
-     * @return an Optional containing an XyWing, or an empty optional if there are
-     *         no XY-wings in the grid.
+     * @return an Optional containing a YWing, or an empty optional if there are
+     *         no Y-wings in the grid.
      */
-    public static Optional<XyWing> findNext(Grid grid) {
+    public static Optional<YWing> findNext(Grid grid) {
         return new Detector(grid).findNext();
     }
 
@@ -75,7 +75,7 @@ public class XyWing extends EliminatingHint implements HingeAndWingsHint {
             this.grid = requireNonNull(grid);
         }
         
-        public Optional<XyWing> findNext() {
+        public Optional<YWing> findNext() {
             // TODO: I need to be cleaned up a bit. And I should have unit tests!
             // Collect all remaining cells that have exactly two possible values, according
             // to their center pencil marks.
@@ -84,7 +84,7 @@ public class XyWing extends EliminatingHint implements HingeAndWingsHint {
                     .filter(Objects::nonNull)
                     .collect(toImmutableList());
             if (twoValueCells.size() < 3) {
-                // An xy-wing requires three cells.
+                // A y-wing requires three cells.
                 return Optional.empty();
             }
             for (TwoValueCell center : twoValueCells) {
@@ -109,7 +109,7 @@ public class XyWing extends EliminatingHint implements HingeAndWingsHint {
                                     .filter(HintUtils.isCandidate(grid, wingValue))
                                     .collect(toImmutableSet());
                             if (!targets.isEmpty()) {
-                                return Optional.of(new XyWing(grid, center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
+                                return Optional.of(new YWing(grid, center.position, ImmutableSet.of(w1.position, w2.position), wingValue, targets));
                             }
                         }
                     }
@@ -144,9 +144,9 @@ public class XyWing extends EliminatingHint implements HingeAndWingsHint {
         
         
         /**
-         * An XY-wing candidate cell, having two possible values.
+         * A Y-wing candidate cell, having two possible values.
          */
-        private static class TwoValueCell {
+        private static class TwoValueCell { // TODO: Replace me with the top-level BiValueCell.
             public final Position position;
             public final ImmutableSet<Value> values;
             

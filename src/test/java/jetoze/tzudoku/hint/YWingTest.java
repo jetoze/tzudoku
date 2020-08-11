@@ -6,15 +6,15 @@ import org.junit.jupiter.api.Test;
 
 import jetoze.tzudoku.model.Grid;
 
-public class XyWingTest {
+public class YWingTest {
 
     @Test
-    public void threeXyWingCandidatesInSameBoxShouldBeIgnored() {
+    public void threeYWingCandidatesInSameBoxShouldBeIgnored() {
         Grid grid = GridBuilder.builder().box(7, 
                 "6[14][13]",
                 "[34]25",
                 "789").build();
-        assertFalse(XyWing.findNext(grid).isPresent());
+        assertFalse(YWing.findNext(grid).isPresent());
     }
     
 }
