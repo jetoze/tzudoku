@@ -9,6 +9,7 @@ import java.util.Iterator;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Predicate;
 import java.util.stream.Stream;
 
 import javax.annotation.Nullable;
@@ -116,10 +117,15 @@ public class XyzWing extends EliminatingHint {
                 BiValueCell wing1, 
                 BiValueCell wing2, Value value) {
             return Position.all()
-                    .filter(p -> !p.equals(center.position) && !p.equals(wing1.getPosition()) && !p.equals(wing2.getPosition()))
-                    .filter(p -> p.sees(center.position) && p.sees(wing1.getPosition()) && p.sees(wing2.getPosition()))
+                    .filter(seesButIsNot(center.position).and(
+                            seesButIsNot(wing1.getPosition()).and(
+                            seesButIsNot(wing2.getPosition()))))
                     .filter(HintUtils.isCandidate(grid, value))
                     .collect(toImmutableSet());
+        }
+        
+        private Predicate<Position> seesButIsNot(Position other) {
+            return p -> p.sees(other) && !p.equals(other);
         }
     }
     
