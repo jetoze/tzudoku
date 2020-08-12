@@ -46,6 +46,7 @@ public class ControlPanel {
     private final GridUiModel model;
     private final PuzzleUiController puzzleController;
     private final ValueInputController valueInputController;
+    private final HintController hintController;
 
     private final ToggleButtonWidget normalModeButton = new ToggleButtonWidget("Normal");
     private final ToggleButtonWidget cornerPencilMarkModeButton = new ToggleButtonWidget("Corner");
@@ -56,10 +57,14 @@ public class ControlPanel {
     
     private final JPanel ui;
 
-    public ControlPanel(GridUiModel model, PuzzleUiController puzzleController, ValueInputController valueInputController) {
+    public ControlPanel(GridUiModel model, 
+                        PuzzleUiController puzzleController, 
+                        ValueInputController valueInputController,
+                        HintController hintController) {
         this.model = requireNonNull(model);
         this.puzzleController = requireNonNull(puzzleController);
         this.valueInputController = requireNonNull(valueInputController);
+        this.hintController = requireNonNull(hintController);
         this.valueActions = Value.ALL.stream()
                 .map(EnterValueAction::new)
                 .collect(toImmutableList());
@@ -106,8 +111,6 @@ public class ControlPanel {
         c.gridy = 3;
         c.gridwidth = 3;
         top.add(largeButton("Delete", model::delete), c);
-
-        
         
         List<JButton> valueButtons = valueActions.stream()
                 .map(UiLook::createValueButton)
@@ -167,7 +170,7 @@ public class ControlPanel {
         menuItems.add(new JSeparator());
         Stream.of(SolvingTechnique.values())
             .map(t -> {
-                return createAction("Look for " + t.getName(), () -> puzzleController.lookForHint(t));
+                return createAction("Look for " + t.getName(), () -> hintController.lookForHint(t));
             })
             .map(JMenuItem::new)
             .forEach(menuItems::add);
