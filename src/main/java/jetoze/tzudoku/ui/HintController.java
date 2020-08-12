@@ -37,16 +37,17 @@ public class HintController { // TODO: Or "HintEngine"?
         // is that if the user declines, we still go on. The question must be phrased
         // differently, and if the user chooses to continue we should not ask them again
         // in the same session.
-        if (technique.requiresCandidatesInAllCells() && !allCellsHaveCandidates()) {
-            int choice = JOptionPane.showConfirmDialog(appFrame, 
-                    "This requires all cells to have candidates. Do you want to auto-fill all remaining candidates?", 
-                    "Candidates missing", 
-                    JOptionPane.YES_NO_OPTION, 
-                    JOptionPane.QUESTION_MESSAGE);
-            if (choice == JOptionPane.NO_OPTION) {
+        if (!allCellsHaveCandidates()) {
+            IncompleteGridChoice choice = getIncompleteGridChoice(technique);
+            if (choice == IncompleteGridChoice.CANCEL) {
                 return;
             }
-            model.showRemainingCandidates();
+            if (choice == IncompleteGridChoice.FILL_IN_CANDIDATES) {
+                model.showRemainingCandidates();
+            }
+            if (choice == IncompleteGridChoice.CONTINUE) {
+                assert !technique.requiresCandidatesInAllCells();
+            }
         }
         runHintCheck(technique);
     }
@@ -58,6 +59,42 @@ public class HintController { // TODO: Or "HintEngine"?
     private boolean allCellsHaveCandidates() {
         Grid grid = model.getGrid();
         return grid.allCellsHaveValueOrCandidates(Position.all());
+    }
+    
+    private IncompleteGridChoice getIncompleteGridChoice(SolvingTechnique technique) {
+        if (technique.requiresCandidatesInAllCells()) {
+            IncompleteGridChoice[] choices = {IncompleteGridChoice.FILL_IN_CANDIDATES, IncompleteGridChoice.CANCEL};
+            int input = JOptionPane.showOptionDialog(appFrame, 
+                    "This requires all cells to have candidates. Do you want to auto-fill all remaining candidates?", 
+                    "Candidates missing", 
+                    JOptionPane.YES_NO_OPTION, 
+                    JOptionPane.QUESTION_MESSAGE, 
+                    null, 
+                    choices, 
+                    IncompleteGridChoice.CANCEL);
+            return translateUserInput(choices, input);
+        } else {
+            // TODO: Once greenlighted, do not ask again in the same session.
+            // TODO: Should the message say something about how the check will be incomplete
+            //       without all candidates filled in?
+            IncompleteGridChoice[] choices = IncompleteGridChoice.values();
+            int input = JOptionPane.showOptionDialog(appFrame, 
+                    "<html>Looking for hints works best if all cells have candidate values.<br>"
+                            + "Do you want to auto-fill all remaining candidates first?</html>", 
+                    "Candidates missing", 
+                    JOptionPane.YES_NO_OPTION, 
+                    JOptionPane.QUESTION_MESSAGE, 
+                    null, 
+                    choices, 
+                    IncompleteGridChoice.CONTINUE);
+            return translateUserInput(choices, input);
+        }
+    }
+    
+    private IncompleteGridChoice translateUserInput(IncompleteGridChoice[] choices, int input) {
+        return (input >= 0) // will be -1 if the user escapes out of the dialog
+                ? choices[input]
+                : IncompleteGridChoice.CANCEL;
     }
     
     private void runHintCheck(SolvingTechnique technique) {
@@ -111,5 +148,40 @@ public class HintController { // TODO: Or "HintEngine"?
                      choices,
                      defaultChoice);
         return choice == JOptionPane.YES_OPTION;
+    }
+    
+    
+    /**
+     * The choices presented to the user when they request a hint on a grid that does not
+     * have all candidates filled in.
+     */
+    private enum IncompleteGridChoice {
+        /**
+         * Auto-fill the missing candidates, and continue with the hint check.
+         */
+        FILL_IN_CANDIDATES,
+        /**
+         * Continue with the hint check without auto-filling the candidates. This choice is
+         * only available if the solving technique {@link SolvingTechnique#requiresCandidatesInAllCells() allows it}.
+         */
+        CONTINUE,
+        /**
+         * Cancel the hint request.
+         */
+        CANCEL;
+        
+        @Override
+        public String toString() {
+            switch (this) {
+            case FILL_IN_CANDIDATES:
+                return "Fill in candidates";
+            case CONTINUE:
+                return "Continue without candidates";
+            case CANCEL:
+                return "Cancel";
+            default:
+                throw new RuntimeException("Unexpected choice: " + this.name());
+            }
+        }
     }
 }
