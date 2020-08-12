@@ -92,6 +92,7 @@ public class HiddenMultiple implements Hint {
     private static Optional<HiddenMultiple> find(Grid grid, int size) {
         requireNonNull(grid);
         return House.ALL.stream()
+                .filter(house -> HintUtils.allCellsHaveCandidates(grid, house))
                 .map(house -> new Detector(grid, house, size))
                 .map(Detector::find)
                 .filter(Objects::nonNull)
@@ -112,11 +113,6 @@ public class HiddenMultiple implements Hint {
         
         @Nullable
         public HiddenMultiple find() {
-            if (!HintUtils.allCellsHaveCandidates(grid, house)) {
-                // All cells in the House must have candidates to ensure that we don't
-                // return false positives.
-                return null;
-            }
             // FIXME: Some of this is common with the Naked Multiple detection.
             EnumSet<Value> remainingValuesInHouse = house.getRemainingValues(grid);
             if (remainingValuesInHouse.size() <= size) {

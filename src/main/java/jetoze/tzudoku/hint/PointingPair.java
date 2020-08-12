@@ -76,8 +76,9 @@ public class PointingPair extends EliminatingHint {
     public static Optional<PointingPair> findNext(Grid grid) {
         requireNonNull(grid);
         return IntStream.rangeClosed(1, 9)
-                .mapToObj(House.Type.BOX::createHouse)
-                .map(house -> new Detector(grid, house))
+                .mapToObj(House::box)
+                .filter(box -> HintUtils.allCellsHaveCandidates(grid, box))
+                .map(box -> new Detector(grid, box))
                 .map(Detector::find)
                 .filter(Objects::nonNull)
                 .findAny();
@@ -95,9 +96,6 @@ public class PointingPair extends EliminatingHint {
         
         @Nullable
         public PointingPair find() {
-            if (!HintUtils.allCellsHaveCandidates(grid, box)) {
-                return null;
-            }
             EnumSet<Value> remainingValues = box.getRemainingValues(grid);
             if (remainingValues.size() < 2) {
                 // We need at least two positions to form a pointing pair.
@@ -113,6 +111,10 @@ public class PointingPair extends EliminatingHint {
         @Nullable
         private PointingPair examine(Value value) {
             ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, box);
+            if (candidates.size() == 1) {
+                // This is in fact a Naked or Hidden Single.
+                return null;
+            }
             // Are the candidates in the same row or column? If so, collect candidate cells
             // from the same row or column, outside of this box.
             return House.ifInRowOrColumn(candidates)

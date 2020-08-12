@@ -171,17 +171,6 @@ public final class Grid {
         Position.all().forEach(this::showRemainingCandidates);
     }
     
-    /**
-     * Checks if all the cells at the given positions in this grid have either a value
-     * or one or more candidates in their center pencil marks.
-     */
-    public boolean allCellsHaveValueOrCandidates(Stream<Position> positions) {
-        return positions.map(this::cellAt)
-                .filter(Predicate.not(Cell::hasValue))
-                .map(Cell::getCenterMarks)
-                .allMatch(Predicate.not(PencilMarks::isEmpty));
-    }
-    
     private void showRemainingCandidates(Position p) {
         Cell cell = cells.get(p);
         if (cell.hasValue() || !cell.getCenterMarks().isEmpty()) {
@@ -190,7 +179,17 @@ public final class Grid {
         Set<Value> candidates = EnumSet.allOf(Value.class);
         p.seenBy().map(cells::get).map(Cell::getValue).flatMap(Optional::stream).forEach(candidates::remove);
         cell.getCenterMarks().setValues(candidates);
-        
+    }
+    
+    /**
+     * Checks if all the cells at the given positions in this grid have either a value
+     * or one or more candidates in their center pencil marks.
+     */
+    public boolean allCellsHaveValueOrCandidates(Stream<Position> positions) {
+        return positions.map(this::cellAt)
+                .filter(Predicate.not(Cell::hasValue))
+                .map(Cell::getCenterMarks)
+                .noneMatch(PencilMarks::isEmpty);
     }
     
     @Override

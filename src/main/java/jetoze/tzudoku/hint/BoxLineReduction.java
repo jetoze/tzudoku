@@ -69,6 +69,7 @@ public class BoxLineReduction extends EliminatingHint {
         requireNonNull(grid);
         return House.ALL.stream()
             .filter(house -> house.getType() != Type.BOX)
+            .filter(house -> HintUtils.allCellsHaveCandidates(grid, house))
             .map(rowOrColumn -> new Detector(grid, rowOrColumn))
             .map(Detector::find)
             .filter(Objects::nonNull)
@@ -87,9 +88,6 @@ public class BoxLineReduction extends EliminatingHint {
         
         @Nullable
         public BoxLineReduction find() {
-            if (!HintUtils.allCellsHaveCandidates(grid, rowOrColumn)) {
-                return null;
-            }
             EnumSet<Value> remainingValues = rowOrColumn.getRemainingValues(grid);
             if (remainingValues.size() < 2) {
                 // We need at least two positions to form a pointing pair.
@@ -105,6 +103,10 @@ public class BoxLineReduction extends EliminatingHint {
         @Nullable
         private BoxLineReduction examine(Value value) {
             ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, rowOrColumn);
+            if (candidates.size() == 1) {
+                // This is in fact a Naked or Hidden Single.
+                return null;
+            }
             // Are the candidates in the same Box? If so, any other candidate cells
             // in the same box are targets.
             return House.ifInBox(candidates)
