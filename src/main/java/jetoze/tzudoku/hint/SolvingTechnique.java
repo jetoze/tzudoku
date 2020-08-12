@@ -71,21 +71,10 @@ public enum SolvingTechnique {
      * grid without breaking it - but the technique might not be able to run an exhaustive check. 
      */
     public boolean requiresCandidatesInAllCells() {
-        switch (this) {
-        case NAKED_SINGLE:
-        case HIDDEN_SINGLE:
-        case NAKED_PAIR:
-        case POINTING_PAIR:
-        case BOX_LINE_REDUCTION:
-        case NAKED_TRIPLE:
-        case NAKED_QUADRUPLE:
-        case HIDDEN_PAIR:
-        case HIDDEN_TRIPLE:
-        case HIDDEN_QUADRUPLE:
-            return false;
-        default:
-            return true;
-        }
+        // It's possible Simple Coloring can be made safe if we only consider complete Houses
+        // when we collect the conjugate pairs, but for now I'd rather play it safe and simply
+        // not allow this technique to run on a grid if there are cells without candidates.
+        return this == SIMPLE_COLORING;
     }
 
     /**

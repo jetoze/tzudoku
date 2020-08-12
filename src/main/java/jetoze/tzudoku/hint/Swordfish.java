@@ -73,6 +73,7 @@ public class Swordfish extends EliminatingHint {
         
         private void collectPossibleValues(Value value) {
             List<House> houses = IntStream.rangeClosed(1, 9).mapToObj(orientation::createHouse)
+                .filter(house -> HintUtils.allCellsHaveCandidates(grid, house))
                 .filter(house -> hasTriple(value, house))
                 .collect(toList());
             if (houses.size() == 3) {

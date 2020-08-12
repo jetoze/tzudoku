@@ -66,7 +66,9 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
         return new Detector(grid).findNext();
     }
 
-    
+    // This detection algorithm is perfectly safe to run in a grid where not all cells
+    // have candidates, since we are only looking at the interaction between known
+    // BiValueCells. There is no risk of producing a false negative.
     private static class Detector {
         private final Grid grid;
         // All BiValueCells in the grid

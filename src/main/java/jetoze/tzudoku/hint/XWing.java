@@ -65,8 +65,14 @@ public class XWing extends EliminatingHint {
         
         @Nullable
         public XWing findNext() {
+            // This detection algorithm is safe to use even when not all cells in the
+            // grid have candidates, as long as we only consider Houses that *do* have
+            // candidates in all cells.
             for (houseNum = 1; houseNum < 9; ++houseNum) {
                 House house = new House(houseType, houseNum);
+                if (!HintUtils.allCellsHaveCandidates(grid, house)) {
+                    continue;
+                }
                 EnumSet<Value> remainingValues = house.getRemainingValues(grid);
                 if (remainingValues.size() < 2) {
                     continue;
@@ -108,6 +114,9 @@ public class XWing extends EliminatingHint {
         private Pair lookForMatchingPairInOtherHouse(Value value, Pair firstPair) {
             for (int nextHouseNum = houseNum + 1; nextHouseNum <= 9; ++nextHouseNum) {
                 House nextHouse = new House(houseType, nextHouseNum);
+                if (!HintUtils.allCellsHaveCandidates(grid, nextHouse)) {
+                    continue;
+                }
                 Pair secondPair = getCandidatesInHouse(nextHouse, value);
                 if (secondPair == null) {
                     continue;
