@@ -24,6 +24,7 @@ public class HintController { // TODO: Or "HintEngine"?
     private final JFrame appFrame;
     private final GridUiModel model;
     private final HintUiFactory hintUiFactory;
+    private boolean userHasGreenlightedHintCheckWithoutAllCandidates;
 
     public HintController(JFrame appFrame, GridUiModel model, HintUiFactory hintUiFactory) {
         this.appFrame = requireNonNull(appFrame);
@@ -32,11 +33,6 @@ public class HintController { // TODO: Or "HintEngine"?
     }
     
     public void lookForHint(SolvingTechnique technique) {
-        // TODO: Even if the technique is safe to run in an incomplete grid,
-        // ask the user if they want to auto-fill candidates first. Only difference
-        // is that if the user declines, we still go on. The question must be phrased
-        // differently, and if the user chooses to continue we should not ask them again
-        // in the same session.
         if (!allCellsHaveCandidates()) {
             IncompleteGridChoice choice = getIncompleteGridChoice(technique);
             if (choice == IncompleteGridChoice.CANCEL) {
@@ -73,8 +69,9 @@ public class HintController { // TODO: Or "HintEngine"?
                     choices, 
                     IncompleteGridChoice.CANCEL);
             return translateUserInput(choices, input);
+        } else if (userHasGreenlightedHintCheckWithoutAllCandidates) {
+            return IncompleteGridChoice.CONTINUE;
         } else {
-            // TODO: Once greenlighted, do not ask again in the same session.
             // TODO: Should the message say something about how the check will be incomplete
             //       without all candidates filled in?
             IncompleteGridChoice[] choices = IncompleteGridChoice.values();
@@ -87,7 +84,11 @@ public class HintController { // TODO: Or "HintEngine"?
                     null, 
                     choices, 
                     IncompleteGridChoice.CONTINUE);
-            return translateUserInput(choices, input);
+            IncompleteGridChoice choice = translateUserInput(choices, input);
+            if (choice == IncompleteGridChoice.CONTINUE) {
+                userHasGreenlightedHintCheckWithoutAllCandidates = true;
+            }
+            return choice;
         }
     }
     
