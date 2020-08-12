@@ -85,6 +85,11 @@ public class SimpleColoring implements Hint {
         }
         
         public Optional<SimpleColoring> find() {
+            if (!grid.allCellsHaveValueOrCandidates(Position.all())) {
+                // This technique is not safe to run in its current form unless there
+                // are candidates in all cells of the grid.
+                return Optional.empty();
+            }
             House.ALL.stream().forEach(this::collectConjugatePairsInHouse);
             return allPairs.keySet().stream()
                     .map(this::searchForValue)

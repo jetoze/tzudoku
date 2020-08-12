@@ -11,7 +11,6 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
-import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -70,12 +69,7 @@ final class HintUtils {
      * they could otherwise produce false positives that could break the puzzle.
      */
     static boolean allCellsHaveCandidates(Grid grid, House house) {
-        // FIXME: Duplicated code in HintController.
-        return house.getPositions()
-                .map(grid::cellAt)
-                .filter(Predicate.not(Cell::hasValue))
-                .map(Cell::getCenterMarks)
-                .allMatch(Predicate.not(PencilMarks::isEmpty));
+        return grid.allCellsHaveValueOrCandidates(house.getPositions());
     }
     
     private HintUtils() {/**/}

@@ -5,7 +5,6 @@ import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
-import java.util.function.Predicate;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -14,9 +13,7 @@ import javax.swing.JOptionPane;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.SolvingTechnique;
-import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.ui.hint.HintCellDecorator;
 import jetoze.tzudoku.ui.hint.HintUi;
@@ -60,11 +57,7 @@ public class HintController { // TODO: Or "HintEngine"?
      */
     private boolean allCellsHaveCandidates() {
         Grid grid = model.getGrid();
-        return Position.all()
-                .map(grid::cellAt)
-                .filter(Predicate.not(Cell::hasValue))
-                .map(Cell::getCenterMarks)
-                .allMatch(Predicate.not(PencilMarks::isEmpty));
+        return grid.allCellsHaveValueOrCandidates(Position.all());
     }
     
     private void runHintCheck(SolvingTechnique technique) {

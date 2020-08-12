@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -168,6 +169,17 @@ public final class Grid {
     
     public void showRemainingCandidates() {
         Position.all().forEach(this::showRemainingCandidates);
+    }
+    
+    /**
+     * Checks if all the cells at the given positions in this grid have either a value
+     * or one or more candidates in their center pencil marks.
+     */
+    public boolean allCellsHaveValueOrCandidates(Stream<Position> positions) {
+        return positions.map(this::cellAt)
+                .filter(Predicate.not(Cell::hasValue))
+                .map(Cell::getCenterMarks)
+                .allMatch(Predicate.not(PencilMarks::isEmpty));
     }
     
     private void showRemainingCandidates(Position p) {
