@@ -8,13 +8,16 @@ import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Stream;
 
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.JComponent;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -30,6 +33,7 @@ import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.PopupMenuButton;
 import jetoze.gunga.widget.Selectable;
 import jetoze.gunga.widget.ToggleButtonWidget;
+import jetoze.tzudoku.hint.SolvingTechnique;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Value;
 
@@ -158,26 +162,18 @@ public class ControlPanel {
     }
 
     private PopupMenuButton createHintsButton() {
-        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", 
-                new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)),
-                new JSeparator(),
-                new JMenuItem(createAction("Look for Naked Single", puzzleController::lookForHiddenSingle)),
-                new JMenuItem(createAction("Look for Hidden Single", puzzleController::lookForHiddenSingle)),
-                new JMenuItem(createAction("Look for Pointing Pair", puzzleController::lookForPointingPair)),
-                new JMenuItem(createAction("Look for Box Line Reduction", puzzleController::lookForBoxLineReduction)),
-                new JMenuItem(createAction("Look for Naked Pair", puzzleController::lookForNakedPair)),
-                new JMenuItem(createAction("Look for Naked Triple", puzzleController::lookForNakedTriple)),
-                new JMenuItem(createAction("Look for Naked Quadruple", puzzleController::lookForNakedQuadruple)),
-                new JMenuItem(createAction("Look for Hidden Pair", puzzleController::lookForHiddenPair)),
-                new JMenuItem(createAction("Look for Hidden Triple", puzzleController::lookForHiddenTriple)),
-                new JMenuItem(createAction("Look for Hidden Quadruple", puzzleController::lookForHiddenQuadruple)),
-                new JMenuItem(createAction("Look for X-Wing", puzzleController::lookForXWing)),
-                new JMenuItem(createAction("Look for Y-Wing", puzzleController::lookForYWing)),
-                new JMenuItem(createAction("Look for XYZ-Wing", puzzleController::lookForXyzWing)),
-                new JMenuItem(createAction("Look for Simple Coloring", puzzleController::lookForSimpleColoring)),
-                new JMenuItem(createAction("Look for Swordfish", puzzleController::lookForSwordfish)),
-                new JSeparator(),
-                new JMenuItem(createAction("Auto-solve", puzzleController::startAutoSolver)));
+        List<JComponent> menuItems = new ArrayList<>();
+        menuItems.add(new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)));
+        menuItems.add(new JSeparator());
+        Stream.of(SolvingTechnique.values())
+            .map(t -> {
+                return createAction("Look for " + t.getName(), () -> puzzleController.lookForHint(t));
+            })
+            .map(JMenuItem::new)
+            .forEach(menuItems::add);
+        menuItems.add(new JSeparator());
+        menuItems.add(new JMenuItem(createAction("Auto-solve", puzzleController::startAutoSolver)));
+        PopupMenuButton hintsButton = new PopupMenuButton("Hints...", menuItems);
         UiLook.makeOverLarge(hintsButton);
         return hintsButton;
     }

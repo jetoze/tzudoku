@@ -1,14 +1,11 @@
 package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
-import static java.util.stream.Collectors.joining;
 
 import java.awt.Point;
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.time.Duration;
-import java.util.Collections;
-import java.util.Set;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -19,29 +16,15 @@ import javax.swing.JPanel;
 import javax.swing.Timer;
 import javax.swing.border.EmptyBorder;
 
-import com.google.common.collect.ImmutableSet;
-
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
-import jetoze.tzudoku.hint.BoxLineReduction;
-import jetoze.tzudoku.hint.EliminatingHint;
-import jetoze.tzudoku.hint.HiddenMultiple;
 import jetoze.tzudoku.hint.Hint;
-import jetoze.tzudoku.hint.NakedMultiple;
-import jetoze.tzudoku.hint.PointingPair;
-import jetoze.tzudoku.hint.SimpleColoring;
-import jetoze.tzudoku.hint.Single;
-import jetoze.tzudoku.hint.Swordfish;
-import jetoze.tzudoku.hint.XWing;
-import jetoze.tzudoku.hint.YWing;
-import jetoze.tzudoku.hint.XyzWing;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.GridSolver.Result;
-import jetoze.tzudoku.model.Position;
-import jetoze.tzudoku.model.Value;
 import jetoze.tzudoku.ui.hint.HintCellDecorator;
-import jetoze.tzudoku.ui.hint.HintCellDecorators;
+import jetoze.tzudoku.ui.hint.HintUi;
+import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 /**
  * Attempts to auto-solve the puzzle currently loaded into the UI, giving visual feedback
@@ -57,14 +40,16 @@ public class UiAutoSolver {
     
     private final JFrame appFrame;
     private final GridUiModel gridModel;
+    private final HintUiFactory hintUiFactory;
     
-    public UiAutoSolver(JFrame appFrame, GridUiModel gridModel) {
+    public UiAutoSolver(JFrame appFrame, GridUiModel gridModel, HintUiFactory hintUiFactory) {
         this.appFrame = requireNonNull(appFrame);
         this.gridModel = requireNonNull(gridModel);
+        this.hintUiFactory = requireNonNull(hintUiFactory);
     }
 
     public void start() {
-        Controller controller = new Controller(appFrame, gridModel);
+        Controller controller = new Controller(appFrame, gridModel, hintUiFactory);
         controller.start();
     }
     
@@ -76,17 +61,17 @@ public class UiAutoSolver {
         
         private final JFrame appFrame;
         private final GridUiModel model;
-        private final HintCellDecorators cellDecorators;
+        private final HintUiFactory hintUiFactory;
         private ProgressDialog progressDialog;
         private Timer timer;
         private Result result;
         private int hintIndex;
         private boolean cancelRequested;
         
-        public Controller(JFrame appFrame, GridUiModel model) {
+        public Controller(JFrame appFrame, GridUiModel model, HintUiFactory hintUiFactory) {
             this.appFrame = appFrame;
             this.model = model;
-            this.cellDecorators = new HintCellDecorators(model);
+            this.hintUiFactory = hintUiFactory;
         }
         
         public void start() {
@@ -159,69 +144,15 @@ public class UiAutoSolver {
         }
         
         public void updateUi(Hint hint) {
-            // XXX: Ugly casts here, of course.
             UiThread.run(() -> {
                 model.clearHighlightColors();
-                HintCellDecorator cellDecorator = cellDecorators.getDecorator(hint);
+                HintUi hintUi = hintUiFactory.getUi(hint);
+                HintCellDecorator cellDecorator = hintUi.getCellDecorator(model);
                 cellDecorator.decorate();
-                if (hint instanceof Single) {
-                    applyHint((Single) hint);
-                } else if (hint instanceof PointingPair) {
-                    applyHint((PointingPair) hint);
-                } else if (hint instanceof BoxLineReduction) {
-                    applyHint((BoxLineReduction) hint);
-                } else if (hint instanceof NakedMultiple) {
-                    applyHint((NakedMultiple) hint);
-                } else if (hint instanceof HiddenMultiple) {
-                    applyHint((HiddenMultiple) hint);
-                } else if (hint instanceof XWing) {
-                    applyHint((XWing) hint);
-                } else if (hint instanceof YWing) {
-                    applyHint((YWing) hint);
-                } else if (hint instanceof SimpleColoring) {
-                    applyHint((SimpleColoring) hint);
-                } else if (hint instanceof Swordfish) {
-                    applyHint((Swordfish) hint);
-                } else if (hint instanceof XyzWing) {
-                    applyHint((XyzWing) hint);
-                } else {
-                    throw new RuntimeException("Unknown hint: " + hint);
-                }
+                String description = hintUi.getShortDescription();
+                setStatus(description);
+                hintUi.apply(model);
             });
-        }
-        
-        private void applyHint(Single single) {
-            setStatus(single.getTechnique().getName() + ": " + single.getValue());
-            model.enterValue(single.getPosition(), single.getValue());
-        }
-        
-        private void applyHint(EliminatingHint hint) {
-            String valueString = hint.getValues().size() == 1
-                    ? hint.getValues().iterator().next().toString()
-                    : valuesAsSortedString(hint.getValues());
-            setStatus(hint.getTechnique().getName() + ": " + valueString);
-            model.removeCandidatesFromCells(hint.getTargetPositions(), hint.getValues());
-        }
-        
-        private String valuesAsSortedString(Set<Value> values) {
-            return values.stream()
-                    .sorted()
-                    .map(Object::toString)
-                    .collect(joining(" "));
-        }
-        
-        private void applyHint(HiddenMultiple multiple) {
-            setStatus(multiple.getTechnique().getName() + ": " + valuesAsSortedString(multiple.getHiddenValues()));
-            // XXX: This messes up Undo-Redo, since we can't apply this change
-            // as an atomic operation at the moment.
-            for (Position target : multiple.getTargets()) {
-                model.removeCandidatesFromCells(Collections.singleton(target), multiple.getValuesToEliminate(target));
-            }
-        }
-        
-        private void applyHint(SimpleColoring simpleColoring) {
-            setStatus(simpleColoring.getTechnique().getName() + ": " + simpleColoring.getValue());
-            model.removeCandidatesFromCells(simpleColoring.getTargets(), ImmutableSet.of(simpleColoring.getValue()));
         }
     }
     
