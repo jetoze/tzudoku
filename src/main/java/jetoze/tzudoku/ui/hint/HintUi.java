@@ -14,7 +14,10 @@ public interface HintUi { // TODO: What's a good name for this interface?
     // the HintUi? If here, is it really up to each individual HintUi implementation to verify
     // that the Grid in the model is the same Grid as the hint itself is operating on?
     void apply(GridUiModel model);
-    
+
+    /**
+     * Returns a short description of this hint, without much detail.
+     */
     String getShortDescription();
     
     /**

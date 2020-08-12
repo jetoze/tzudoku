@@ -107,7 +107,7 @@ public class PuzzleUiController {
     }
     
     public void lookForHint(SolvingTechnique technique) {
-        runHintCheck(technique::analyze, hintDisplay::showHintInfo, "No " + technique.getName() + " found :(");
+        runHintCheck(technique::analyze, hintDisplay::display, "No " + technique.getName() + " found :(");
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
