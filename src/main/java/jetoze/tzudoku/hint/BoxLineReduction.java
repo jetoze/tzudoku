@@ -20,8 +20,16 @@ import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-// FIXME: I am extremely similar to PointingPair, including how I am detected.
+/**
+ * BoxLineReduction is the case where the only candidates for a given value in
+ * a Row or Column are all confined to a single Box. That value can then be eliminated
+ * as a candidate from all other cells in that Box.
+ * <p>
+ * For example, the digit 7 in Row 3 can only go into r3c4 or r3c5. Both these cells
+ * are in Box 2, so 7 can now be removed as a candidate from r1c456 and r2c456.
+ */
 public class BoxLineReduction extends EliminatingHint {
+    // FIXME: I am extremely similar to PointingPair, including how I am detected.
 
     private final House rowOrColumn;
     private final House box;
@@ -79,6 +87,9 @@ public class BoxLineReduction extends EliminatingHint {
         
         @Nullable
         public BoxLineReduction find() {
+            if (!HintUtils.allCellsHaveCandidates(grid, rowOrColumn)) {
+                return null;
+            }
             EnumSet<Value> remainingValues = rowOrColumn.getRemainingValues(grid);
             if (remainingValues.size() < 2) {
                 // We need at least two positions to form a pointing pair.

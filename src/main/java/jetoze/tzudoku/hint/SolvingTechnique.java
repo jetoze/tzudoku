@@ -74,6 +74,14 @@ public enum SolvingTechnique {
         switch (this) {
         case NAKED_SINGLE:
         case HIDDEN_SINGLE:
+        case NAKED_PAIR:
+        case POINTING_PAIR:
+        case BOX_LINE_REDUCTION:
+        case NAKED_TRIPLE:
+        case NAKED_QUADRUPLE:
+        case HIDDEN_PAIR:
+        case HIDDEN_TRIPLE:
+        case HIDDEN_QUADRUPLE:
             return false;
         default:
             return true;

@@ -20,6 +20,17 @@ import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
+/**
+ * PointingPair is the case where the only candidates for a given value in a Box are
+ * confined to the same Row or Column. That value can then be eliminated as a candidate
+ * from all other cells in the same Row or Column.
+ * <p>
+ * For example, the digit 5 in Box 4 can only go into r6c1 or r6c2. Both these cells are
+ * in Row 6, so 5 can be eliminated as a candidate from cells r6c456789.
+ * <p>
+ * A PointingPair can in fact be a Pointing Triple, if there are three candidate cells left
+ * for the value in the Box.
+ */
 public class PointingPair extends EliminatingHint {
 
     private final House box;
@@ -84,6 +95,9 @@ public class PointingPair extends EliminatingHint {
         
         @Nullable
         public PointingPair find() {
+            if (!HintUtils.allCellsHaveCandidates(grid, box)) {
+                return null;
+            }
             EnumSet<Value> remainingValues = box.getRemainingValues(grid);
             if (remainingValues.size() < 2) {
                 // We need at least two positions to form a pointing pair.

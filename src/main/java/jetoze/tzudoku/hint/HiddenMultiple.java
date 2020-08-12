@@ -112,6 +112,11 @@ public class HiddenMultiple implements Hint {
         
         @Nullable
         public HiddenMultiple find() {
+            if (!HintUtils.allCellsHaveCandidates(grid, house)) {
+                // All cells in the House must have candidates to ensure that we don't
+                // return false positives.
+                return null;
+            }
             // FIXME: Some of this is common with the Naked Multiple detection.
             EnumSet<Value> remainingValuesInHouse = house.getRemainingValues(grid);
             if (remainingValuesInHouse.size() <= size) {
