@@ -33,6 +33,11 @@ import jetoze.tzudoku.ui.hint.HintUiFactory;
  */
 public class UiAutoSolver {
     
+    // TODO: Have a preferences page somewhere that allows the user to control
+    // which techniques should be used by the auto-solver. For example, by disabling
+    // the more advanced techniques you can then solve a puzzle up to the point where
+    // an advanced technique is necessary, which could be good practice.
+    
     /**
      * The delay between updating the UI with the next completed hint.
      */
