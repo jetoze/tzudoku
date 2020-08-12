@@ -18,6 +18,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.JComponent;
+import javax.swing.JMenu;
 import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.JSeparator;
@@ -167,13 +168,15 @@ public class ControlPanel {
     private PopupMenuButton createHintsButton() {
         List<JComponent> menuItems = new ArrayList<>();
         menuItems.add(new JMenuItem(createAction("Fill in Candidates", model::showRemainingCandidates)));
-        menuItems.add(new JSeparator());
+        menuItems.add(new JMenuItem(createAction("Give me a hint, please", hintController::lookForHint)));
+        JMenu availableHintsSubMenu = new JMenu("Available Hints");
         Stream.of(SolvingTechnique.values())
             .map(t -> {
                 return createAction("Look for " + t.getName(), () -> hintController.lookForHint(t));
             })
             .map(JMenuItem::new)
-            .forEach(menuItems::add);
+            .forEach(availableHintsSubMenu::add);
+        menuItems.add(availableHintsSubMenu);
         menuItems.add(new JSeparator());
         menuItems.add(new JMenuItem(createAction("Auto-solve", puzzleController::startAutoSolver)));
         PopupMenuButton hintsButton = new PopupMenuButton("Hints...", menuItems);

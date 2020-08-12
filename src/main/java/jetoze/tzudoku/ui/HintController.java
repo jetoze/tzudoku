@@ -5,6 +5,8 @@ import static java.util.Objects.requireNonNull;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
+import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
@@ -32,6 +34,38 @@ public class HintController { // TODO: Or "HintEngine"?
         this.hintUiFactory = requireNonNull(hintUiFactory);
     }
     
+    /**
+     * Look for any hint.
+     */
+    public void lookForHint() {
+        boolean allCellsHaveCandidates = allCellsHaveCandidates();
+        if (!allCellsHaveCandidates) {
+            IncompleteGridChoice choice = askUserToOptionallyAutoFillCandidates();
+            if (choice == IncompleteGridChoice.CANCEL) {
+                return;
+            } else if (choice == IncompleteGridChoice.FILL_IN_CANDIDATES) {
+                model.showRemainingCandidates();
+                allCellsHaveCandidates = true;
+            }
+        }
+        Predicate<SolvingTechnique> filter = allCellsHaveCandidates
+                ? t -> true
+                : Predicate.not(SolvingTechnique::requiresCandidatesInAllCells);
+        Callable<Optional<? extends Hint>> producer = () -> {
+            return Stream.of(SolvingTechnique.values())
+                    .filter(filter)
+                    .map(t -> t.analyze(model.getGrid()))
+                    .flatMap(Optional::stream)
+                    .findFirst();
+        };
+        runHintCheck(producer, "Sorry, I have no hint for you. You are on your own :(");
+    }
+    
+    /**
+     * Look for a specific hint.
+     * 
+     * @param technique the SolvingTechnique to apply to the grid.
+     */
     public void lookForHint(SolvingTechnique technique) {
         if (!allCellsHaveCandidates()) {
             IncompleteGridChoice choice = getIncompleteGridChoice(technique);
@@ -45,7 +79,7 @@ public class HintController { // TODO: Or "HintEngine"?
                 assert !technique.requiresCandidatesInAllCells();
             }
         }
-        runHintCheck(technique);
+        runHintCheck(() -> technique.analyze(model.getGrid()), "No " + technique.getName() + " found :(");
     }
     
     /**
@@ -72,24 +106,28 @@ public class HintController { // TODO: Or "HintEngine"?
         } else if (userHasGreenlightedHintCheckWithoutAllCandidates) {
             return IncompleteGridChoice.CONTINUE;
         } else {
-            // TODO: Should the message say something about how the check will be incomplete
-            //       without all candidates filled in?
-            IncompleteGridChoice[] choices = IncompleteGridChoice.values();
-            int input = JOptionPane.showOptionDialog(appFrame, 
-                    "<html>Looking for hints works best if all cells have candidate values.<br>"
-                            + "Do you want to auto-fill all remaining candidates first?</html>", 
-                    "Candidates missing", 
-                    JOptionPane.YES_NO_OPTION, 
-                    JOptionPane.QUESTION_MESSAGE, 
-                    null, 
-                    choices, 
-                    IncompleteGridChoice.CONTINUE);
-            IncompleteGridChoice choice = translateUserInput(choices, input);
-            if (choice == IncompleteGridChoice.CONTINUE) {
-                userHasGreenlightedHintCheckWithoutAllCandidates = true;
-            }
-            return choice;
+            return askUserToOptionallyAutoFillCandidates();
         }
+    }
+
+    private IncompleteGridChoice askUserToOptionallyAutoFillCandidates() {
+        // TODO: Should the message say something about how the check will be incomplete
+        //       without all candidates filled in?
+        IncompleteGridChoice[] choices = IncompleteGridChoice.values();
+        int input = JOptionPane.showOptionDialog(appFrame, 
+                "<html>Looking for hints works best if all cells have candidate values.<br>"
+                        + "Do you want to auto-fill all remaining candidates first?</html>", 
+                "Candidates missing", 
+                JOptionPane.YES_NO_OPTION, 
+                JOptionPane.QUESTION_MESSAGE, 
+                null, 
+                choices, 
+                IncompleteGridChoice.CONTINUE);
+        IncompleteGridChoice choice = translateUserInput(choices, input);
+        if (choice == IncompleteGridChoice.CONTINUE) {
+            userHasGreenlightedHintCheckWithoutAllCandidates = true;
+        }
+        return choice;
     }
     
     private IncompleteGridChoice translateUserInput(IncompleteGridChoice[] choices, int input) {
@@ -98,18 +136,17 @@ public class HintController { // TODO: Or "HintEngine"?
                 : IncompleteGridChoice.CANCEL;
     }
     
-    private void runHintCheck(SolvingTechnique technique) {
-        Callable<Optional<? extends Hint>> producer = () -> technique.analyze(model.getGrid());
+    private void runHintCheck(Callable<Optional<? extends Hint>> hintProducer, String messageIfNotFound) {
         Consumer<? super Optional<? extends Hint>> consumer = o -> {
-            o.ifPresentOrElse(this::display, () -> showNoHintFoundMessage(technique));
+            o.ifPresentOrElse(this::display, () -> showNoHintFoundMessage(messageIfNotFound));
         };
-        UiThread.offload(producer, consumer);
+        UiThread.offload(hintProducer, consumer);
     }
     
-    private void showNoHintFoundMessage(SolvingTechnique technique) {
+    private void showNoHintFoundMessage(String message) {
         JOptionPane.showMessageDialog(
                 appFrame, 
-                "No " + technique.getName() + " found :(", 
+                message, 
                 "No Hint Found", 
                 JOptionPane.INFORMATION_MESSAGE);
     }
