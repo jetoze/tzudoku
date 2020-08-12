@@ -125,6 +125,7 @@ public class Single implements Hint {
         
         @Nullable
         private Single check(Position p) {
+            // Naked singles can be recognized even without all candidates being filled in.
             Cell cell = grid.cellAt(p);
             if (cell.hasValue()) {
                 return null;
@@ -158,6 +159,12 @@ public class Single implements Hint {
         
         @Nullable
         public Single findNext() {
+            // There must be candidates in all the cells of the house in order for us
+            // to recognize a true hidden single, otherwise we risk returning a false
+            // positive.
+            if (!HintUtils.allCellsHaveCandidates(grid, house)) {
+                return null;
+            }
             EnumSet<Value> remainingValues = house.getRemainingValues(grid);
             if (remainingValues.size() < 2) {
                 // We are only looking for hidden singles, not naked ones.

@@ -71,7 +71,13 @@ public enum SolvingTechnique {
      * grid without breaking it - but the technique might not be able to run an exhaustive check. 
      */
     public boolean requiresCandidatesInAllCells() {
-        return true;
+        switch (this) {
+        case NAKED_SINGLE:
+        case HIDDEN_SINGLE:
+            return false;
+        default:
+            return true;
+        }
     }
 
     /**

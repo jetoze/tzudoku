@@ -11,6 +11,7 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
@@ -60,6 +61,21 @@ final class HintUtils {
             .forEach(m -> {
                 valuesToEliminate.forEach(m::remove);
             });
+    }
+    
+    /**
+     * Checks whether all cells in the given house has either a value or candidates penciled in.
+     * <p>
+     * House-based SolvingTechniques typically require all candidates to have been filled in, since
+     * they could otherwise produce false positives that could break the puzzle.
+     */
+    static boolean allCellsHaveCandidates(Grid grid, House house) {
+        // FIXME: Duplicated code in HintController.
+        return house.getPositions()
+                .map(grid::cellAt)
+                .filter(Predicate.not(Cell::hasValue))
+                .map(Cell::getCenterMarks)
+                .allMatch(Predicate.not(PencilMarks::isEmpty));
     }
     
     private HintUtils() {/**/}
