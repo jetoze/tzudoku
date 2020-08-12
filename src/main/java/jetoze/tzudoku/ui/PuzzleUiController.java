@@ -113,7 +113,8 @@ public class PuzzleUiController {
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
         Callable<Optional<T>> producer = () -> hintChecker.apply(puzzleModel.getGridModel().getGrid());
         Consumer<? super Optional<T>> consumer = o -> {
-            o.ifPresentOrElse(hintUi, () -> JOptionPane.showMessageDialog(appFrame, messageWhenNotFound));
+            o.ifPresentOrElse(hintUi, () -> 
+                JOptionPane.showMessageDialog(appFrame, messageWhenNotFound, "No Hint Found", JOptionPane.INFORMATION_MESSAGE));
         };
         UiThread.offload(producer, consumer);
     }
