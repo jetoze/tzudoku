@@ -15,16 +15,7 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
-import jetoze.tzudoku.hint.BoxLineReduction;
-import jetoze.tzudoku.hint.HiddenMultiple;
-import jetoze.tzudoku.hint.NakedMultiple;
-import jetoze.tzudoku.hint.PointingPair;
-import jetoze.tzudoku.hint.SimpleColoring;
-import jetoze.tzudoku.hint.Single;
-import jetoze.tzudoku.hint.Swordfish;
-import jetoze.tzudoku.hint.XWing;
-import jetoze.tzudoku.hint.YWing;
-import jetoze.tzudoku.hint.XyzWing;
+import jetoze.tzudoku.hint.SolvingTechnique;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.Puzzle;
@@ -51,7 +42,7 @@ public class PuzzleUiController {
         this.puzzleModel = requireNonNull(model);
         this.statusPanel = requireNonNull(statusPanel);
         // TODO: I should be injected too I think
-        this.hintDisplay = new HintDisplay(appFrame, model.getGridModel());
+        this.hintDisplay = new HintDisplay(appFrame, model.getGridModel(), new HintUiFactory());
     }
     
     public void selectPuzzle() {
@@ -115,64 +106,8 @@ public class PuzzleUiController {
         UiThread.offload(work,  whenDone, exceptionHandler);
     }
     
-    public void lookForPointingPair() {
-        runHintCheck(PointingPair::findNext, hintDisplay::showPointingPairInfo,  "Did not find any Pointing Pairs :(");
-    }
-    
-    public void lookForBoxLineReduction() {
-        runHintCheck(BoxLineReduction::findNext, hintDisplay::showBoxLineReductionInfo, "Did not find any Box Line Reductions :(");
-    }
-    
-    public void lookForNakedSingle() {
-        runHintCheck(Single::findNextNaked, hintDisplay::showSingleInfo, "Did not find any Naked Singles :(");
-    }
-    
-    public void lookForHiddenSingle() {
-        runHintCheck(Single::findNextHidden, hintDisplay::showSingleInfo, "Did not find any Hidden Singles :(");
-    }
-    
-    public void lookForNakedPair() {
-        runHintCheck(NakedMultiple::findNakedPair, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Pairs :(");
-    }
-    
-    public void lookForNakedTriple() {
-        runHintCheck(NakedMultiple::findNakedTriple, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Triples :(");
-    }
-    
-    public void lookForNakedQuadruple() {
-        runHintCheck(NakedMultiple::findNakedQuadruple, hintDisplay::showNakedMultipleInfo, "Did not find any Naked Quadruples :(");
-    }
-    
-    public void lookForHiddenPair() {
-        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Pairs :(");
-    }
-    
-    public void lookForHiddenTriple() {
-        runHintCheck(HiddenMultiple::findHiddenTriple, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Triples :(");
-    }
-    
-    public void lookForHiddenQuadruple() {
-        runHintCheck(HiddenMultiple::findHiddenPair, hintDisplay::showHiddenMultipleInfo, "Did not find any Hidden Quadruples :(");
-    }
-    
-    public void lookForXWing() {
-        runHintCheck(XWing::findNext, hintDisplay::showXWingInfo, "Did not find any X-Wings :(");
-    }
-    
-    public void lookForYWing() {
-        runHintCheck(YWing::findNext, hintDisplay::showYWingInfo, "Did not find any Y-Wings :(");
-    }
-    
-    public void lookForSimpleColoring() {
-        runHintCheck(SimpleColoring::findNext, hintDisplay::showSimpleColoringInfo, "Did not find any Simple Coloring hint :(");
-    }
-    
-    public void lookForSwordfish() {
-        runHintCheck(Swordfish::findNext, hintDisplay::showSwordfishInfo, "Did not find any Swordfish :(");
-    }
-    
-    public void lookForXyzWing() {
-        runHintCheck(XyzWing::findNext, hintDisplay::showXyzWingInfo, "Did not find any XYZ-Wings :(");
+    public void lookForHint(SolvingTechnique technique) {
+        runHintCheck(technique::analyze, hintDisplay::showHintInfo, "No " + technique.getName() + " found :(");
     }
 
     private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
