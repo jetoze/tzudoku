@@ -14,6 +14,10 @@ class HintHighlightColors {
     
     static final CellColor TARGET_CELL = CellColor.GREEN;
     
+    static final CellColor SIMPLE_COLORING_BLUE = CellColor.BLUE;
+    
+    static final CellColor SIMPLE_COLORING_ORANGE = CellColor.ORANGE;
+    
     private HintHighlightColors() {/**/}
 
 }

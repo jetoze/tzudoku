@@ -45,6 +45,7 @@ public enum SolvingTechnique {
     
     // TODO: W-Wing
     // TODO: Two String Kite.
+    // TODO: X-Cycle. See puzzle "SudokuWiki.org 2020-08-13" for an example.
 
     private final String name;
     private final Function<Grid, Optional<? extends Hint>> analyzer;
