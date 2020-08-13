@@ -35,7 +35,7 @@ public class SimpleColoringTest {
                 .row(8, "2[47][68] 719 3[58][568]")
                 .row(9, "[39][39][67] 584 1[27][67]")
                 .build();
-        Optional<SimpleColoring> opt = SimpleColoring.findNext(grid);
+        Optional<SimpleColoring> opt = SimpleColoring.analyze(grid);
         
         assertTrue(opt.isPresent());
         SimpleColoring hint = opt.get();
@@ -74,7 +74,7 @@ public class SimpleColoringTest {
                 .row(8, "2[47][68] 719 3[58][568]")
                 .row(9, "[39][39][67] 584 1[27][67]")
                 .build();
-        Optional<SimpleColoring> opt = SimpleColoring.findNext(grid);
+        Optional<SimpleColoring> opt = SimpleColoring.analyze(grid);
         
         assertTrue(opt.isPresent());
         SimpleColoring hint = opt.get();
@@ -110,7 +110,7 @@ public class SimpleColoringTest {
                 .row(8, "[69]72 [4569]1[459] [45]38")
                 .row(9, "[69]38 [4569][456][2] 1[45]7")
                 .build();
-        Optional<SimpleColoring> opt = SimpleColoring.findNext(grid);
+        Optional<SimpleColoring> opt = SimpleColoring.analyze(grid);
         assertTrue(opt.isPresent());
         SimpleColoring hint = opt.get();
 

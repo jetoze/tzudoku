@@ -29,7 +29,7 @@ public class PointingPairTest {
                 .fullyUnknownBox(4)
                 .build();
         
-        Optional<PointingPair> opt = PointingPair.findNext(grid);
+        Optional<PointingPair> opt = PointingPair.analyze(grid);
         
         assertTrue(opt.isPresent());
         PointingPair pp = opt.get();
@@ -48,7 +48,7 @@ public class PointingPairTest {
                 .row(6, "48[237] 591 [27]6[37]")
                 .build();
 
-        Optional<PointingPair> opt = PointingPair.findNext(grid);
+        Optional<PointingPair> opt = PointingPair.analyze(grid);
         
         assertTrue(opt.isPresent());
         PointingPair pp = opt.get();

@@ -19,9 +19,9 @@ public enum SolvingTechnique {
     
     NAKED_PAIR("Naked Pair", NakedMultiple::findNakedPair),
     
-    POINTING_PAIR("Pointing Pair", PointingPair::findNext),
+    POINTING_PAIR("Pointing Pair", PointingPair::analyze),
     
-    BOX_LINE_REDUCTION("Box Line Reduction", BoxLineReduction::findNext),
+    BOX_LINE_REDUCTION("Box Line Reduction", BoxLineReduction::analyze),
     
     NAKED_TRIPLE("Naked Triple", NakedMultiple::findNakedTriple),
     
@@ -33,15 +33,15 @@ public enum SolvingTechnique {
     
     HIDDEN_QUADRUPLE("Hidden Triple", HiddenMultiple::findHiddenQuadruple),
     
-    X_WING("X-Wing", XWing::findNext),
+    X_WING("X-Wing", XWing::analyze),
     
-    Y_WING("Y-Wing", YWing::findNext),
+    Y_WING("Y-Wing", YWing::analyze),
     
-    XYZ_WING("XYZ-Wing", XyzWing::findNext),
+    XYZ_WING("XYZ-Wing", XyzWing::analyze),
     
-    SIMPLE_COLORING("Simple Coloring", SimpleColoring::findNext),
+    SIMPLE_COLORING("Simple Coloring", SimpleColoring::analyze),
     
-    SWORDFISH("Swordfish", Swordfish::findNext);
+    SWORDFISH("Swordfish", Swordfish::analyze);
     
     // TODO: W-Wing
     // TODO: Two String Kite.

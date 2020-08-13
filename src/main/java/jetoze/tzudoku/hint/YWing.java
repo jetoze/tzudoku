@@ -62,8 +62,8 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
      * @return an Optional containing a YWing, or an empty optional if there are
      *         no Y-wings in the grid.
      */
-    public static Optional<YWing> findNext(Grid grid) {
-        return new Detector(grid).findNext();
+    public static Optional<YWing> analyze(Grid grid) {
+        return new Detector(grid).find();
     }
 
     // This detection algorithm is perfectly safe to run in a grid where not all cells
@@ -82,8 +82,7 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
                     .collect(toImmutableList());
         }
 
-        public Optional<YWing> findNext() {
-            // TODO: I need to be cleaned up a bit. And I should have unit tests!
+        public Optional<YWing> find() {
             if (twoValueCells.size() < 3) {
                 // A y-wing requires three cells.
                 return Optional.empty();
@@ -96,6 +95,7 @@ public class YWing extends EliminatingHint implements PivotAndWingsHint {
         
         @Nullable
         private YWing examinePossiblePivot(BiValueCell pivot) {
+            // TODO: I need to be cleaned up a bit.
             // See if we can find two matching wings for this center cell
             ImmutableList<BiValueCell> possibleWings = getPossibleWings(pivot, twoValueCells);
             if (possibleWings.size() < 2) {

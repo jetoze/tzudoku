@@ -73,7 +73,7 @@ public class PointingPair extends EliminatingHint {
         return String.format("Positions: %s (Digit: %s)", getForcingPositions(), getValues());
     }
     
-    public static Optional<PointingPair> findNext(Grid grid) {
+    public static Optional<PointingPair> analyze(Grid grid) {
         requireNonNull(grid);
         return IntStream.rangeClosed(1, 9)
                 .mapToObj(House::box)

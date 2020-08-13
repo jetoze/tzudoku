@@ -213,9 +213,11 @@ public class SimpleColoring implements Hint {
             return color;
         }
     }
-    
 
-    public static Optional<SimpleColoring> findNext(Grid grid) {
+    /**
+     * Looks for a Simple Coloring in the given grid.
+     */
+    public static Optional<SimpleColoring> analyze(Grid grid) {
         Detector detector = new Detector(grid);
         return detector.find();
     }

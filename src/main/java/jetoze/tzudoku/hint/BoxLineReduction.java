@@ -65,7 +65,7 @@ public class BoxLineReduction extends EliminatingHint {
     }
 
     
-    public static Optional<BoxLineReduction> findNext(Grid grid) {
+    public static Optional<BoxLineReduction> analyze(Grid grid) {
         requireNonNull(grid);
         return House.ALL.stream()
             .filter(house -> house.getType() != Type.BOX)

@@ -35,11 +35,11 @@ public class XWing extends EliminatingHint {
         return getValues().iterator().next();
     }
     
-    public static Optional<XWing> findNext(Grid grid) {
+    public static Optional<XWing> analyze(Grid grid) {
         // Start by looking at the columns, then rows
-        XWing xwing = new Detector(grid, Type.COLUMN).findNext();
+        XWing xwing = new Detector(grid, Type.COLUMN).find();
         if (xwing == null) {
-            xwing = new Detector(grid, Type.ROW).findNext();
+            xwing = new Detector(grid, Type.ROW).find();
         }
         return Optional.ofNullable(xwing);
     }
@@ -64,7 +64,7 @@ public class XWing extends EliminatingHint {
         }
         
         @Nullable
-        public XWing findNext() {
+        public XWing find() {
             // This detection algorithm is safe to use even when not all cells in the
             // grid have candidates, as long as we only consider Houses that *do* have
             // candidates in all cells.

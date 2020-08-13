@@ -31,7 +31,7 @@ public class XWingTest {
                 .row(9, "[12478][478][1278] [4689][34689][2348] [246]5[89]")
                 .build();
         
-        Optional<XWing> opt = XWing.findNext(grid);
+        Optional<XWing> opt = XWing.analyze(grid);
         
         assertTrue(opt.isPresent());
         XWing xwing = opt.get();

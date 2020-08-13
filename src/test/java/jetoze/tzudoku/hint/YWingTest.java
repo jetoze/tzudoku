@@ -29,7 +29,7 @@ public class YWingTest {
                 .row(8, "24[16] [178]3[1578] [689][189][156]")
                 .row(9, "839 6[15]4 72[15]")
                 .build();
-        Optional<YWing> opt = YWing.findNext(grid);
+        Optional<YWing> opt = YWing.analyze(grid);
         
         assertTrue(opt.isPresent());
         YWing hint = opt.get();
@@ -50,7 +50,7 @@ public class YWingTest {
                 "6[14][13]",
                 "[34]25",
                 "789").build();
-        assertFalse(YWing.findNext(grid).isPresent());
+        assertFalse(YWing.analyze(grid).isPresent());
     }
     
 }

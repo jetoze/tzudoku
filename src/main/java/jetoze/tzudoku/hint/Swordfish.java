@@ -50,7 +50,7 @@ public class Swordfish extends EliminatingHint {
         return getValues().iterator().next();
     }
     
-    public static Optional<Swordfish> findNext(Grid grid) {
+    public static Optional<Swordfish> analyze(Grid grid) {
         return Stream.of(Type.ROW, Type.COLUMN)
                 .map(o -> new Detector(grid, o))
                 .map(Detector::find)

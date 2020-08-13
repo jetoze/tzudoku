@@ -29,7 +29,7 @@ public class XyzWingTest {
                 .row(8, "24[16] [178]3[1578] [689][189][156]")
                 .row(9, "839 6[15]4 72[15]")
                 .build();
-        Optional<XyzWing> opt = XyzWing.findNext(grid);
+        Optional<XyzWing> opt = XyzWing.analyze(grid);
         
         assertTrue(opt.isPresent());
         
@@ -58,7 +58,7 @@ public class XyzWingTest {
                 .row(8, "24[16] [178]3[1578] [689][189][156]")
                 .row(9, "839 6[15]4 72[15]")
                 .build();
-        Optional<XyzWing> opt = XyzWing.findNext(grid);
+        Optional<XyzWing> opt = XyzWing.analyze(grid);
         
         assertTrue(opt.isPresent());
         
@@ -87,7 +87,7 @@ public class XyzWingTest {
                 .row(8, "24[16] [178]3[1578] [689][189][156]")
                 .row(9, "839 6[15]4 72[15]")
                 .build();
-        Optional<XyzWing> opt = XyzWing.findNext(grid);
+        Optional<XyzWing> opt = XyzWing.analyze(grid);
         
         assertTrue(opt.isPresent());
         

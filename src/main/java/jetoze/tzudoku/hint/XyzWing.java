@@ -58,7 +58,7 @@ public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
         return getValues().iterator().next();
     }
 
-    public static Optional<XyzWing> findNext(Grid grid) {
+    public static Optional<XyzWing> analyze(Grid grid) {
         requireNonNull(grid);
         return new Detector(grid).find();
     }
