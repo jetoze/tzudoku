@@ -34,11 +34,19 @@ public class SimpleColoring implements Hint {
 
     private final Grid grid;
     private final Value value;
+    private final ImmutableSet<Position> blueCells;
+    private final ImmutableSet<Position> orangeCells;
     private final ImmutableSet<Position> targets;
     
-    public SimpleColoring(Grid grid, Value value, Set<Position> targets) {
+    public SimpleColoring(Grid grid, 
+                          Value value,
+                          Set<Position> blueCells,
+                          Set<Position> orangeCells,
+                          Set<Position> targets) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
+        this.blueCells = ImmutableSet.copyOf(blueCells);
+        this.orangeCells = ImmutableSet.copyOf(orangeCells);
         this.targets = ImmutableSet.copyOf(targets);
         checkArgument(!targets.isEmpty());
     }
@@ -48,6 +56,28 @@ public class SimpleColoring implements Hint {
         return SolvingTechnique.SIMPLE_COLORING;
     }
 
+    /**
+     * Returns the cells that were labeled as Blue by the algorithm.
+     * <p>
+     * Note that the actual color doesn't matter, it is just used as a label. Blue and Orange
+     * were picked out of a hat. This method is provided for code that wants to illustrate this
+     * hint in the UI.
+     */
+    public ImmutableSet<Position> getBlueCells() {
+        return blueCells;
+    }
+
+    /**
+     * Returns the cells that were labeled as Orange by the algorithm.
+     * <p>
+     * Note that the actual color doesn't matter, it is just used as a label. Blue and Orange
+     * were picked out of a hat. This method is provided for code that wants to illustrate this
+     * hint in the UI.
+     */
+    public ImmutableSet<Position> getOrangeCells() {
+        return orangeCells;
+    }
+    
     /**
      * Returns the value that can be eliminated as a candidate.
      */
@@ -157,15 +187,15 @@ public class SimpleColoring implements Hint {
      * The colors we use for the coloring. The values don't matter, we just need two of them.
      */
     private static enum Color {
-        ORANGE, BLUE;
+        BLUE, ORANGE;
         
         /**
          * Alternates colors, ORANGE -> BLUE -> ORANGE -> BLUE -> ...
          */
         Color next() {
-            return (this == ORANGE)
-                    ? BLUE
-                    : ORANGE;
+            return (this == BLUE)
+                    ? ORANGE
+                    : BLUE;
         }
     }
     
@@ -200,7 +230,7 @@ public class SimpleColoring implements Hint {
          */
         @Nullable
         public SimpleColoring run(Grid grid) {
-            visit(startPosition, Color.ORANGE);
+            visit(startPosition, Color.BLUE);
             SimpleColoring result = lookForColorAppearingTwiceInHouse(grid);
             if (result == null) {
                 result = lookForCellsSeeingOppositeColors(grid);
@@ -246,7 +276,8 @@ public class SimpleColoring implements Hint {
         }
         
         private SimpleColoring eliminateAllCellsOfColor(Grid grid, Color color) {
-            return new SimpleColoring(grid, value, ImmutableSet.copyOf(colorToCells.get(color)));
+            return new SimpleColoring(grid, value, ImmutableSet.copyOf(colorToCells.get(Color.BLUE)), 
+                    ImmutableSet.copyOf(colorToCells.get(Color.ORANGE)), ImmutableSet.copyOf(colorToCells.get(color)));
         }
         
         @Nullable
@@ -254,11 +285,12 @@ public class SimpleColoring implements Hint {
             ImmutableSet<Position> targets = Position.all()
                     .filter(HintUtils.isCandidate(grid, value))
                     .filter(Predicate.not(cellToColor::containsKey)) // We are only interested in positions that are not part of a conjugate pair
-                    .filter(seesColor(Color.ORANGE).and(seesColor(Color.BLUE)))
+                    .filter(seesColor(Color.BLUE).and(seesColor(Color.ORANGE)))
                     .collect(toImmutableSet());
             return targets.isEmpty()
                     ? null
-                    : new SimpleColoring(grid, value, targets);
+                    : new SimpleColoring(grid, value, ImmutableSet.copyOf(colorToCells.get(Color.BLUE)), 
+                            ImmutableSet.copyOf(colorToCells.get(Color.ORANGE)), targets);
         }
         
         private Predicate<Position> seesColor(Color color) {
