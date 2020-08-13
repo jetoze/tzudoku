@@ -100,7 +100,7 @@ public class SimpleColoringTest {
     @Test
     public void tooCrowdedHouse_1() {
         Grid grid = GridBuilder.builder()
-                .row(1, "289 [146][46][14] 375")
+                .row(1, "289 [146][46][14] 3[47]5")
                 .row(2, "364 [57]9[57] 812")
                 .row(3, "517 283 964")
                 .row(4, "893 [457]2[457] 6[45]1")

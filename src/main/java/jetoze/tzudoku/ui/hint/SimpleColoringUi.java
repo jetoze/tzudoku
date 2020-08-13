@@ -1,7 +1,6 @@
 package jetoze.tzudoku.ui.hint;
 
 import static java.util.Objects.requireNonNull;
-import static jetoze.tzudoku.ui.hint.HintUiUtils.positions;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -11,6 +10,7 @@ import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.hint.SimpleColoring;
 import jetoze.tzudoku.hint.SimpleColoring.Color;
+import jetoze.tzudoku.hint.SimpleColoring.TooCrowdedHouse;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.ui.GridUiModel;
 import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
@@ -37,10 +37,27 @@ class SimpleColoringUi implements HintUi {
 
     @Override
     public String getHtmlInfo() {
-        // TODO: I need much more information.
-        return "<html>Simple Coloring eliminates the value " + hint.getValue() + 
-                " from these cells:<br><br>" + positions(hint.getCellsToEliminate()) +
-                "</html>";
+        // TODO: I'm a bit clumsy and can be refined some.
+        String html = "<html>Simple Coloring on digit " + hint.getValue() + 
+                hint.getHouseTooCrowded().map(this::getTooCrowdedHousePreamble)
+                .orElseGet(this::getSeesOppositeColorPreamble) + "<br><br>";
+        ImmutableSet<Position> canBePenciledIn = hint.getCellsThatCanBePenciledIn();
+        if (!canBePenciledIn.isEmpty()) {
+            html += "The digit " + hint.getValue() + " can be entered into the following cells:<br>" +
+                    HintUiUtils.positions(canBePenciledIn) + "<br><br>";
+        }
+        html += "The digit " + hint.getValue() + " can be eliminated from the following cells:<br>" +
+                HintUiUtils.positions(hint.getCellsToEliminate()) + "</html>";
+        return html;
+    }
+    
+    private String getTooCrowdedHousePreamble(TooCrowdedHouse houseTooCrowded) {
+        return " produced a Too Crowded House, with two " +
+                houseTooCrowded.getColor().name().toLowerCase() + " cells in " + houseTooCrowded.getHouse() + ".";
+    }
+    
+    private String getSeesOppositeColorPreamble() {
+        return " resulted with one or more cells seeing cells of opposite colors.";
     }
 
     @Override
