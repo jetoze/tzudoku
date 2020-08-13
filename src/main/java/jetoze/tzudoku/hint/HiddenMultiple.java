@@ -92,6 +92,7 @@ public class HiddenMultiple implements Hint {
     private static Optional<HiddenMultiple> find(Grid grid, int size) {
         requireNonNull(grid);
         return House.ALL.stream()
+                .filter(house -> HintUtils.allCellsHaveCandidates(grid, house))
                 .map(house -> new Detector(grid, house, size))
                 .map(Detector::find)
                 .filter(Objects::nonNull)

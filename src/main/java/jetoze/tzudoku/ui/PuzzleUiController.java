@@ -4,10 +4,8 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
-import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
-import java.util.function.Function;
 
 import javax.swing.JButton;
 import javax.swing.JDialog;
@@ -15,13 +13,11 @@ import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
 import jetoze.gunga.UiThread;
-import jetoze.tzudoku.hint.SolvingTechnique;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
-import jetoze.tzudoku.ui.hint.HintDisplay;
 import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 public class PuzzleUiController {
@@ -34,15 +30,12 @@ public class PuzzleUiController {
     
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
-    private final HintDisplay hintDisplay;
     private final StatusPanel statusPanel;
     
     public PuzzleUiController(JFrame appFrame, PuzzleUiModel model, StatusPanel statusPanel) {
         this.appFrame = requireNonNull(appFrame);
         this.puzzleModel = requireNonNull(model);
         this.statusPanel = requireNonNull(statusPanel);
-        // TODO: I should be injected too I think
-        this.hintDisplay = new HintDisplay(appFrame, model.getGridModel(), new HintUiFactory());
     }
     
     public void selectPuzzle() {
@@ -105,20 +98,8 @@ public class PuzzleUiController {
         };
         UiThread.offload(work,  whenDone, exceptionHandler);
     }
-    
-    public void lookForHint(SolvingTechnique technique) {
-        runHintCheck(technique::analyze, hintDisplay::display, "No " + technique.getName() + " found :(");
-    }
 
-    private <T> void runHintCheck(Function<Grid, Optional<T>> hintChecker, Consumer<T> hintUi, String messageWhenNotFound) {
-        Callable<Optional<T>> producer = () -> hintChecker.apply(puzzleModel.getGridModel().getGrid());
-        Consumer<? super Optional<T>> consumer = o -> {
-            o.ifPresentOrElse(hintUi, () -> 
-                JOptionPane.showMessageDialog(appFrame, messageWhenNotFound, "No Hint Found", JOptionPane.INFORMATION_MESSAGE));
-        };
-        UiThread.offload(producer, consumer);
-    }
-    
+    // TODO: Move me to the HintController?
     public void startAutoSolver() {
         UiAutoSolver autoSolver = new UiAutoSolver(appFrame, puzzleModel.getGridModel(), new HintUiFactory());
         autoSolver.start();

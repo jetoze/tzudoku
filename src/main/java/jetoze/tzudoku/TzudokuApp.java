@@ -15,11 +15,13 @@ import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.ui.ControlPanel;
 import jetoze.tzudoku.ui.GameBoard;
 import jetoze.tzudoku.ui.GridUi;
+import jetoze.tzudoku.ui.HintController;
 import jetoze.tzudoku.ui.PuzzleUiController;
 import jetoze.tzudoku.ui.PuzzleUiModel;
 import jetoze.tzudoku.ui.StatusPanel;
 import jetoze.tzudoku.ui.UiLook;
 import jetoze.tzudoku.ui.ValueInputController;
+import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 public class TzudokuApp {
 
@@ -56,7 +58,8 @@ public class TzudokuApp {
         
         GridUi gridUi = new GridUi(model.getGridModel());
         ValueInputController valueInputController = ValueInputController.forSolving(model.getGridModel());
-        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, valueInputController);
+        HintController hintController = new HintController(frame, model.getGridModel(), new HintUiFactory());
+        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, valueInputController, hintController);
         GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
         
         Layouts.border()

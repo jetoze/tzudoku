@@ -20,8 +20,16 @@ import jetoze.tzudoku.model.House.Type;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
-// FIXME: I am extremely similar to PointingPair, including how I am detected.
+/**
+ * BoxLineReduction is the case where the only candidates for a given value in
+ * a Row or Column are all confined to a single Box. That value can then be eliminated
+ * as a candidate from all other cells in that Box.
+ * <p>
+ * For example, the digit 7 in Row 3 can only go into r3c4 or r3c5. Both these cells
+ * are in Box 2, so 7 can now be removed as a candidate from r1c456 and r2c456.
+ */
 public class BoxLineReduction extends EliminatingHint {
+    // FIXME: I am extremely similar to PointingPair, including how I am detected.
 
     private final House rowOrColumn;
     private final House box;
@@ -61,6 +69,7 @@ public class BoxLineReduction extends EliminatingHint {
         requireNonNull(grid);
         return House.ALL.stream()
             .filter(house -> house.getType() != Type.BOX)
+            .filter(house -> HintUtils.allCellsHaveCandidates(grid, house))
             .map(rowOrColumn -> new Detector(grid, rowOrColumn))
             .map(Detector::find)
             .filter(Objects::nonNull)
@@ -94,6 +103,10 @@ public class BoxLineReduction extends EliminatingHint {
         @Nullable
         private BoxLineReduction examine(Value value) {
             ImmutableSet<Position> candidates = HintUtils.collectCandidates(grid, value, rowOrColumn);
+            if (candidates.size() == 1) {
+                // This is in fact a Naked or Hidden Single.
+                return null;
+            }
             // Are the candidates in the same Box? If so, any other candidate cells
             // in the same box are targets.
             return House.ifInBox(candidates)

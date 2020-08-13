@@ -64,6 +64,9 @@ public class XyzWing extends EliminatingHint implements PivotAndWingsHint {
     }
 
     
+    // This algorithm is perfectly safe to run in a grid where not all cells
+    // have candidates, since we are only looking at the interaction between known
+    // Bi- and TriValueCells. There is no risk of producing a false negative.
     private static class Detector {
         private final Grid grid;
         

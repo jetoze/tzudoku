@@ -60,6 +60,22 @@ public enum SolvingTechnique {
     public String getName() {
         return name;
     }
+    
+    /**
+     * Does this solving technique require candidates to have been filled into all empty cells
+     * in the grid?
+     * <p>
+     * If this method returns {@code true}, this technique can return false positives on a grid
+     * without candidates in all cells, meaning it is not safe to run. If it returns {@code true},
+     * it is safe to apply the technique - any hint it finds is valid and can be applied to the 
+     * grid without breaking it - but the technique might not be able to run an exhaustive check. 
+     */
+    public boolean requiresCandidatesInAllCells() {
+        // It's possible Simple Coloring can be made safe if we only consider complete Houses
+        // when we collect the conjugate pairs, but for now I'd rather play it safe and simply
+        // not allow this technique to run on a grid if there are cells without candidates.
+        return this == SIMPLE_COLORING;
+    }
 
     /**
      * Applies this technique to the given grid.

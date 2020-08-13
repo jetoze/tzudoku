@@ -18,6 +18,7 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.IntFunction;
+import java.util.function.Predicate;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
@@ -178,7 +179,17 @@ public final class Grid {
         Set<Value> candidates = EnumSet.allOf(Value.class);
         p.seenBy().map(cells::get).map(Cell::getValue).flatMap(Optional::stream).forEach(candidates::remove);
         cell.getCenterMarks().setValues(candidates);
-        
+    }
+    
+    /**
+     * Checks if all the cells at the given positions in this grid have either a value
+     * or one or more candidates in their center pencil marks.
+     */
+    public boolean allCellsHaveValueOrCandidates(Stream<Position> positions) {
+        return positions.map(this::cellAt)
+                .filter(Predicate.not(Cell::hasValue))
+                .map(Cell::getCenterMarks)
+                .noneMatch(PencilMarks::isEmpty);
     }
     
     @Override

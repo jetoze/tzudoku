@@ -62,6 +62,16 @@ final class HintUtils {
             });
     }
     
+    /**
+     * Checks whether all cells in the given house has either a value or candidates penciled in.
+     * <p>
+     * House-based SolvingTechniques typically require all candidates to have been filled in, since
+     * they could otherwise produce false positives that could break the puzzle.
+     */
+    static boolean allCellsHaveCandidates(Grid grid, House house) {
+        return grid.allCellsHaveValueOrCandidates(house.getPositions());
+    }
+    
     private HintUtils() {/**/}
 
 }

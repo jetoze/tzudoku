@@ -35,8 +35,8 @@ public class House {
         COLUMN(Position::getColumn, Position::positionsInColumn),
         BOX(Position::getBox, Position::positionsInBox);
         
-        private final IntFunction<Stream<Position>> positionsSupplier;
         private final ToIntFunction<Position> houseNumberFunction;
+        private final IntFunction<Stream<Position>> positionsSupplier;
 
         private Type(ToIntFunction<Position> houseNumberFunction, IntFunction<Stream<Position>> positionsSupplier) {
             this.houseNumberFunction = houseNumberFunction;
