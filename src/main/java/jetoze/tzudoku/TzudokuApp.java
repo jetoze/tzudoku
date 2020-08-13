@@ -69,7 +69,8 @@ public class TzudokuApp {
 
         KeyBindings keyBindings = KeyBindings.whenInFocusedWindow(frame.getRootPane());
         gridUi.registerDefaultActions(keyBindings);
-        cellInputController.registerActions(keyBindings);
+        cellInputController.registerKeyBindings(keyBindings);
+        hintController.registerKeyBindings(keyBindings);
 
         frame.pack();
         frame.setLocationRelativeTo(null);

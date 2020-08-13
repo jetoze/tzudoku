@@ -85,7 +85,7 @@ public class CellInputController {
         }
     }
 
-    public void registerActions(KeyBindings keyBindings) {    
+    public void registerKeyBindings(KeyBindings keyBindings) {    
         for (Value v : Value.values()) {
             keyBindings.add(KeyStrokes.forKey(KeyEvent.VK_0 + v.toInt()), "enter-" + v, 
                     () -> updateModel(v));

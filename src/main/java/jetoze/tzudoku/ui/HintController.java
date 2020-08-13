@@ -2,6 +2,7 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.event.KeyEvent;
 import java.util.Optional;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
@@ -10,8 +11,13 @@ import java.util.stream.Stream;
 
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPopupMenu;
 
+import jetoze.gunga.Actions;
+import jetoze.gunga.KeyBindings;
+import jetoze.gunga.KeyStrokes;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.hint.Hint;
 import jetoze.tzudoku.hint.SolvingTechnique;
@@ -188,6 +194,22 @@ public class HintController { // TODO: Or "HintEngine"?
         return choice == JOptionPane.YES_OPTION;
     }
     
+
+    public void registerKeyBindings(KeyBindings keyBindings) {
+        keyBindings.add(KeyStrokes.commandShiftDown(KeyEvent.VK_H), "give-a-hint", this::lookForHint);
+        keyBindings.add(KeyStrokes.ctrlDown(KeyEvent.VK_H), "show-hints-menu", this::showHintsPopupMenu);
+    }
+    
+    private void showHintsPopupMenu() {
+        JPopupMenu popupMenu = new JPopupMenu("Available Hints");
+        Stream.of(SolvingTechnique.values())
+            .map(t -> Actions.toAction(t.getName(), () -> lookForHint(t)))
+            .map(JMenuItem::new)
+            .forEach(popupMenu::add);
+        // FIXME: Come up with a reliable way of finding a proper location for the menu.
+        popupMenu.show(appFrame, 500, 275);
+    }
+
     
     /**
      * The choices presented to the user when they request a hint on a grid that does not
