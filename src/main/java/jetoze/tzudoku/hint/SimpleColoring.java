@@ -69,15 +69,19 @@ public class SimpleColoring implements Hint {
     private final ImmutableMap<Color, ImmutableSet<Position>> coloredCells;
     private final ImmutableSet<Position> pencilIn;
     private final ImmutableSet<Position> eliminated;
+    @Nullable
+    private final House houseTooCrowded;
     
     private SimpleColoring(Grid grid, 
                            Value value,
                            Map<Color, ImmutableSet<Position>> coloredCells,
+                           @Nullable House houseTooCrowded,
                            ImmutableSet<Position> pencilIn,
                            ImmutableSet<Position> eliminated) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
         this.coloredCells = ImmutableMap.copyOf(coloredCells);
+        this.houseTooCrowded = houseTooCrowded;
         this.pencilIn = pencilIn;
         this.eliminated = eliminated;
     }    
@@ -88,7 +92,8 @@ public class SimpleColoring implements Hint {
     }
 
     /**
-     * Returns the cells that were labeled as Blue by the algorithm.
+     * Returns the cells that were labeled as Blue by the algorithm. This is purely for
+     * informational purposes.
      * <p>
      * Note that the actual color doesn't matter, it is just used as a label. Blue and Orange
      * were picked out of a hat. This method is provided for code that wants to illustrate this
@@ -99,7 +104,8 @@ public class SimpleColoring implements Hint {
     }
 
     /**
-     * Returns the cells that were labeled as Orange by the algorithm.
+     * Returns the cells that were labeled as Orange by the algorithm. This is purely for
+     * informational purposes.
      * <p>
      * Note that the actual color doesn't matter, it is just used as a label. Blue and Orange
      * were picked out of a hat. This method is provided for code that wants to illustrate this
@@ -131,6 +137,15 @@ public class SimpleColoring implements Hint {
     }
     
     /**
+     * If this SimpleColoring represents the case of the same color appearing twice in the
+     * same House ("Too Crowded House"), this method returns the House that was too crowded.
+     * This is purely for informational purposes.
+     */
+    public Optional<House> getHouseTooCrowded() {
+        return Optional.ofNullable(houseTooCrowded);
+    }
+    
+    /**
      * Returns the positions of the cells, if any, in which the value can be written in.
      * <p>
      * This is for the case of a "Too crowded house", where the outcome of the hint is that
@@ -147,6 +162,16 @@ public class SimpleColoring implements Hint {
         pencilIn.stream()
             .map(grid::cellAt)
             .forEach(cell -> cell.setValue(value));
+    }
+    
+    static class TooCrowdedHouse {
+        final House house;
+        final Color color;
+
+        public TooCrowdedHouse(House house, Color color) {
+            this.house = house;
+            this.color = color;
+        }
     }
     
     static Builder builder(Grid grid, Value value) {
@@ -173,16 +198,16 @@ public class SimpleColoring implements Hint {
             return this;
         }
         
-        public SimpleColoring tooCrowdedHouse(Color colorToEliminate) {
+        public SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
             checkState(coloredCells.size() == 2);
-            ImmutableSet<Position> eliminate = coloredCells.get(colorToEliminate);
-            ImmutableSet<Position> pencilIn = coloredCells.get(colorToEliminate.next());
-            return new SimpleColoring(grid, value, coloredCells, pencilIn, eliminate);
+            ImmutableSet<Position> eliminate = coloredCells.get(houseTooCrowded.color);
+            ImmutableSet<Position> pencilIn = coloredCells.get(houseTooCrowded.color.next());
+            return new SimpleColoring(grid, value, coloredCells, houseTooCrowded.house, pencilIn, eliminate);
         }
         
         public SimpleColoring seesBothColors(Set<Position> targets) {
             checkState(coloredCells.size() == 2);
-            return new SimpleColoring(grid, value, coloredCells, ImmutableSet.of(), ImmutableSet.copyOf(targets));
+            return new SimpleColoring(grid, value, coloredCells, null, ImmutableSet.of(), ImmutableSet.copyOf(targets));
         }
     }
     
@@ -349,25 +374,28 @@ public class SimpleColoring implements Hint {
         @Nullable
         private SimpleColoring lookForColorAppearingTwiceInHouse() {
             return Stream.of(Color.values())
-                .filter(this::isApperingTwiceInHouse)
+                .map(this::lookForTooCrowdedHouse)
+                .flatMap(Optional::stream)
                 .map(this::tooCrowdedHouse)
                 .findFirst()
                 .orElse(null);
         }
 
-        private boolean isApperingTwiceInHouse(Color color) {
+        private Optional<TooCrowdedHouse> lookForTooCrowdedHouse(Color color) {
             Set<House> houses = new HashSet<>();
             return colorToCells.get(color).stream()
                     .flatMap(Position::memberOf)
                     // houses.add() returns false if we add the same House a second time.
-                    .anyMatch(Predicate.not(houses::add));
+                    .filter(Predicate.not(houses::add))
+                    .map(house -> new TooCrowdedHouse(house, color))
+                    .findFirst();
         }
         
-        private SimpleColoring tooCrowdedHouse(Color color) {
+        private SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
             return builder(grid, value)
                     .blueCells(colorToCells.get(Color.BLUE))
                     .orangeCells(colorToCells.get(Color.ORANGE))
-                    .tooCrowdedHouse(color);
+                    .tooCrowdedHouse(houseTooCrowded);
         }
         
         @Nullable
