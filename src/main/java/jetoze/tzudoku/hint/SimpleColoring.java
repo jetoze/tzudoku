@@ -60,9 +60,6 @@ import jetoze.tzudoku.model.Value;
  * </ul>
  */
 public class SimpleColoring implements Hint {
-
-    // TODO: Unit tests. The puzzle "Simple Coloring Example No 1" has a couple of examples of Sees Both Colors.
-    //                   The puzzle "Simple Coloring Example No 2" has an example of Too Crowded House.
     
     private final Grid grid;
     private final Value value;
@@ -258,7 +255,7 @@ public class SimpleColoring implements Hint {
             return allPairs.keySet().stream()
                     .map(this::searchForValue)
                     .filter(Objects::nonNull)
-                    .findAny();
+                    .findFirst();
         }
         
         @Nullable
