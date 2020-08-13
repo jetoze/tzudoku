@@ -1,14 +1,11 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
-import java.util.Collection;
 import java.util.Collections;
-import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -195,39 +192,30 @@ public class SimpleColoring implements Hint {
     }
     
     
-    static Builder builder(Grid grid, Value value) {
-        return new Builder(grid, value);
+    private static Builder builder(Grid grid, Value value, Multimap<Color, Position> colorToCells) {
+        return new Builder(grid, value, colorToCells);
     }
     
-    static class Builder {
+    private static class Builder {
         private final Grid grid;
         private final Value value;
-        private final EnumMap<Color, ImmutableSet<Position>> coloredCells = new EnumMap<>(Color.class);
+        private final ImmutableMap<Color, ImmutableSet<Position>> colorToCells;
         
-        public Builder(Grid grid, Value value) {
+        public Builder(Grid grid, Value value, Multimap<Color, Position> colorToCells) {
             this.grid = grid;
             this.value = value;
-        }
-        
-        public Builder blueCells(Collection<Position> blueCells) {
-            this.coloredCells.put(Color.BLUE, ImmutableSet.copyOf(blueCells));
-            return this;
-        }
-        
-        public Builder orangeCells(Collection<Position> orangeCells) {
-            this.coloredCells.put(Color.ORANGE, ImmutableSet.copyOf(orangeCells));
-            return this;
+            this.colorToCells = ImmutableMap.of(
+                    Color.BLUE, ImmutableSet.copyOf(colorToCells.get(Color.BLUE)),
+                    Color.ORANGE, ImmutableSet.copyOf(colorToCells.get(Color.ORANGE)));
         }
         
         public SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
-            checkState(coloredCells.size() == 2);
-            ImmutableSet<Position> eliminate = coloredCells.get(houseTooCrowded.color);
-            return new SimpleColoring(grid, value, coloredCells, houseTooCrowded, eliminate);
+            ImmutableSet<Position> eliminate = colorToCells.get(houseTooCrowded.color);
+            return new SimpleColoring(grid, value, colorToCells, houseTooCrowded, eliminate);
         }
         
         public SimpleColoring seesBothColors(Set<Position> targets) {
-            checkState(coloredCells.size() == 2);
-            return new SimpleColoring(grid, value, coloredCells, null, ImmutableSet.copyOf(targets));
+            return new SimpleColoring(grid, value, colorToCells, null, ImmutableSet.copyOf(targets));
         }
     }
     
@@ -347,6 +335,11 @@ public class SimpleColoring implements Hint {
         @Nullable
         public SimpleColoring run() {
             visit(startPosition, Color.BLUE);
+            if (cellToColor.size() < 4) {
+                // Otherwise a simple Box Line Reduction, for example, can show up as
+                // a Simple Coloring. (Which is technically not wrong :)
+                return null;
+            }
             SimpleColoring result = lookForColorAppearingTwiceInHouse();
             if (result == null) {
                 result = lookForCellsSeeingOppositeColors();
@@ -395,10 +388,7 @@ public class SimpleColoring implements Hint {
         }
         
         private SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
-            return builder(grid, value)
-                    .blueCells(colorToCells.get(Color.BLUE))
-                    .orangeCells(colorToCells.get(Color.ORANGE))
-                    .tooCrowdedHouse(houseTooCrowded);
+            return builder(grid, value, colorToCells).tooCrowdedHouse(houseTooCrowded);
         }
         
         @Nullable
@@ -410,10 +400,7 @@ public class SimpleColoring implements Hint {
                     .collect(toImmutableSet());
             return targets.isEmpty()
                     ? null
-                    : builder(grid, value)
-                        .blueCells(colorToCells.get(Color.BLUE))
-                        .orangeCells(colorToCells.get(Color.ORANGE))
-                        .seesBothColors(targets);
+                    : builder(grid, value, colorToCells).seesBothColors(targets);
         }
         
         private Predicate<Position> seesColor(Color color) {
