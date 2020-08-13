@@ -2,6 +2,7 @@ package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
+import java.util.Comparator;
 import java.util.Objects;
 import java.util.function.Function;
 import java.util.function.Predicate;
@@ -11,6 +12,12 @@ import java.util.stream.Stream;
 import com.google.common.collect.Streams;
 
 public class Position {
+    /**
+     * Comparator that compares two Positions by row, using the column as tiebreaker.
+     */
+    public static final Comparator<Position> BY_ROW_AND_COLUMN = 
+            Comparator.comparing(Position::getRow).thenComparing(Position::getColumn);
+    
     private final int row;
     private final int column;
 
