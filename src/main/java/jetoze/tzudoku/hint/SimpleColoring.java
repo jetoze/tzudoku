@@ -65,16 +65,39 @@ public class SimpleColoring implements Hint {
     @Nullable
     private final TooCrowdedHouse houseTooCrowded;
     
+    /**
+     * Creates a SimpleColoring instance for the case of a Too Crowded House.
+     */
+    public static SimpleColoring tooCrowdedHouse(Grid grid, 
+                                                 Value value, 
+                                                 Multimap<Color, Position> coloredCells, 
+                                                 TooCrowdedHouse tooCrowdedHouse) {
+        ImmutableSet<Position> eliminate = ImmutableSet.copyOf(coloredCells.get(tooCrowdedHouse.color));
+        return new SimpleColoring(grid, value, coloredCells, tooCrowdedHouse, eliminate);
+    }
+    
+    /**
+     * Creates a SimpleColoring instance of the case of Sees Both Colors.
+     */
+    public static SimpleColoring seesBothColors(Grid grid, 
+                                                Value value, 
+                                                Multimap<Color, Position> coloredCells,
+                                                Set<Position> eliminated) {
+        return new SimpleColoring(grid, value, coloredCells, null, eliminated);
+    }
+    
     private SimpleColoring(Grid grid, 
                            Value value,
-                           Map<Color, ImmutableSet<Position>> coloredCells,
+                           Multimap<Color, Position> coloredCells,
                            @Nullable TooCrowdedHouse houseTooCrowded,
-                           ImmutableSet<Position> eliminated) {
+                           Set<Position> eliminated) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
-        this.coloredCells = ImmutableMap.copyOf(coloredCells);
+        this.coloredCells = ImmutableMap.of(
+                Color.BLUE, ImmutableSet.copyOf(coloredCells.get(Color.BLUE)),
+                Color.ORANGE, ImmutableSet.copyOf(coloredCells.get(Color.ORANGE)));
         this.houseTooCrowded = houseTooCrowded;
-        this.eliminated = eliminated;
+        this.eliminated = ImmutableSet.copyOf(eliminated);
     }    
 
     @Override
@@ -191,34 +214,7 @@ public class SimpleColoring implements Hint {
         }
     }
     
-    
-    private static Builder builder(Grid grid, Value value, Multimap<Color, Position> colorToCells) {
-        return new Builder(grid, value, colorToCells);
-    }
-    
-    private static class Builder {
-        private final Grid grid;
-        private final Value value;
-        private final ImmutableMap<Color, ImmutableSet<Position>> colorToCells;
-        
-        public Builder(Grid grid, Value value, Multimap<Color, Position> colorToCells) {
-            this.grid = grid;
-            this.value = value;
-            this.colorToCells = ImmutableMap.of(
-                    Color.BLUE, ImmutableSet.copyOf(colorToCells.get(Color.BLUE)),
-                    Color.ORANGE, ImmutableSet.copyOf(colorToCells.get(Color.ORANGE)));
-        }
-        
-        public SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
-            ImmutableSet<Position> eliminate = colorToCells.get(houseTooCrowded.color);
-            return new SimpleColoring(grid, value, colorToCells, houseTooCrowded, eliminate);
-        }
-        
-        public SimpleColoring seesBothColors(Set<Position> targets) {
-            return new SimpleColoring(grid, value, colorToCells, null, ImmutableSet.copyOf(targets));
-        }
-    }
-    
+
     public static Optional<SimpleColoring> findNext(Grid grid) {
         Detector detector = new Detector(grid);
         return detector.find();
@@ -388,7 +384,7 @@ public class SimpleColoring implements Hint {
         }
         
         private SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
-            return builder(grid, value, colorToCells).tooCrowdedHouse(houseTooCrowded);
+            return SimpleColoring.tooCrowdedHouse(grid, value, colorToCells, houseTooCrowded);
         }
         
         @Nullable
@@ -400,7 +396,7 @@ public class SimpleColoring implements Hint {
                     .collect(toImmutableSet());
             return targets.isEmpty()
                     ? null
-                    : builder(grid, value, colorToCells).seesBothColors(targets);
+                    : SimpleColoring.seesBothColors(grid, value, colorToCells, targets);
         }
         
         private Predicate<Position> seesColor(Color color) {
