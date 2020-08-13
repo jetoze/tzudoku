@@ -10,6 +10,7 @@ import java.util.List;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.tzudoku.hint.SimpleColoring;
+import jetoze.tzudoku.hint.SimpleColoring.Color;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.ui.GridUiModel;
 import jetoze.tzudoku.ui.GridUiModel.HighlightedCells;
@@ -56,8 +57,8 @@ class SimpleColoringUi implements HintUi {
 
         @Override
         protected Collection<HighlightedCells> getHighlights(SimpleColoring hint) {
-            ImmutableSet<Position> blueCells = hint.getBlueCells();
-            ImmutableSet<Position> orangeCells = hint.getOrangeCells();
+            ImmutableSet<Position> blueCells = hint.getCellsOfColor(Color.BLUE);
+            ImmutableSet<Position> orangeCells = hint.getCellsOfColor(Color.ORANGE);
             List<HighlightedCells> highlights = new ArrayList<>();
             highlights.add(new HighlightedCells(blueCells, HintHighlightColors.SIMPLE_COLORING_BLUE));
             highlights.add(new HighlightedCells(orangeCells, HintHighlightColors.SIMPLE_COLORING_ORANGE));

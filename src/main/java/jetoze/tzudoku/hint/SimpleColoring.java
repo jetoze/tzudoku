@@ -67,22 +67,19 @@ public class SimpleColoring implements Hint {
     private final Grid grid;
     private final Value value;
     private final ImmutableMap<Color, ImmutableSet<Position>> coloredCells;
-    private final ImmutableSet<Position> pencilIn;
     private final ImmutableSet<Position> eliminated;
     @Nullable
-    private final House houseTooCrowded;
+    private final TooCrowdedHouse houseTooCrowded;
     
     private SimpleColoring(Grid grid, 
                            Value value,
                            Map<Color, ImmutableSet<Position>> coloredCells,
-                           @Nullable House houseTooCrowded,
-                           ImmutableSet<Position> pencilIn,
+                           @Nullable TooCrowdedHouse houseTooCrowded,
                            ImmutableSet<Position> eliminated) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
         this.coloredCells = ImmutableMap.copyOf(coloredCells);
         this.houseTooCrowded = houseTooCrowded;
-        this.pencilIn = pencilIn;
         this.eliminated = eliminated;
     }    
 
@@ -92,31 +89,15 @@ public class SimpleColoring implements Hint {
     }
 
     /**
-     * Returns the cells that were labeled as Blue by the algorithm. This is purely for
-     * informational purposes.
-     * <p>
-     * Note that the actual color doesn't matter, it is just used as a label. Blue and Orange
-     * were picked out of a hat. This method is provided for code that wants to illustrate this
-     * hint in the UI.
+     * Returns the positions of the cells that were assigned the given color. This
+     * is purely for informational purposes.
      */
-    public ImmutableSet<Position> getBlueCells() {
-        return coloredCells.get(Color.BLUE);
-    }
-
-    /**
-     * Returns the cells that were labeled as Orange by the algorithm. This is purely for
-     * informational purposes.
-     * <p>
-     * Note that the actual color doesn't matter, it is just used as a label. Blue and Orange
-     * were picked out of a hat. This method is provided for code that wants to illustrate this
-     * hint in the UI.
-     */
-    public ImmutableSet<Position> getOrangeCells() {
-        return coloredCells.get(Color.ORANGE);
+    public ImmutableSet<Position> getCellsOfColor(Color color) {
+        return coloredCells.get(requireNonNull(color));
     }
     
     /**
-     * Returns the value that can be eliminated as a candidate.
+     * Returns the value that can be eliminated as a candidate or entered as a value.
      */
     public Value getValue() {
         return value;
@@ -141,7 +122,7 @@ public class SimpleColoring implements Hint {
      * same House ("Too Crowded House"), this method returns the House that was too crowded.
      * This is purely for informational purposes.
      */
-    public Optional<House> getHouseTooCrowded() {
+    public Optional<TooCrowdedHouse> getHouseTooCrowded() {
         return Optional.ofNullable(houseTooCrowded);
     }
     
@@ -153,26 +134,69 @@ public class SimpleColoring implements Hint {
      * a "Sees both colors" hint, this method returns an empty set.
      */
     public ImmutableSet<Position> getCellsThatCanBePenciledIn() {
-        return pencilIn;
+        return getHouseTooCrowded()
+                .map(TooCrowdedHouse::getColor)
+                .map(Color::next)
+                .map(coloredCells::get)
+                .orElse(ImmutableSet.of());
     }
 
     @Override
     public void apply() {
         HintUtils.eliminateCandidates(grid, eliminated, Collections.singleton(value));
-        pencilIn.stream()
+        getCellsThatCanBePenciledIn().stream()
             .map(grid::cellAt)
             .forEach(cell -> cell.setValue(value));
     }
     
-    static class TooCrowdedHouse {
-        final House house;
-        final Color color;
-
-        public TooCrowdedHouse(House house, Color color) {
-            this.house = house;
-            this.color = color;
+    
+    
+    /**
+     * The colors we use for the coloring. The values don't matter, we just need two of them.
+     */
+    public static enum Color {
+        BLUE, ORANGE;
+        
+        /**
+         * Alternates colors, ORANGE -> BLUE -> ORANGE -> BLUE -> ...
+         */
+        Color next() {
+            return (this == BLUE)
+                    ? ORANGE
+                    : BLUE;
         }
     }
+
+    /**
+     * Provides information about the House that became too crowded if the Simple Coloring
+     * chain resulted in a Too Crowded House.
+     */
+    public static class TooCrowdedHouse {
+        private final House house;
+        private final Color color;
+
+        public TooCrowdedHouse(House house, Color color) {
+            this.house = requireNonNull(house);
+            this.color = requireNonNull(color);
+        }
+
+        /**
+         * The House that became too crowded.
+         */
+        public House getHouse() {
+            return house;
+        }
+
+        /**
+         * The color of the cells that crowded the House. The result of the Simple Coloring
+         * technique is that the digit can be eliminated from all cells of this color, and
+         * can be entered as a value into all cells of the other color.
+         */
+        public Color getColor() {
+            return color;
+        }
+    }
+    
     
     static Builder builder(Grid grid, Value value) {
         return new Builder(grid, value);
@@ -201,13 +225,12 @@ public class SimpleColoring implements Hint {
         public SimpleColoring tooCrowdedHouse(TooCrowdedHouse houseTooCrowded) {
             checkState(coloredCells.size() == 2);
             ImmutableSet<Position> eliminate = coloredCells.get(houseTooCrowded.color);
-            ImmutableSet<Position> pencilIn = coloredCells.get(houseTooCrowded.color.next());
-            return new SimpleColoring(grid, value, coloredCells, houseTooCrowded.house, pencilIn, eliminate);
+            return new SimpleColoring(grid, value, coloredCells, houseTooCrowded, eliminate);
         }
         
         public SimpleColoring seesBothColors(Set<Position> targets) {
             checkState(coloredCells.size() == 2);
-            return new SimpleColoring(grid, value, coloredCells, null, ImmutableSet.of(), ImmutableSet.copyOf(targets));
+            return new SimpleColoring(grid, value, coloredCells, null, ImmutableSet.copyOf(targets));
         }
     }
     
@@ -290,23 +313,6 @@ public class SimpleColoring implements Hint {
                 builder.put(cp.second, cp);
             }
             return builder.build();
-        }
-    }
-    
-    
-    /**
-     * The colors we use for the coloring. The values don't matter, we just need two of them.
-     */
-    private static enum Color {
-        BLUE, ORANGE;
-        
-        /**
-         * Alternates colors, ORANGE -> BLUE -> ORANGE -> BLUE -> ...
-         */
-        Color next() {
-            return (this == BLUE)
-                    ? ORANGE
-                    : BLUE;
         }
     }
     
