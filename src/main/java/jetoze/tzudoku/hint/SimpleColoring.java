@@ -1,11 +1,14 @@
 package jetoze.tzudoku.hint;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.base.Preconditions.checkState;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 import static java.util.stream.Collectors.toList;
 
+import java.util.Collection;
 import java.util.Collections;
+import java.util.EnumMap;
 import java.util.EnumSet;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -21,6 +24,7 @@ import javax.annotation.Nullable;
 
 import com.google.common.base.Predicates;
 import com.google.common.collect.HashMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Multimap;
@@ -30,26 +34,50 @@ import jetoze.tzudoku.model.House;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Value;
 
+/**
+ * Simple Coloring is a chaining strategy that follows chains of conjugate pairs for 
+ * a given candidate value in the grid, assigning each cell an alternating color. It is 
+ * explained e.g. here: <a href="https://www.sudokuwiki.org/Singles_Chains">https://www.sudokuwiki.org/Singles_Chains</a>
+ * The colors used by this implementation are arbitrarily chosen to be "blue" and "orange". The following
+ * will subsequently talk about "blue" and "orange" cells.
+ * <p>
+ * Since the chain only travels between conjugate pairs - the only two cells in a House in which the digit 
+ * appears as a candidate - it follows that once the chain has been fully traversed we know that either
+ * all the Blue cells, or all the Orange cells, will contain the candidate value in the solved puzzle.
+ * <p>
+ * There are two types of successful Simple Coloring hints:
+ * <ul>
+ * <li><b>Color appears twice in a House ("Too crowded house")</b>: If, after the chain has been completed, 
+ * two (or more) cells of the same color, appear in the same House, one can conclude that the the the cells of 
+ * that color cannot contain the candidate digit, as that would result in the same digit appearing twice in the 
+ * same House. As a consequence, the digit can be eliminated as a candidate from the cells of that color, and 
+ * can immediately be assigned to the cells of the opposite color.</li>
+ * <li><b>Other cell(s) sees two cells of opposite colors ("Sees both colors")</b>: If, after the chain has 
+ * been completed, there are cells that sees both Blue and Orange cells, the candidate value can be eliminated 
+ * from those cells. This follows because it is guaranteed that either the Blue or the Orange cell will contain 
+ * the digit in the solved puzzle, so a cell that sees both colors will always see the digit and can thus not 
+ * contain the digit itself.</li>
+ * </ul>
+ */
 public class SimpleColoring implements Hint {
 
     private final Grid grid;
     private final Value value;
-    private final ImmutableSet<Position> blueCells;
-    private final ImmutableSet<Position> orangeCells;
-    private final ImmutableSet<Position> targets;
+    private final ImmutableMap<Color, ImmutableSet<Position>> coloredCells;
+    private final ImmutableSet<Position> pencilIn;
+    private final ImmutableSet<Position> eliminated;
     
-    public SimpleColoring(Grid grid, 
-                          Value value,
-                          Set<Position> blueCells,
-                          Set<Position> orangeCells,
-                          Set<Position> targets) {
+    private SimpleColoring(Grid grid, 
+                           Value value,
+                           Map<Color, ImmutableSet<Position>> coloredCells,
+                           ImmutableSet<Position> pencilIn,
+                           ImmutableSet<Position> eliminated) {
         this.grid = requireNonNull(grid);
         this.value = requireNonNull(value);
-        this.blueCells = ImmutableSet.copyOf(blueCells);
-        this.orangeCells = ImmutableSet.copyOf(orangeCells);
-        this.targets = ImmutableSet.copyOf(targets);
-        checkArgument(!targets.isEmpty());
-    }
+        this.coloredCells = ImmutableMap.copyOf(coloredCells);
+        this.pencilIn = pencilIn;
+        this.eliminated = eliminated;
+    }    
 
     @Override
     public SolvingTechnique getTechnique() {
@@ -64,7 +92,7 @@ public class SimpleColoring implements Hint {
      * hint in the UI.
      */
     public ImmutableSet<Position> getBlueCells() {
-        return blueCells;
+        return coloredCells.get(Color.BLUE);
     }
 
     /**
@@ -75,7 +103,7 @@ public class SimpleColoring implements Hint {
      * hint in the UI.
      */
     public ImmutableSet<Position> getOrangeCells() {
-        return orangeCells;
+        return coloredCells.get(Color.ORANGE);
     }
     
     /**
@@ -86,20 +114,75 @@ public class SimpleColoring implements Hint {
     }
 
     /**
-     * Returns the positions of the cells from which the value can be eliminated.
+     * Returns the positions of the cells from which the value can be eliminated as
+     * a candidate.
+     * <p>
+     * Note that in both the "Too crowded house" and the "Sees both colors" case,
+     * there will always be at least one cell from which the digit can be
+     * eliminated.
+     * 
+     * @return an ImmutableSet of at least one Position.
      */
-    public ImmutableSet<Position> getTargets() {
-        return targets;
+    public ImmutableSet<Position> getCellsToEliminate() {
+        return eliminated;
+    }
+    
+    /**
+     * Returns the positions of the cells, if any, in which the value can be written in.
+     * <p>
+     * This is for the case of a "Too crowded house", where the outcome of the hint is that
+     * we know in what group of cells (blue or orange) the digit should go. In case of 
+     * a "Sees both colors" hint, this method returns an empty set.
+     */
+    public ImmutableSet<Position> getCellsThatCanBePenciledIn() {
+        return pencilIn;
     }
 
-    /**
-     * Eliminates the candidate value from the target cells.
-     */
     @Override
     public void apply() {
-        HintUtils.eliminateCandidates(grid, targets, Collections.singleton(value));
+        HintUtils.eliminateCandidates(grid, eliminated, Collections.singleton(value));
+        pencilIn.stream()
+            .map(grid::cellAt)
+            .forEach(cell -> cell.setValue(value));
     }
-
+    
+    static Builder builder(Grid grid, Value value) {
+        return new Builder(grid, value);
+    }
+    
+    static class Builder {
+        private final Grid grid;
+        private final Value value;
+        private final EnumMap<Color, ImmutableSet<Position>> coloredCells = new EnumMap<>(Color.class);
+        
+        public Builder(Grid grid, Value value) {
+            this.grid = grid;
+            this.value = value;
+        }
+        
+        public Builder blueCells(Collection<Position> blueCells) {
+            this.coloredCells.put(Color.BLUE, ImmutableSet.copyOf(blueCells));
+            return this;
+        }
+        
+        public Builder orangeCells(Collection<Position> orangeCells) {
+            this.coloredCells.put(Color.ORANGE, ImmutableSet.copyOf(orangeCells));
+            return this;
+        }
+        
+        public SimpleColoring tooCrowdedHouse(Color colorToEliminate) {
+            checkState(coloredCells.size() == 2);
+            ImmutableSet<Position> eliminate = coloredCells.get(colorToEliminate);
+            ImmutableSet<Position> pencilIn = coloredCells.get(colorToEliminate.next());
+            return new SimpleColoring(grid, value, coloredCells, pencilIn, eliminate);
+        }
+        
+        public SimpleColoring seesBothColors(Set<Position> targets) {
+            checkState(coloredCells.size() == 2);
+            return new SimpleColoring(grid, value, coloredCells, ImmutableSet.of(), ImmutableSet.copyOf(targets));
+        }
+    }
+    
     public static Optional<SimpleColoring> findNext(Grid grid) {
         Detector detector = new Detector(grid);
         return detector.find();
@@ -141,8 +224,8 @@ public class SimpleColoring implements Hint {
                 if (visitedPositions.contains(p)) {
                     continue;
                 }
-                ColorCoder colorCoder = new ColorCoder(value, p, positions);
-                SimpleColoring hint = colorCoder.run(grid);
+                ColorCoder colorCoder = new ColorCoder(grid, value, p, positions);
+                SimpleColoring hint = colorCoder.run();
                 if (hint != null) {
                     return hint;
                 }
@@ -205,13 +288,15 @@ public class SimpleColoring implements Hint {
      * visited with alternate colors.
      */
     private static class ColorCoder {
+        private final Grid grid;
         private final Value value;
         private final Position startPosition;
         private final ImmutableMultimap<Position, ConjugatePair> positions;
         private final Map<Position, Color> cellToColor = new HashMap<>();
         private final Multimap<Color, Position> colorToCells = HashMultimap.create();
         
-        public ColorCoder(Value value, Position startPosition, ImmutableMultimap<Position, ConjugatePair> positions) {
+        public ColorCoder(Grid grid, Value value, Position startPosition, ImmutableMultimap<Position, ConjugatePair> positions) {
+            this.grid = grid;
             this.value = value;
             this.startPosition = startPosition;
             this.positions = positions;
@@ -229,11 +314,11 @@ public class SimpleColoring implements Hint {
          *         question.
          */
         @Nullable
-        public SimpleColoring run(Grid grid) {
+        public SimpleColoring run() {
             visit(startPosition, Color.BLUE);
-            SimpleColoring result = lookForColorAppearingTwiceInHouse(grid);
+            SimpleColoring result = lookForColorAppearingTwiceInHouse();
             if (result == null) {
-                result = lookForCellsSeeingOppositeColors(grid);
+                result = lookForCellsSeeingOppositeColors();
             }
             return result;
         }
@@ -259,10 +344,10 @@ public class SimpleColoring implements Hint {
         }
         
         @Nullable
-        private SimpleColoring lookForColorAppearingTwiceInHouse(Grid grid) {
+        private SimpleColoring lookForColorAppearingTwiceInHouse() {
             return Stream.of(Color.values())
                 .filter(this::isApperingTwiceInHouse)
-                .map(color -> eliminateAllCellsOfColor(grid, color))
+                .map(this::tooCrowdedHouse)
                 .findFirst()
                 .orElse(null);
         }
@@ -275,13 +360,15 @@ public class SimpleColoring implements Hint {
                     .anyMatch(Predicate.not(houses::add));
         }
         
-        private SimpleColoring eliminateAllCellsOfColor(Grid grid, Color color) {
-            return new SimpleColoring(grid, value, ImmutableSet.copyOf(colorToCells.get(Color.BLUE)), 
-                    ImmutableSet.copyOf(colorToCells.get(Color.ORANGE)), ImmutableSet.copyOf(colorToCells.get(color)));
+        private SimpleColoring tooCrowdedHouse(Color color) {
+            return builder(grid, value)
+                    .blueCells(colorToCells.get(Color.BLUE))
+                    .orangeCells(colorToCells.get(Color.ORANGE))
+                    .tooCrowdedHouse(color);
         }
         
         @Nullable
-        private SimpleColoring lookForCellsSeeingOppositeColors(Grid grid) {
+        private SimpleColoring lookForCellsSeeingOppositeColors() {
             ImmutableSet<Position> targets = Position.all()
                     .filter(HintUtils.isCandidate(grid, value))
                     .filter(Predicate.not(cellToColor::containsKey)) // We are only interested in positions that are not part of a conjugate pair
@@ -289,8 +376,10 @@ public class SimpleColoring implements Hint {
                     .collect(toImmutableSet());
             return targets.isEmpty()
                     ? null
-                    : new SimpleColoring(grid, value, ImmutableSet.copyOf(colorToCells.get(Color.BLUE)), 
-                            ImmutableSet.copyOf(colorToCells.get(Color.ORANGE)), targets);
+                    : builder(grid, value)
+                        .blueCells(colorToCells.get(Color.BLUE))
+                        .orangeCells(colorToCells.get(Color.ORANGE))
+                        .seesBothColors(targets);
         }
         
         private Predicate<Position> seesColor(Color color) {

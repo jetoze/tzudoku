@@ -24,8 +24,9 @@ class SimpleColoringUi implements HintUi {
 
     @Override
     public void apply(GridUiModel model) {
-        // TODO: In some cases (Too Crowded House) we can assign the Value in some cells.
-        model.removeCandidatesFromCells(hint.getTargets(), ImmutableSet.of(hint.getValue()));
+        // TODO: This messes up undo/redo since we are not applying these changes as an atomic operation.
+        hint.getCellsThatCanBePenciledIn().forEach(p -> model.enterValue(p, hint.getValue()));
+        model.removeCandidatesFromCells(hint.getCellsToEliminate(), ImmutableSet.of(hint.getValue()));
     }
 
     @Override
@@ -37,7 +38,7 @@ class SimpleColoringUi implements HintUi {
     public String getHtmlInfo() {
         // TODO: I need much more information.
         return "<html>Simple Coloring eliminates the value " + hint.getValue() + 
-                " from these cells:<br><br>" + positions(hint.getTargets()) +
+                " from these cells:<br><br>" + positions(hint.getCellsToEliminate()) +
                 "</html>";
     }
 
@@ -57,18 +58,14 @@ class SimpleColoringUi implements HintUi {
         protected Collection<HighlightedCells> getHighlights(SimpleColoring hint) {
             ImmutableSet<Position> blueCells = hint.getBlueCells();
             ImmutableSet<Position> orangeCells = hint.getOrangeCells();
-            ImmutableSet<Position> targetCells = hint.getTargets();
             List<HighlightedCells> highlights = new ArrayList<>();
-            highlights.add(new HighlightedCells(targetCells, HintHighlightColors.TARGET_CELL));
-            if (!blueCells.equals(targetCells)) {
-                highlights.add(new HighlightedCells(blueCells, HintHighlightColors.SIMPLE_COLORING_BLUE));
-            }
-            if (!orangeCells.equals(targetCells)) {
-                highlights.add(new HighlightedCells(orangeCells, HintHighlightColors.SIMPLE_COLORING_ORANGE));
+            highlights.add(new HighlightedCells(blueCells, HintHighlightColors.SIMPLE_COLORING_BLUE));
+            highlights.add(new HighlightedCells(orangeCells, HintHighlightColors.SIMPLE_COLORING_ORANGE));
+            if (hint.getCellsThatCanBePenciledIn().isEmpty()) {
+                ImmutableSet<Position> targetCells = hint.getCellsToEliminate();
+                highlights.add(new HighlightedCells(targetCells, HintHighlightColors.TARGET_CELL));
             }
             return highlights;
         }
     }
-    
-    
 }
