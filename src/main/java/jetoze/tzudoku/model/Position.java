@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 
 import java.util.Comparator;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.function.Function;
 import java.util.function.Predicate;
 import java.util.stream.IntStream;
@@ -87,6 +88,50 @@ public class Position {
      */
     public Stream<House> memberOf() {
         return Stream.of(House.row(row), House.column(column), House.box(getBox()));
+    }
+    
+    /**
+     * Returns the Position above this one, unless this Position is in the first row.
+     */
+    public Optional<Position> up() {
+        return row > 1
+                ? Optional.of(new Position(row - 1, column))
+                : Optional.empty();
+    }
+    
+    /**
+     * Returns the Position below this one, unless this Position is in the last row.
+     */
+    public Optional<Position> down() {
+        return row < 9
+                ? Optional.of(new Position(row + 1, column))
+                : Optional.empty();
+    }
+    
+    /**
+     * Returns the Position to the left of this one, unless this Position is in the first column.
+     */
+    public Optional<Position> left() {
+        return column > 1
+                ? Optional.of(new Position(row, column - 1))
+                : Optional.empty();
+    }
+    
+    /**
+     * Returns the Position to the right of this one, unless this Position is in the last column.
+     */
+    public Optional<Position> right() {
+        return column < 9
+                ? Optional.of(new Position(row, column + 1))
+                : Optional.empty();
+    }
+    
+    /**
+     * Returns a Stream of the positions that are orthogonally connected to this one.
+     */
+    public Stream<Position> orthogonallyConnected() {
+        return Stream.of(up(), down(), left(), right())
+                .flatMap(Optional::stream);
     }
 
     @Override
