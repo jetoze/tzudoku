@@ -61,6 +61,9 @@ import jetoze.tzudoku.model.Value;
  */
 public class SimpleColoring implements Hint {
 
+    // TODO: Unit tests. The puzzle "Simple Coloring Example No 1" has a couple of examples of Sees Both Colors.
+    //                   The puzzle "Simple Coloring Example No 2" has an example of Too Crowded House.
+    
     private final Grid grid;
     private final Value value;
     private final ImmutableMap<Color, ImmutableSet<Position>> coloredCells;
