@@ -46,7 +46,7 @@ public class ControlPanel {
     
     private final GridUiModel model;
     private final PuzzleUiController puzzleController;
-    private final ValueInputController valueInputController;
+    private final CellInputController cellInputController;
     private final HintController hintController;
 
     private final ToggleButtonWidget normalModeButton = new ToggleButtonWidget("Normal");
@@ -60,17 +60,17 @@ public class ControlPanel {
 
     public ControlPanel(GridUiModel model, 
                         PuzzleUiController puzzleController, 
-                        ValueInputController valueInputController,
+                        CellInputController cellInputController,
                         HintController hintController) {
         this.model = requireNonNull(model);
         this.puzzleController = requireNonNull(puzzleController);
-        this.valueInputController = requireNonNull(valueInputController);
+        this.cellInputController = requireNonNull(cellInputController);
         this.hintController = requireNonNull(hintController);
         this.valueActions = Value.ALL.stream()
                 .map(EnterValueAction::new)
                 .collect(toImmutableList());
         configureValueModeButtons();
-        Binding.oneWayBinding(valueInputController.getEnterValueModeProperty(), 
+        Binding.oneWayBinding(cellInputController.getEnterValueModeProperty(), 
                 mode -> valueActions.forEach(a -> a.update(mode)));
         this.ui = layoutUi();
     }
@@ -81,7 +81,7 @@ public class ControlPanel {
         UiLook.makeOverLarge(centerPencilMarkModeButton);
         UiLook.makeOverLarge(colorModeButton);
         ToggleButtonWidget.makeExclusive(normalModeButton, cornerPencilMarkModeButton, centerPencilMarkModeButton, colorModeButton);
-        EnumBinding.bind(valueInputController.getEnterValueModeProperty(), ImmutableMap.of(
+        EnumBinding.bind(cellInputController.getEnterValueModeProperty(), ImmutableMap.of(
                 EnterValueMode.NORMAL, normalModeButton,
                 EnterValueMode.CORNER_PENCIL_MARK, cornerPencilMarkModeButton,
                 EnterValueMode.CENTER_PENCIL_MARK, centerPencilMarkModeButton,
@@ -212,7 +212,7 @@ public class ControlPanel {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            UiThread.runLater(() -> valueInputController.updateModel(value));
+            UiThread.runLater(() -> cellInputController.updateModel(value));
         }
         
         public void update(EnterValueMode mode) {

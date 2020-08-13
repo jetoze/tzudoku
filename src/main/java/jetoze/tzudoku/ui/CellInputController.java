@@ -17,20 +17,20 @@ import jetoze.tzudoku.model.Value;
  * Acts as a conduit between the control panel UI and the GridUiModel, for entering
  * values, pencil marks, and cell colors into the model.
  */
-public class ValueInputController { // TODO: Come up with a better name. "Value" is overloaded.
+public class CellInputController {
 
     /**
      * Creates a ValueInputController for use when solving a puzzle.
      */
-    public static ValueInputController forSolving(GridUiModel model) {
-        return new ValueInputController(model, Purpose.SOLVING);
+    public static CellInputController forSolving(GridUiModel model) {
+        return new CellInputController(model, Purpose.SOLVING);
     }
 
     /**
      * Creates a ValueInputController for use when building a puzzle.
      */
-    public static ValueInputController forBuilding(GridUiModel model) {
-        return new ValueInputController(model, Purpose.BUILDING);
+    public static CellInputController forBuilding(GridUiModel model) {
+        return new CellInputController(model, Purpose.BUILDING);
     }
     
     private final GridUiModel model;
@@ -38,7 +38,7 @@ public class ValueInputController { // TODO: Come up with a better name. "Value"
     private final Property<EnterValueMode> enterValueMode = Properties.newProperty(
             "enterValueMode", EnterValueMode.NORMAL);
 
-    private ValueInputController(GridUiModel model, Purpose purpose) {
+    private CellInputController(GridUiModel model, Purpose purpose) {
         this.model = requireNonNull(model);
         this.purpose = requireNonNull(purpose);
     }

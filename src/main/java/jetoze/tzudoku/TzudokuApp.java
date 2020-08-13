@@ -20,7 +20,7 @@ import jetoze.tzudoku.ui.PuzzleUiController;
 import jetoze.tzudoku.ui.PuzzleUiModel;
 import jetoze.tzudoku.ui.StatusPanel;
 import jetoze.tzudoku.ui.UiLook;
-import jetoze.tzudoku.ui.ValueInputController;
+import jetoze.tzudoku.ui.CellInputController;
 import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 public class TzudokuApp {
@@ -57,9 +57,9 @@ public class TzudokuApp {
         PuzzleUiController controller = new PuzzleUiController(frame, model, statusPanel);
         
         GridUi gridUi = new GridUi(model.getGridModel());
-        ValueInputController valueInputController = ValueInputController.forSolving(model.getGridModel());
+        CellInputController cellInputController = CellInputController.forSolving(model.getGridModel());
         HintController hintController = new HintController(frame, model.getGridModel(), new HintUiFactory());
-        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, valueInputController, hintController);
+        ControlPanel controlPanel = new ControlPanel(model.getGridModel(), controller, cellInputController, hintController);
         GameBoard gameBoard = new GameBoard(gridUi, controlPanel);
         
         Layouts.border()
@@ -69,7 +69,7 @@ public class TzudokuApp {
 
         KeyBindings keyBindings = KeyBindings.whenInFocusedWindow(frame.getRootPane());
         gridUi.registerDefaultActions(keyBindings);
-        valueInputController.registerActions(keyBindings);
+        cellInputController.registerActions(keyBindings);
 
         frame.pack();
         frame.setLocationRelativeTo(null);
