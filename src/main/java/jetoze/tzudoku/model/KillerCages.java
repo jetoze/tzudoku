@@ -6,6 +6,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -55,8 +56,12 @@ public class KillerCages {
     public boolean isEmpty() {
         return cages.isEmpty();
     }
+
+    public boolean contains(KillerCage cage) {
+        return containsCageAt(cage.getPositions());
+    }
     
-    public boolean containsCage(ImmutableSet<Position> positions) {
+    public boolean containsCageAt(ImmutableSet<Position> positions) {
         requireNonNull(positions);
         return cages.containsKey(positions);
     }
@@ -83,9 +88,28 @@ public class KillerCages {
                 .anyMatch(c -> c.intersects(positions));
     }
     
+    /**
+     * Creates and returns a new KillerCages instance containing all the cages of
+     * this instance plus the new cage that is added. This instance is not modified.
+     */
     public KillerCages add(KillerCage cage) {
         checkArgument(!intersects(cage));
         return builder().addAll(getCages()).add(cage).build();
+    }
+    
+    /**
+     * Creates and returns a new KillerCages instance containing all the cages of
+     * this instance minus the new cage that is removed. This instance is not modified.
+     */
+    public KillerCages remove(KillerCage cage) {
+        checkArgument(containsCageAt(cage.getPositions()));
+        if (cages.size() == 1) {
+            return EMPTY;
+        } else {
+            Map<ImmutableSet<Position>, KillerCage> remaining = new HashMap<>(cages);
+            remaining.remove(cage.getPositions());
+            return new KillerCages(remaining);
+        }
     }
     
     public static Builder builder() {

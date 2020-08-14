@@ -65,6 +65,8 @@ public class PuzzleBuilderModel {
         setPuzzleName(name);
         gridModel.setPuzzle(new Puzzle(name, Grid.emptyGrid()));
         gridModel.setSandwiches(Sandwiches.EMPTY);
+        gridModel.setKillerCages(KillerCages.EMPTY);
+        gridModel.clearSelection();
     }
     
 }

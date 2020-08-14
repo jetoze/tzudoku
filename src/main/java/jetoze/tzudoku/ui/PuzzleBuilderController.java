@@ -6,6 +6,7 @@ import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
+import java.util.function.BiFunction;
 
 import javax.annotation.Nullable;
 import javax.swing.AbstractAction;
@@ -152,6 +153,13 @@ public class PuzzleBuilderController {
         // the OSX menu bar).
     }
     
+    private void addOrRemoveKillerCage(KillerCage cage, BiFunction<KillerCages, KillerCage, KillerCages> operator) {
+        KillerCages current = model.getKillerCages();
+        KillerCages updated = operator.apply(current, cage);
+        model.setKillerCages(updated);
+        model.getGridModel().clearSelection();
+    }
+    
     
     private class AddKillerCageAction extends AbstractAction {
         
@@ -163,7 +171,7 @@ public class PuzzleBuilderController {
         }
         
         public void setSelectedPositions(ImmutableSet<Position> positions) {
-            boolean enabled = KillerCage.isValidShape(positions) && !model.getKillerCages().containsCage(positions) &&
+            boolean enabled = KillerCage.isValidShape(positions) && !model.getKillerCages().containsCageAt(positions) &&
                     !model.getKillerCages().intersects(positions);
             setEnabled(enabled);
             if (enabled) {
@@ -182,10 +190,8 @@ public class PuzzleBuilderController {
         }
         
         private void addCage(ImmutableSet<Position> cageShape) {
-            KillerCages current = model.getKillerCages();
-            KillerCages withNewCage = current.add(new KillerCage(cageShape));
-            model.setKillerCages(withNewCage);
-            model.getGridModel().clearSelection();
+            KillerCage cage = new KillerCage(cageShape);
+            addOrRemoveKillerCage(cage, KillerCages::add);
         }
     }
     
@@ -212,7 +218,12 @@ public class PuzzleBuilderController {
         
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("TODO: Implement me.");
+            // TODO: Prompt the user for confirmation?
+            UiThread.acceptLater(this::deleteCage, cageToDelete);
+        }
+        
+        private void deleteCage(KillerCage cage) {
+            addOrRemoveKillerCage(cage, KillerCages::remove);
         }
     }
 }
