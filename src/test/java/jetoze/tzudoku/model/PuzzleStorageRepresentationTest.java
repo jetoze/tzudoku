@@ -22,7 +22,7 @@ public class PuzzleStorageRepresentationTest {
                 .column(2, 9)
                 .column(5, 19)
                 .build();
-        Puzzle p1 = new Puzzle(puzzleName, grid, sandwiches);
+        Puzzle p1 = new Puzzle(puzzleName, grid, sandwiches, KillerCages.EMPTY);
 
         // Act
         String json = new PuzzleStorageRepresentation(p1).toJson();
@@ -39,7 +39,7 @@ public class PuzzleStorageRepresentationTest {
         // Arrange
         String puzzleName = "Test Puzzle";
         Grid grid = Grid.exampleOfUnsolvedGrid();
-        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY);
+        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY, KillerCages.EMPTY);
 
         // Act
         String json = new PuzzleStorageRepresentation(p1).toJson();
@@ -74,7 +74,7 @@ public class PuzzleStorageRepresentationTest {
             .toggle(Value.SIX);
         cells.get(2).setColor(CellColor.BLUE);
         cells.get(3).setColor(CellColor.ORANGE);
-        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY);
+        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY, KillerCages.EMPTY);
 
         // Act
         String json = new PuzzleStorageRepresentation(p1).toJson();

@@ -6,6 +6,7 @@ import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.Sandwiches;
 
@@ -16,7 +17,7 @@ public class PuzzleBuilderModel {
     
     public PuzzleBuilderModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
-        this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, BoardSize.SMALL);
+        this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, KillerCages.EMPTY, BoardSize.SMALL);
         this.gridModel.setNavigationMode(NavigationMode.TRAVERSE);
         this.gridModel.setDecorateDuplicateCells(true);
         this.puzzleNameProperty = Properties.newProperty("puzzleName", 
@@ -49,6 +50,14 @@ public class PuzzleBuilderModel {
     
     public void setSandwiches(Sandwiches sandwiches) {
         gridModel.setSandwiches(sandwiches);
+    }
+    
+    public KillerCages getKillerCages() {
+        return gridModel.getKillerCages();
+    }
+    
+    public void setKillerCages(KillerCages cages) {
+        gridModel.setKillerCages(cages);
     }
     
     public void reset() {

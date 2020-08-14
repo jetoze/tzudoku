@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.annotation.Nullable;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFrame;
@@ -28,19 +29,18 @@ public class PuzzleBuilderController {
     private final JFrame appFrame;
     private final PuzzleBuilderModel model;
     private final AddKillerCageAction addKillerCageAction = new AddKillerCageAction();
+    private final DeleteKillerCageAction deleteKillerCageAction = new DeleteKillerCageAction();
     
     public PuzzleBuilderController(JFrame appFrame, PuzzleBuilderModel model) {
         this.appFrame = requireNonNull(appFrame);
         this.model = requireNonNull(model);
-//        ui.setSaveAction(this::createPuzzle);
-//        ui.setResetAction(this::reset);
-//        ui.setDefineSandwichesAction(this::defineSandwiches);
         model.getGridModel().addListener(new GridUiModelListener() {
 
             @Override
             public void onSelectionChanged() {
                 ImmutableSet<Position> selectedCells = model.getGridModel().getSelectedPositions();
                 addKillerCageAction.setSelectedPositions(selectedCells);
+                deleteKillerCageAction.setSelectedPositions(selectedCells);
             }
         });
     }
@@ -49,6 +49,10 @@ public class PuzzleBuilderController {
         return addKillerCageAction;
     }
     
+    public DeleteKillerCageAction getDeleteKillerCageAction() {
+        return deleteKillerCageAction;
+    }
+
     public void defineSandwiches() {
         SandwichDefinitionsUi sandwichDefinitionsUi = new SandwichDefinitionsUi(model.getSandwiches());
         int option = JOptionPane.showConfirmDialog(
@@ -108,7 +112,7 @@ public class PuzzleBuilderController {
             cells.put(p, cellToUse);
         });
         Grid grid = new Grid(cells);
-        Puzzle puzzle = new Puzzle(name, grid, model.getSandwiches());
+        Puzzle puzzle = new Puzzle(name, grid, model.getSandwiches(), model.getKillerCages());
         try {
             model.getInventory().addNewPuzzle(puzzle);
         } catch (IOException e) {
@@ -158,10 +162,42 @@ public class PuzzleBuilderController {
         }
         
         public void setSelectedPositions(ImmutableSet<Position> positions) {
-            this.selectedCells = requireNonNull(positions);
-            setEnabled(KillerCage.isValidShape(positions));
+            boolean enabled = KillerCage.isValidShape(positions) && !model.getKillerCages().containsCage(positions);
+            setEnabled(enabled);
+            if (enabled) {
+                this.selectedCells = positions;
+            } else {
+                this.selectedCells = ImmutableSet.of();
+            }
         }
 
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("TODO: Implement me.");
+        }
+    }
+    
+    
+    
+    private class DeleteKillerCageAction extends AbstractAction {
+        
+        @Nullable
+        private KillerCage cageToDelete;
+        
+        public DeleteKillerCageAction() {
+            super("Delete Killer Cage");
+            setEnabled(false);
+        }
+        
+        public void setSelectedPositions(ImmutableSet<Position> positions) {
+            setCageToDelete(model.getKillerCages().getCage(positions).orElse(null));
+        }
+
+        private void setCageToDelete(@Nullable KillerCage cage) {
+            setEnabled(cage != null);
+            this.cageToDelete = cage;
+        }
+        
         @Override
         public void actionPerformed(ActionEvent e) {
             System.out.println("TODO: Implement me.");

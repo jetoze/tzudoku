@@ -31,6 +31,7 @@ import jetoze.attribut.Property;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
@@ -51,16 +52,18 @@ public class GridUiModel {
     private NavigationMode navigationMode = NavigationMode.WRAP_AROUND;
     // XXX: Does the Sandwiches really belong here?
     private final Property<Sandwiches> sandwiches;
+    private final Property<KillerCages> killerCages;
     private final UndoRedoState undoRedoState = new UndoRedoState();
     private final List<GridUiModelListener> listeners = new ArrayList<>();
     
     public GridUiModel(Puzzle puzzle, BoardSize size) {
-        this(puzzle.getGrid(), puzzle.getSandwiches(), size);
+        this(puzzle.getGrid(), puzzle.getSandwiches(), puzzle.getKillerCages(), size);
     }
     
-    public GridUiModel(Grid grid, Sandwiches sandwiches, BoardSize size) {
+    public GridUiModel(Grid grid, Sandwiches sandwiches, KillerCages killerCages, BoardSize size) {
         this.grid = requireNonNull(grid);
         this.sandwiches = Properties.newProperty("sandwiches", requireNonNull(sandwiches));
+        this.killerCages = Properties.newProperty("KillerCages", requireNonNull(killerCages));
         this.size = requireNonNull(size);
         this.cellUis = grid.getCells().entrySet().stream()
                 .collect(ImmutableMap.toImmutableMap(Entry::getKey, 
@@ -97,6 +100,16 @@ public class GridUiModel {
     
     public void setSandwiches(Sandwiches sandwiches) {
         this.sandwiches.set(requireNonNull(sandwiches));
+        // HACK: This is just to get up and running.
+        notifyListeners(GridUiModelListener::onNewPuzzleLoaded);
+    }
+    
+    public KillerCages getKillerCages() {
+        return killerCages.get();
+    }
+    
+    public void setKillerCages(KillerCages killerCages) {
+        this.killerCages.set(killerCages);
         // HACK: This is just to get up and running.
         notifyListeners(GridUiModelListener::onNewPuzzleLoaded);
     }

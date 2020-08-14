@@ -33,6 +33,10 @@ public class KillerCages {
         this.cages = ImmutableMap.copyOf(cages);
     }
     
+    public boolean isEmpty() {
+        return cages.isEmpty();
+    }
+    
     public boolean containsCage(ImmutableSet<Position> positions) {
         requireNonNull(positions);
         return cages.containsKey(positions);

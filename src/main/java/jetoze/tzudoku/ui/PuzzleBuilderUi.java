@@ -32,18 +32,21 @@ public final class PuzzleBuilderUi implements Widget {
     private final Runnable resetAction;
     private final Runnable defineSandwichesAction;
     private final Action addKillerCageAction;
+    private final Action deleteKillerCageAction;
     
     // FIXME: Inconsistency between Runnable and Action as input here.
     public PuzzleBuilderUi(PuzzleBuilderModel model, 
                            Runnable saveAction,
                            Runnable resetAction,
                            Runnable defineSandwichesAction,
-                           Action addKillerCageAction) {
+                           Action addKillerCageAction,
+                           Action deleteKillerCageAction) {
         this.model = requireNonNull(model);
         this.saveAction = requireNonNull(saveAction);
         this.resetAction = requireNonNull(resetAction);
         this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
         this.addKillerCageAction = requireNonNull(addKillerCageAction);
+        this.deleteKillerCageAction = requireNonNull(deleteKillerCageAction);
         this.gridUi = new GridUi(model.getGridModel());
         nameField.setValidator(new Validator() {
 
@@ -77,6 +80,7 @@ public final class PuzzleBuilderUi implements Widget {
         JButton sandwichesButton = UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction);
         optionsButtons.add(sandwichesButton);
         optionsButtons.add(new JButton(addKillerCageAction));
+        optionsButtons.add(new JButton(deleteKillerCageAction));
         JPanel optionsButtonsWrapper = Layouts.border().north(optionsButtons).build();
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));

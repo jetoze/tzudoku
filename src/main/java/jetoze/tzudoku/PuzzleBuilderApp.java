@@ -43,7 +43,8 @@ public class PuzzleBuilderApp {
                 controller::createPuzzle,
                 controller::reset,
                 controller::defineSandwiches,
-                controller.getAddKillerCageAction());
+                controller.getAddKillerCageAction(),
+                controller.getDeleteKillerCageAction());
 
         appFrame.addWindowListener(new WindowAdapter() {
 

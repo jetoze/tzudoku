@@ -79,7 +79,8 @@ public class PuzzleStorageRepresentation {
     public Puzzle restorePuzzle(String name) { // TODO: Include the name in the representation?
         Grid grid = restoreGrid();
         Sandwiches sandwiches = new Sandwiches(rowSandwiches, columnSandwiches);
-        return new Puzzle(name, grid, sandwiches);
+        // TODO: Restore Killer Cages
+        return new Puzzle(name, grid, sandwiches, KillerCages.EMPTY);
     }
 
     private Grid restoreGrid() {
@@ -195,20 +196,5 @@ public class PuzzleStorageRepresentation {
             in.endArray();
             return new Sandwich(pos, sum);
         }
-    }
-    
-    
-    public static void main(String[] args) {
-        Grid grid = Grid.exampleOfUnsolvedGrid();
-        Sandwiches sandwiches = Sandwiches.builder()
-                .row(1, 12)
-                .row(6, 0)
-                .row(7, 35)
-                .column(2, 9)
-                .column(5, 19)
-                .build();
-        Puzzle p1 = new Puzzle("Test Puzzle", grid, sandwiches);
-        String json = new PuzzleStorageRepresentation(p1).toJson();
-        System.out.println(json);
     }
 }
