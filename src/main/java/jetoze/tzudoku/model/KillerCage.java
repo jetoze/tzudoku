@@ -1,21 +1,36 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
+import java.util.Comparator;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.function.ToIntFunction;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
 
 public class KillerCage {
 
-    // TODO: We might need a more sophisticated data structure in order
-    // to efficiently figure out how to render the border.
     private final ImmutableSet<Position> positions;
+    /**
+     * Maps the row number to a list of the killer cells in that row,
+     * ordered by column.
+     */
+    private final ImmutableListMultimap<Integer, Position> byRowAndColumn;
+    /**
+     * Maps the column number to a list of the killer cells in that row,
+     * ordered by row.
+     */
+    private final ImmutableListMultimap<Integer, Position> byColumnAndRow;
     
     @Nullable
     private final Integer sum;
@@ -23,11 +38,15 @@ public class KillerCage {
     public KillerCage(Set<Position> positions, int sum) {
         checkArgument(sum >= 3 && sum <= 45);
         this.positions = validatePositions(positions);
+        this.byRowAndColumn = toMultimap(positions, Position::getRow, Position::getColumn);
+        this.byColumnAndRow = toMultimap(positions, Position::getColumn, Position::getRow);
         this.sum = sum;
     }
     
     public KillerCage(Set<Position> positions) {
         this.positions = validatePositions(positions);
+        this.byRowAndColumn = toMultimap(positions, Position::getRow, Position::getColumn);
+        this.byColumnAndRow = toMultimap(positions, Position::getColumn, Position::getRow);
         this.sum = null;
     }
     
@@ -39,6 +58,14 @@ public class KillerCage {
         // XXX: isValidShape repeats some of the checks we've already performed here.
         checkArgument(isValidShape(positions), "The killer cage cells must be orthogonally connected");
         return ImmutableSet.copyOf(positions);
+    }
+    
+    private static ImmutableListMultimap<Integer, Position> toMultimap(Set<Position> positions,
+                                                                       Function<Position, Integer> keyFunction,
+                                                                       ToIntFunction<Position> valueOrder) {
+        return positions.stream()
+                .sorted(Comparator.comparingInt(valueOrder))
+                .collect(toImmutableListMultimap(keyFunction, p -> p));
     }
     
     public static boolean isValidShape(Set<Position> positions) {
@@ -77,19 +104,31 @@ public class KillerCage {
     // an enum LEFT, RIGHT, UPPER, LOWER?
     
     public ImmutableSet<Position> getLeftBoundary() {
-        throw new UnsupportedOperationException();
+        // The left boundary is the first cell in each row of the cage.
+        return getBoundary(byRowAndColumn, list -> list.get(0));
     }
     
     public ImmutableSet<Position> getRightBoundary() {
-        throw new UnsupportedOperationException();
+        // The right boundary is the last cell in each row of the cage.
+        return getBoundary(byRowAndColumn, list -> list.get(list.size() - 1));
     }
     
     public ImmutableSet<Position> getUpperBoundary() {
-        throw new UnsupportedOperationException();
+        // The upper boundary is the first cell in each column of the cage.
+        return getBoundary(byColumnAndRow, list -> list.get(0));
     }
     
     public ImmutableSet<Position> getLowerBoundary() {
-        throw new UnsupportedOperationException();
+        // The lower boundary is the last cell in each column of the cage.
+        return getBoundary(byColumnAndRow, list -> list.get(list.size() - 1));
+    }
+    
+    private static ImmutableSet<Position> getBoundary(ImmutableListMultimap<Integer, Position> positions,
+                                                      Function<ImmutableList<Position>, Position> extractor) {
+        return positions.keys().stream()
+                .map(positions::get)
+                .map(extractor)
+                .collect(toImmutableSet());
     }
 
 }
