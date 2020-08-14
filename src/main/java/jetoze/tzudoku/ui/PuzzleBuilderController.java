@@ -5,6 +5,7 @@ import static java.util.Objects.requireNonNull;
 import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
 
@@ -13,15 +14,19 @@ import javax.swing.AbstractAction;
 import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
 
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
+import jetoze.gunga.layout.Layouts;
+import jetoze.gunga.widget.ComboBoxWidget;
 import jetoze.tzudoku.TzudokuApp;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.KillerCage;
+import jetoze.tzudoku.model.KillerCageSums;
 import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
@@ -190,8 +195,37 @@ public class PuzzleBuilderController {
         }
         
         private void addCage(ImmutableSet<Position> cageShape) {
-            KillerCage cage = new KillerCage(cageShape);
+            int sum = selectSum(cageShape);
+            if (sum < 0) {
+                // The user canceled
+                return;
+            }
+            KillerCage cage = (sum == 0)
+                    ? new KillerCage(cageShape)
+                    : new KillerCage(cageShape, sum);
             addOrRemoveKillerCage(cage, KillerCages::add);
+        }
+        
+        /**
+         * 
+         * @return 0 if the cage should not have a sum, > 0 for the selected sum, or -1 if 
+         * the user canceled.
+         */
+        private int selectSum(ImmutableSet<Position> cageShape) {
+            int noSum = 0;
+            List<Integer> possibleSums = KillerCageSums.getPossibleSums(cageShape.size());
+            possibleSums.add(0, noSum);
+            ComboBoxWidget<Integer> selector = new ComboBoxWidget<>(possibleSums);
+            selector.setRenderer(new SumRenderer(noSum, "[No Sum Given]"));
+            selector.selectFirst();
+            JPanel ui = Layouts.border(0, 5)
+                    .north("Select the sum that goes into the Killer Cage")
+                    .south(selector)
+                    .build();
+            int ret = JOptionPane.showConfirmDialog(appFrame, ui, "Killer Cage Sum", JOptionPane.OK_CANCEL_OPTION);
+            return (ret == JOptionPane.OK_OPTION)
+                    ? selector.getSelectedItem().orElse(0)
+                    : -1;
         }
     }
     
