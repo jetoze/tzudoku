@@ -19,15 +19,17 @@ public class Puzzle {
     private final String name;
     private final Grid grid;
     private final Sandwiches sandwiches;
+    private final KillerCages killerCages;
     
     public Puzzle(String name, Grid grid) {
-        this(name, grid, Sandwiches.EMPTY);
+        this(name, grid, Sandwiches.EMPTY, KillerCages.EMPTY);
     }
     
-    public Puzzle(String name, Grid grid, Sandwiches sandwiches) {
+    public Puzzle(String name, Grid grid, Sandwiches sandwiches, KillerCages killerCages) {
         this.name = validateName(name);
         this.grid = requireNonNull(grid);
         this.sandwiches = requireNonNull(sandwiches);
+        this.killerCages = requireNonNull(killerCages);
     }
     
     private static String validateName(String name) {
@@ -49,12 +51,16 @@ public class Puzzle {
         return sandwiches;
     }
     
+    public KillerCages getKillerCages() {
+        return killerCages;
+    }
+
     public boolean isSolved() {
         return grid.isSolved();
     }
     
     public boolean isEmpty() {
-        // TODO: Check things like killer cages, thermos, etc, hee.
-        return grid.isEmpty() && sandwiches.isEmpty();
+        // TODO: Thermos, when we have them.
+        return grid.isEmpty() && sandwiches.isEmpty() && killerCages.isEmpty();
     }
 }

@@ -42,5 +42,20 @@ public class PositionTest {
         assertEquals(9, p.getBox());
     }
     
+    @Test
+    public void testFromString() {
+        Position.all().forEach(p -> {
+            String s = p.toString();
+            assertEquals(p, Position.fromString(s));
+        });
+        
+        assertThrows(NullPointerException.class, () -> Position.fromString(null));
+        assertThrows(IllegalArgumentException.class, () -> Position.fromString("r1c24"));
+        assertThrows(IllegalArgumentException.class, () -> Position.fromString("r1c"));
+        assertThrows(IllegalArgumentException.class, () -> Position.fromString("r1x2"));
+        assertThrows(IllegalArgumentException.class, () -> Position.fromString("r0c2"));
+        assertThrows(IllegalArgumentException.class, () -> Position.fromString("r1c0"));
+        assertThrows(IllegalArgumentException.class, () -> Position.fromString("Hello"));
+    }
     
 }

@@ -18,5 +18,13 @@ public interface GridUiModelListener {
      * changes to the cell's value, pencil marks, or color.
      */
     default void onCellStateChanged() {/**/}
+    
+    // TODO: Lift out selection to a separate model w/ associated listener?
+    
+    /**
+     * Notifies this listener that the cell selection changed (Cells were selected or unselected).
+     */
+    default void onSelectionChanged() {/**/}
+    
 
 }

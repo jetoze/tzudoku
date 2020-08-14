@@ -6,6 +6,7 @@ import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.Sandwiches;
 
@@ -16,7 +17,7 @@ public class PuzzleBuilderModel {
     
     public PuzzleBuilderModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
-        this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, BoardSize.SMALL);
+        this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, KillerCages.EMPTY, BoardSize.SMALL);
         this.gridModel.setNavigationMode(NavigationMode.TRAVERSE);
         this.gridModel.setDecorateDuplicateCells(true);
         this.puzzleNameProperty = Properties.newProperty("puzzleName", 
@@ -51,11 +52,25 @@ public class PuzzleBuilderModel {
         gridModel.setSandwiches(sandwiches);
     }
     
+    public KillerCages getKillerCages() {
+        return gridModel.getKillerCages();
+    }
+    
+    public void setKillerCages(KillerCages cages) {
+        gridModel.setKillerCages(cages);
+    }
+    
+    public boolean isEmpty() {
+        return gridModel.getGrid().isEmpty() && getSandwiches().isEmpty() && getKillerCages().isEmpty();
+    }
+    
     public void reset() {
         String name = inventory.getAvailablePuzzleName("New Puzzle");
         setPuzzleName(name);
         gridModel.setPuzzle(new Puzzle(name, Grid.emptyGrid()));
         gridModel.setSandwiches(Sandwiches.EMPTY);
+        gridModel.setKillerCages(KillerCages.EMPTY);
+        gridModel.clearSelection();
     }
     
 }

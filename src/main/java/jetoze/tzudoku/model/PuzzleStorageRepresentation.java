@@ -1,8 +1,11 @@
 package jetoze.tzudoku.model;
 
+import static java.util.stream.Collectors.*;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
@@ -24,6 +27,7 @@ public class PuzzleStorageRepresentation {
     private List<ColorState> colors;
     private Set<Sandwich> rowSandwiches;
     private Set<Sandwich> columnSandwiches;
+    private Set<KillerCage> killerCages;
 
     private PuzzleStorageRepresentation() {
         // XXX: This is necessary to satisfy Gson when deserializing input that doesn't
@@ -36,6 +40,7 @@ public class PuzzleStorageRepresentation {
         colors = new ArrayList<>();
         rowSandwiches = new TreeSet<>(SANDWICH_ORDER);
         columnSandwiches = new TreeSet<>(SANDWICH_ORDER);
+        killerCages = new HashSet<>();
     }
 
     public PuzzleStorageRepresentation(Puzzle puzzle) {
@@ -43,6 +48,7 @@ public class PuzzleStorageRepresentation {
         storeGrid(puzzle);
         rowSandwiches.addAll(puzzle.getSandwiches().getRows());
         columnSandwiches.addAll(puzzle.getSandwiches().getColumns());
+        killerCages.addAll(puzzle.getKillerCages().getCages());
     }
 
     private void storeGrid(Puzzle puzzle) {
@@ -79,7 +85,7 @@ public class PuzzleStorageRepresentation {
     public Puzzle restorePuzzle(String name) { // TODO: Include the name in the representation?
         Grid grid = restoreGrid();
         Sandwiches sandwiches = new Sandwiches(rowSandwiches, columnSandwiches);
-        return new Puzzle(name, grid, sandwiches);
+        return new Puzzle(name, grid, sandwiches, new KillerCages(killerCages));
     }
 
     private Grid restoreGrid() {
@@ -115,6 +121,7 @@ public class PuzzleStorageRepresentation {
     public String toJson() {
         return new GsonBuilder()
                 .registerTypeAdapter(Sandwich.class, new SandwichAdapter())
+                .registerTypeAdapter(KillerCage.class, new KillerCageAdapter())
                 .setPrettyPrinting()
                 .create()
                 .toJson(this);
@@ -123,6 +130,7 @@ public class PuzzleStorageRepresentation {
     public static PuzzleStorageRepresentation fromJson(String json) {
         Gson gson = new GsonBuilder()
                 .registerTypeAdapter(Sandwich.class, new SandwichAdapter())
+                .registerTypeAdapter(KillerCage.class, new KillerCageAdapter())
                 .create();
         return gson.fromJson(json, PuzzleStorageRepresentation.class);
     }
@@ -197,18 +205,42 @@ public class PuzzleStorageRepresentation {
         }
     }
     
-    
-    public static void main(String[] args) {
-        Grid grid = Grid.exampleOfUnsolvedGrid();
-        Sandwiches sandwiches = Sandwiches.builder()
-                .row(1, 12)
-                .row(6, 0)
-                .row(7, 35)
-                .column(2, 9)
-                .column(5, 19)
-                .build();
-        Puzzle p1 = new Puzzle("Test Puzzle", grid, sandwiches);
-        String json = new PuzzleStorageRepresentation(p1).toJson();
-        System.out.println(json);
+    private static class KillerCageAdapter extends TypeAdapter<KillerCage> {
+
+        @Override
+        public void write(JsonWriter out, KillerCage cage) throws IOException {
+            out.value(encode(cage));
+        }
+
+        @Override
+        public KillerCage read(JsonReader in) throws IOException {
+            return decode(in.nextString());
+        }
+        
+        private String encode(KillerCage cage) {
+            StringBuilder s = new StringBuilder(cage.getPositions().stream()
+                    .map(Object::toString)
+                    .collect(joining(" ")));
+            cage.getSum().ifPresent(sum -> s.append(": ").append(sum));
+            return s.toString();
+        }
+        
+        private KillerCage decode(String s) {
+            Integer sum = null;
+            String positionsString = null;
+            int sumMarkerIndex = s.indexOf(':');
+            if (sumMarkerIndex > 0) {
+                sum = Integer.parseInt(s.substring(sumMarkerIndex + 2));
+                positionsString = s.substring(0, sumMarkerIndex);
+            } else {
+                positionsString = s;
+            }
+            Set<Position> positions = Stream.of(positionsString.split("\\s"))
+                    .map(Position::fromString)
+                    .collect(toSet());
+            return (sum != null)
+                    ? new KillerCage(positions, sum)
+                    : new KillerCage(positions);
+        }
     }
 }

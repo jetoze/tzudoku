@@ -38,9 +38,17 @@ public enum BoardSize {
      * sandwich areas.
      */
     private final int boardSize;
+    
+    /**
+     * The width in pixels of the margin between a cell's outer boundary and the boundary 
+     * of a killer cage.
+     */
+    private final int killerCageMargin;
+    
     private final Font valueFont;
     private final Font pencilMarkFont;
     private final Font sandwichFont;
+    private final Font killerCageFont;
     
     private BoardSize(int cellSize) {
         this.cellSize = cellSize;        this.gridSize = 9/* cells */ * cellSize +
@@ -48,10 +56,12 @@ public enum BoardSize {
                 ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 
                 8/* thin borders */ * THIN_BORDER_WIDTH;
         this.sandwichAreaWidth = cellSize;
+        this.killerCageMargin = cellSize / 15;
         this.boardSize = gridSize + 2 * sandwichAreaWidth; // surround the board on all sides
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
         this.sandwichFont = new Font("Tahoma", Font.PLAIN, cellSize / 2);
+        this.killerCageFont = new Font("Tahoma", Font.BOLD, cellSize / 4);
     }
     
     /**
@@ -68,6 +78,14 @@ public enum BoardSize {
         return sandwichAreaWidth;
     }
     
+    /**
+     * Returns the margin (pixels) between a cell's outer boundary and the boundary of 
+     * a killer cage cell. 
+     */
+    public int getKillerCageMargin() {
+        return killerCageMargin;
+    }
+
     /**
      * Returns the size (pixels) of the 9x9 grid of cells.
      */
@@ -93,6 +111,10 @@ public enum BoardSize {
 
     public Font getSandwichFont() {
         return sandwichFont;
+    }
+
+    public Font getKillerCageFont() {
+        return killerCageFont;
     }
 
     public Rectangle getCellBounds(Position pos) {
@@ -158,5 +180,11 @@ public enum BoardSize {
         default:
             throw new RuntimeException("Unexpected number of pencil marks: " + pencilMarkNo);
         }
+    }
+    
+    public Point getKillerCellSumLocation(Graphics2D g, Position pos, String sumAsString) {
+        Rectangle r = getCellBounds(pos);
+        FontMetrics metrics = g.getFontMetrics(g.getFont());
+        return new Point(r.x + 1, r.y + 1 + (killerCageMargin + metrics.getHeight()) / 2);
     }
 }

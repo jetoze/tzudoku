@@ -46,6 +46,11 @@ public class GridUi implements Widget {
             public void onNewPuzzleLoaded() {
                 board.repaint();
             }
+
+            @Override
+            public void onSelectionChanged() {
+                board.repaint();
+            }
         });
     }
     
@@ -133,6 +138,16 @@ public class GridUi implements Widget {
             super.paintComponent(g);
             UiLook.drawGrid((Graphics2D) g, model.getSize());
             UiLook.drawSandwiches((Graphics2D) g, model.getSandwiches(), model.getSize());
+        }
+
+        @Override
+        protected void paintChildren(Graphics g) {
+            // When we paint the individual Cells we fill their backgrounds -->
+            // we must paint the Cells before we draw the killer cage boundaries.
+            // TODO: The same thing applies once we have Thermos - they must be 
+            // painted here as well.
+            super.paintChildren(g);
+            UiLook.drawKillerCages((Graphics2D) g, model.getKillerCages(), model.getSize());
         }
 
         @Override

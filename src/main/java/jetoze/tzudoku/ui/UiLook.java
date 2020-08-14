@@ -31,7 +31,11 @@ import com.google.common.collect.ImmutableMap;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.Customizable;
 import jetoze.tzudoku.model.CellColor;
+import jetoze.tzudoku.model.KillerCage;
+import jetoze.tzudoku.model.KillerCage.InnerCorner;
+import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
+import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.PuzzleState;
 import jetoze.tzudoku.model.Sandwich;
 import jetoze.tzudoku.model.Sandwiches;
@@ -171,6 +175,90 @@ public final class UiLook {
             drawTextCentered(g, boardSize.getSandwichFont(), Integer.toString(columnSandwich.getSum()), bounds);
         }
         
+        g.setFont(originalFont);
+        g.setColor(originalColor);
+    }
+    
+    static void drawKillerCages(Graphics2D g, KillerCages cages, BoardSize boardSize) {
+        if (cages.isEmpty()) {
+            return;
+        }
+        Color originalColor = g.getColor();
+        Font originalFont = g.getFont();
+        Stroke originalStroke = g.getStroke();
+        
+        g.setColor(BORDER_COLOR);
+        Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 1.0f, 
+                new float[]{2f, 0f, 2f}, 2.0f);
+        g.setStroke(dashed);
+        int margin = boardSize.getKillerCageMargin();
+
+        for (KillerCage cage : cages.getCages()) {
+            Position positionOfSum = cage.getPositionOfSum();
+            for (Position p : cage.getPositions()) {
+                Rectangle r = boardSize.getCellBounds(p);
+                boolean upperBoundary = !cage.hasCellAbove(p);
+                boolean lowerBoundary = !cage.hasCellBelow(p);
+                boolean leftboundary = !cage.hasCellToTheLeft(p);
+                boolean rightBoundary = !cage.hasCellToTheRight(p);
+                if (upperBoundary) {
+                    int startX = leftboundary ? r.x + margin : r.x;
+                    int endX = rightBoundary ? r.x + r.width - margin : r.x + r.width;
+                    if (p == positionOfSum && cage.hasSum()) {
+                        // The cell with the sum will always have uppBoundary == true and leftBoundary == true
+                        startX += g.getFontMetrics().stringWidth(String.valueOf(cage.getSum().orElse(35)));
+                    }
+                    drawHorizontalLine(g, startX, r.y + margin, endX - startX);
+                }
+                if (leftboundary) {
+                    int startY = upperBoundary ? r.y + margin : r.y;
+                    int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
+                    if (p == positionOfSum && cage.hasSum()) {
+                        // The cell with the sum will always have uppBoundary == true and leftBoundary == true
+                        startY += (g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
+                    }
+                    drawVerticalLine(g, r.x + margin, startY, endY - startY);
+                }
+                if (lowerBoundary) {
+                    int startX = leftboundary ? r.x + margin : r.x;
+                    int endX = rightBoundary ? r.x + r.width - margin : r.x + r.width;
+                    drawHorizontalLine(g, startX, r.y + r.height - margin, endX - startX);
+                }
+                if (rightBoundary) {
+                    int startY = upperBoundary ? r.y + margin : r.y;
+                    int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
+                    drawVerticalLine(g, r.x + r.width - margin, startY, endY - startY);
+                }
+                for (InnerCorner cornerLoc : cage.collectInnerCorners(p)) {
+                    switch (cornerLoc) {
+                    case UPPER_LEFT:
+                        drawVerticalLine(g, r.x + margin, r.y, margin);
+                        drawHorizontalLine(g, r.x, r.y + margin, margin);
+                        break;
+                    case UPPER_RIGHT:
+                        drawVerticalLine(g, r.x + r.width - margin, r.y, margin);
+                        drawHorizontalLine(g, r.x + r.width - margin, r.y + margin, margin);
+                        break;
+                    case LOWER_LEFT:
+                        drawHorizontalLine(g, r.x, r.y + r.height - margin, margin);
+                        drawVerticalLine(g, r.x + margin, r.y + r.height - margin, margin);
+                        break;
+                    case LOWER_RIGHT:
+                        drawHorizontalLine(g, r.x + r.width - margin, r.y + r.height - margin, margin);
+                        drawVerticalLine(g, r.x + r.width - margin, r.y + r.height - margin, margin);
+                        break;
+                    }
+                }
+            }
+            cage.getSum().ifPresent(sum -> {
+                g.setFont(boardSize.getKillerCageFont());
+                String text = Integer.toString(sum);
+                Point location = boardSize.getKillerCellSumLocation(g, positionOfSum, text);
+                g.drawString(text, location.x, location.y);
+            });
+        }
+        
+        g.setStroke(originalStroke);
         g.setFont(originalFont);
         g.setColor(originalColor);
     }

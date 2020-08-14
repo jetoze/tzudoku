@@ -4,11 +4,13 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.GridLayout;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 
 import jetoze.gunga.KeyBindings;
 import jetoze.gunga.binding.TextBinding;
@@ -27,12 +29,25 @@ public final class PuzzleBuilderUi implements Widget {
     private final GridUi gridUi;
     // TODO: Restrict input to valid characters only.
     private final TextFieldWidget nameField = new TextFieldWidget(25);
-    private Runnable saveAction = () -> {};
-    private Runnable resetAction = () -> {};
-    private Runnable defineSandwichesAction = () -> {};
+    private final Runnable saveAction;
+    private final Runnable resetAction;
+    private final Runnable defineSandwichesAction;
+    private final Action addKillerCageAction;
+    private final Action deleteKillerCageAction;
     
-    public PuzzleBuilderUi(PuzzleBuilderModel model) {
+    // FIXME: Inconsistency between Runnable and Action as input here.
+    public PuzzleBuilderUi(PuzzleBuilderModel model, 
+                           Runnable saveAction,
+                           Runnable resetAction,
+                           Runnable defineSandwichesAction,
+                           Action addKillerCageAction,
+                           Action deleteKillerCageAction) {
         this.model = requireNonNull(model);
+        this.saveAction = requireNonNull(saveAction);
+        this.resetAction = requireNonNull(resetAction);
+        this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
+        this.addKillerCageAction = requireNonNull(addKillerCageAction);
+        this.deleteKillerCageAction = requireNonNull(deleteKillerCageAction);
         this.gridUi = new GridUi(model.getGridModel());
         nameField.setValidator(new Validator() {
 
@@ -52,18 +67,6 @@ public final class PuzzleBuilderUi implements Widget {
         // lifetime of the model compared to the UI?
         TextBinding.bind(model.getPuzzleNameProperty(), nameField);
     }
-    
-    public void setSaveAction(Runnable action) {
-        this.saveAction = requireNonNull(action);
-    }
-    
-    public void setResetAction(Runnable action) {
-        this.resetAction = requireNonNull(action);
-    }
-    
-    public void setDefineSandwichesAction(Runnable defineSandwichesAction) {
-        this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
-    }
 
     @Override
     public JComponent getUi() {
@@ -74,10 +77,19 @@ public final class PuzzleBuilderUi implements Widget {
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
 
-        JPanel optionsButtons = new JPanel(new GridLayout());
-        JButton sandwichesButton = UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction);
-        optionsButtons.add(sandwichesButton);
-        JPanel optionsButtonsWrapper = Layouts.border().north(optionsButtons).build();
+        JPanel sandwichesPanel = new JPanel();
+        sandwichesPanel.setBorder(new TitledBorder("Sandwiches"));
+        sandwichesPanel.add(UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction));
+        
+        JPanel killerCagesPanel = new JPanel(new GridLayout(0, 1));
+        killerCagesPanel.setBorder(new TitledBorder("Killer Cages"));
+        killerCagesPanel.add(new JButton(addKillerCageAction));
+        killerCagesPanel.add(new JButton(deleteKillerCageAction));
+        
+        JPanel optionsPanel = new JPanel(new GridLayout(0, 1));
+        optionsPanel.add(sandwichesPanel);
+        optionsPanel.add(killerCagesPanel);
+        JPanel optionsPanelWrapper = Layouts.border().north(optionsPanel).build();
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));
         JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
@@ -90,7 +102,7 @@ public final class PuzzleBuilderUi implements Widget {
                 .withVerticalGap(8)
                 .north(nameFieldPanel)
                 .center(gridWrapper)
-                .east(optionsButtonsWrapper)
+                .east(optionsPanelWrapper)
                 .south(buttonPanel)
                 .build();
         ui.setBorder(new EmptyBorder(5, 5, 5, 5));

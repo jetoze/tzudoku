@@ -3,19 +3,15 @@ package jetoze.tzudoku.ui;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
 import static java.util.stream.Collectors.toList;
 
-import java.awt.Component;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.GridLayout;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
-import javax.swing.DefaultListCellRenderer;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
-import javax.swing.JList;
 import javax.swing.JPanel;
-import javax.swing.ListCellRenderer;
 import javax.swing.border.TitledBorder;
 
 import com.google.common.collect.ImmutableMap;
@@ -137,21 +133,7 @@ public class SandwichDefinitionsUi implements Widget {
                 .filter(i -> i != 1) // 1 is not a valid Sandwich sum
                 .mapToObj(Integer::valueOf)
                 .collect(toList()));
-        comboBox.setRenderer(new SumRenderer());
+        comboBox.setRenderer(new SumRenderer(-1, "[No Sandwich]"));
         return comboBox;
-    }
-    
-    
-    private static class SumRenderer implements ListCellRenderer<Integer> {
-        private final DefaultListCellRenderer delegate = new DefaultListCellRenderer();
-
-        @Override
-        public Component getListCellRendererComponent(JList<? extends Integer> list, Integer value, int index,
-                boolean isSelected, boolean cellHasFocus) {
-            String text = (value == -1)
-                    ? "[No Sandwich]"
-                    : Integer.toString(value);
-            return delegate.getListCellRendererComponent(list, text, index, isSelected, cellHasFocus);
-        }
     }
 }
