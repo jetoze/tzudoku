@@ -33,6 +33,7 @@ import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.Customizable;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.KillerCage;
+import jetoze.tzudoku.model.KillerCage.CornerLocation;
 import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
@@ -220,6 +221,26 @@ public final class UiLook {
                     int startY = upperBoundary ? r.y + margin : r.y;
                     int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
                     drawVerticalLine(g, r.x + r.width - margin, startY, endY - startY);
+                }
+                for (CornerLocation cornerLoc : cage.getCornerLocations(p)) {
+                    switch (cornerLoc) {
+                    case UPPER_LEFT:
+                        drawVerticalLine(g, r.x + margin, r.y, margin);
+                        drawHorizontalLine(g, r.x, r.y + margin, margin);
+                        break;
+                    case UPPER_RIGHT:
+                        drawVerticalLine(g, r.x + r.width - margin, r.y, margin);
+                        drawHorizontalLine(g, r.x + r.width - margin, r.y + margin, margin);
+                        break;
+                    case LOWER_LEFT:
+                        drawHorizontalLine(g, r.x, r.y + r.height - margin, margin);
+                        drawVerticalLine(g, r.x + margin, r.y + r.height - margin, margin);
+                        break;
+                    case LOWER_RIGHT:
+                        drawHorizontalLine(g, r.x + r.width - margin, r.y + r.height - margin, margin);
+                        drawVerticalLine(g, r.x + r.width - margin, r.y + r.height - margin, margin);
+                        break;
+                    }
                 }
             }
         }

@@ -2,6 +2,7 @@ package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableTable.toImmutableTable;
+import static java.util.Objects.requireNonNull;
 
 import java.util.HashSet;
 import java.util.NoSuchElementException;
@@ -11,6 +12,8 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
 
@@ -25,6 +28,7 @@ public class KillerCage {
      * calculating the boundary when rendering the cage in the UI.
      */
     private final ImmutableTable<Integer, Integer, Position> byRowAndColumn;
+    private final ImmutableMultimap<Position, CornerLocation> cornerLocations;
     
     @Nullable
     private final Integer sum;
@@ -32,15 +36,15 @@ public class KillerCage {
     public KillerCage(Set<Position> positions, int sum) {
         checkArgument(sum >= 3 && sum <= 45);
         this.positions = validatePositions(positions);
-        this.byRowAndColumn = positions.stream().collect(toImmutableTable(
-                Position::getRow, Position::getColumn, p -> p));
+        this.byRowAndColumn = buildRowAndColumnTable(positions);
+        this.cornerLocations = buildCornerLocationMap();
         this.sum = sum;
     }
     
     public KillerCage(Set<Position> positions) {
         this.positions = validatePositions(positions);
-        this.byRowAndColumn = positions.stream().collect(toImmutableTable(
-                Position::getRow, Position::getColumn, p -> p));
+        this.byRowAndColumn = buildRowAndColumnTable(positions);
+        this.cornerLocations = buildCornerLocationMap();
         this.sum = null;
     }
     
@@ -64,6 +68,34 @@ public class KillerCage {
         return unvisitedCells.isEmpty();
     }
 
+    private static ImmutableTable<Integer, Integer, Position> buildRowAndColumnTable(Set<Position> positions) {
+        return positions.stream().collect(toImmutableTable(
+                Position::getRow, Position::getColumn, p -> p));
+    }
+
+    private ImmutableMultimap<Position, CornerLocation> buildCornerLocationMap() {
+        ImmutableMultimap.Builder<Position, CornerLocation> builder = ImmutableMultimap.builder();
+        for (Position p : positions) {
+            if (hasCellBelow(p) && hasCellToTheLeft(p) && 
+                    !byRowAndColumn.contains(p.getRow() + 1, p.getColumn() - 1)) {
+                builder.put(p, CornerLocation.LOWER_LEFT);
+            }
+            if (hasCellBelow(p) && hasCellToTheRight(p) &&
+                    !byRowAndColumn.contains(p.getRow() + 1, p.getColumn() + 1)) {
+                builder.put(p, CornerLocation.LOWER_RIGHT);
+            }
+            if (hasCellAbove(p) && hasCellToTheLeft(p) && 
+                    !byRowAndColumn.contains(p.getRow() - 1, p.getColumn() - 1)) {
+                builder.put(p, CornerLocation.UPPER_LEFT);
+            }
+            if (hasCellAbove(p) && hasCellToTheRight(p) && 
+                    !byRowAndColumn.contains(p.getRow() - 1, p.getColumn() + 1)) {
+                builder.put(p, CornerLocation.UPPER_RIGHT);
+            }
+        }
+        return builder.build();
+    }
+    
     // TODO: Should this live with the Position class itself? Something like Position.areOrthogonallyConnected?
     private static void visit(Position position, Set<Position> unvisitedCells) {
         if (!unvisitedCells.contains(position)) {
@@ -100,6 +132,10 @@ public class KillerCage {
     
     public boolean hasCellToTheRight(Position p) {
         return byRowAndColumn.contains(p.getRow(), p.getColumn() + 1);
+    }
+
+    public ImmutableCollection<CornerLocation> getCornerLocations(Position p) {
+        return cornerLocations.get(requireNonNull(p));
     }
     
     public Position getLocationOfSum() {
@@ -141,4 +177,8 @@ public class KillerCage {
     }
 
     // TODO: Implement toString().
+    
+    public enum CornerLocation {
+        UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT
+    }
 }
