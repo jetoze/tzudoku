@@ -36,11 +36,19 @@ public class KillerCage {
                 "The killer cage must not contain null positions (%s)", positions);
         checkArgument(positions.size() >= 2 && positions.size() <= 9,
                 "The killer cage must contain 2-9 positions (had %s)", positions.size());
-        // TODO: All the cells must be orthogonally connected
+        // XXX: isValidShape repeats some of the checks we've already performed here.
+        checkArgument(isValidShape(positions), "The killer cage cells must be orthogonally connected");
+        return ImmutableSet.copyOf(positions);
+    }
+    
+    public static boolean isValidShape(Set<Position> positions) {
+        checkArgument(positions.stream().allMatch(Objects::nonNull));
+        if (positions.size() < 2 || positions.size() > 9) {
+            return false;
+        }
         Set<Position> unvisitedCells = new HashSet<>(positions);
         visit(unvisitedCells.iterator().next(), unvisitedCells);
-        checkArgument(unvisitedCells.isEmpty(), "The killer cage cells must be orthogonally connected");
-        return ImmutableSet.copyOf(positions);
+        return unvisitedCells.isEmpty();
     }
 
     // TODO: Should this live with the Position class itself? Something like Position.areOrthogonallyConnected?
@@ -62,6 +70,26 @@ public class KillerCage {
     
     public Optional<Integer> getSum() {
         return Optional.ofNullable(sum);
+    }
+    
+    // TODO: Replace the getXXXBoundary() methods with a single getBoundary() that returns a 
+    // suitable data structure? Something where a position is mapped to one or more of 
+    // an enum LEFT, RIGHT, UPPER, LOWER?
+    
+    public ImmutableSet<Position> getLeftBoundary() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public ImmutableSet<Position> getRightBoundary() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public ImmutableSet<Position> getUpperBoundary() {
+        throw new UnsupportedOperationException();
+    }
+    
+    public ImmutableSet<Position> getLowerBoundary() {
+        throw new UnsupportedOperationException();
     }
 
 }

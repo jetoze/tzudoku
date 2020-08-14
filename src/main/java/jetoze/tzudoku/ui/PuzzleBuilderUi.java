@@ -4,6 +4,7 @@ import static java.util.Objects.requireNonNull;
 
 import java.awt.GridLayout;
 
+import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
@@ -27,12 +28,22 @@ public final class PuzzleBuilderUi implements Widget {
     private final GridUi gridUi;
     // TODO: Restrict input to valid characters only.
     private final TextFieldWidget nameField = new TextFieldWidget(25);
-    private Runnable saveAction = () -> {};
-    private Runnable resetAction = () -> {};
-    private Runnable defineSandwichesAction = () -> {};
+    private final Runnable saveAction;
+    private final Runnable resetAction;
+    private final Runnable defineSandwichesAction;
+    private final Action addKillerCageAction;
     
-    public PuzzleBuilderUi(PuzzleBuilderModel model) {
+    // FIXME: Inconsistency between Runnable and Action as input here.
+    public PuzzleBuilderUi(PuzzleBuilderModel model, 
+                           Runnable saveAction,
+                           Runnable resetAction,
+                           Runnable defineSandwichesAction,
+                           Action addKillerCageAction) {
         this.model = requireNonNull(model);
+        this.saveAction = requireNonNull(saveAction);
+        this.resetAction = requireNonNull(resetAction);
+        this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
+        this.addKillerCageAction = requireNonNull(addKillerCageAction);
         this.gridUi = new GridUi(model.getGridModel());
         nameField.setValidator(new Validator() {
 
@@ -52,18 +63,6 @@ public final class PuzzleBuilderUi implements Widget {
         // lifetime of the model compared to the UI?
         TextBinding.bind(model.getPuzzleNameProperty(), nameField);
     }
-    
-    public void setSaveAction(Runnable action) {
-        this.saveAction = requireNonNull(action);
-    }
-    
-    public void setResetAction(Runnable action) {
-        this.resetAction = requireNonNull(action);
-    }
-    
-    public void setDefineSandwichesAction(Runnable defineSandwichesAction) {
-        this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
-    }
 
     @Override
     public JComponent getUi() {
@@ -74,9 +73,10 @@ public final class PuzzleBuilderUi implements Widget {
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
 
-        JPanel optionsButtons = new JPanel(new GridLayout());
+        JPanel optionsButtons = new JPanel(new GridLayout(0, 1));
         JButton sandwichesButton = UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction);
         optionsButtons.add(sandwichesButton);
+        optionsButtons.add(new JButton(addKillerCageAction));
         JPanel optionsButtonsWrapper = Layouts.border().north(optionsButtons).build();
         
         JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));

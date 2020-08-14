@@ -1,11 +1,14 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
+import java.awt.event.ActionEvent;
 import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 
+import javax.swing.AbstractAction;
+import javax.swing.Action;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
@@ -16,6 +19,7 @@ import jetoze.gunga.UiThread;
 import jetoze.tzudoku.TzudokuApp;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.KillerCage;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.Sandwiches;
@@ -23,13 +27,26 @@ import jetoze.tzudoku.model.Sandwiches;
 public class PuzzleBuilderController {
     private final JFrame appFrame;
     private final PuzzleBuilderModel model;
+    private final AddKillerCageAction addKillerCageAction = new AddKillerCageAction();
     
-    public PuzzleBuilderController(JFrame appFrame, PuzzleBuilderModel model, PuzzleBuilderUi ui) {
+    public PuzzleBuilderController(JFrame appFrame, PuzzleBuilderModel model) {
         this.appFrame = requireNonNull(appFrame);
         this.model = requireNonNull(model);
-        ui.setSaveAction(this::createPuzzle);
-        ui.setResetAction(this::reset);
-        ui.setDefineSandwichesAction(this::defineSandwiches);
+//        ui.setSaveAction(this::createPuzzle);
+//        ui.setResetAction(this::reset);
+//        ui.setDefineSandwichesAction(this::defineSandwiches);
+        model.getGridModel().addListener(new GridUiModelListener() {
+
+            @Override
+            public void onSelectionChanged() {
+                ImmutableSet<Position> selectedCells = model.getGridModel().getSelectedPositions();
+                addKillerCageAction.setSelectedPositions(selectedCells);
+            }
+        });
+    }
+    
+    public Action getAddKillerCageAction() {
+        return addKillerCageAction;
     }
     
     public void defineSandwiches() {
@@ -128,5 +145,26 @@ public class PuzzleBuilderController {
         // TODO: Interesting dilemma, in that as far as the OS is concerned,
         // it is still the Puzzle Builder App that is running (as seen e.g. in
         // the OSX menu bar).
+    }
+    
+    
+    private class AddKillerCageAction extends AbstractAction {
+        
+        private ImmutableSet<Position> selectedCells;
+        
+        public AddKillerCageAction() {
+            super("Add Killer Cage...");
+            setSelectedPositions(ImmutableSet.of());
+        }
+        
+        public void setSelectedPositions(ImmutableSet<Position> positions) {
+            this.selectedCells = requireNonNull(positions);
+            setEnabled(KillerCage.isValidShape(positions));
+        }
+
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            System.out.println("TODO: Implement me.");
+        }
     }
 }

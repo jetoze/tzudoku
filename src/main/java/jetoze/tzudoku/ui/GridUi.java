@@ -46,6 +46,11 @@ public class GridUi implements Widget {
             public void onNewPuzzleLoaded() {
                 board.repaint();
             }
+
+            @Override
+            public void onSelectionChanged() {
+                board.repaint();
+            }
         });
     }
     

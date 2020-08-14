@@ -128,7 +128,7 @@ public class GridUiModel {
         cellUis.values().forEach(c -> c.setSelected(false));
         lastSelectedCell = cellsToSelect.get(cellsToSelect.size() - 1);
         cellsToSelect.forEach(c -> c.setSelected(true));
-        notifyListeners(GridUiModelListener::onCellStateChanged);
+        notifyListeners(GridUiModelListener::onSelectionChanged);
     }
     
     public void selectCellAt(Position position) {
@@ -144,7 +144,7 @@ public class GridUiModel {
             cellUis.values().stream().filter(c -> c != cell).forEach(c -> c.setSelected(false));
         }
         if (changed) {
-            notifyListeners(GridUiModelListener::onCellStateChanged);
+            notifyListeners(GridUiModelListener::onSelectionChanged);
         }
     }
     
@@ -262,6 +262,10 @@ public class GridUiModel {
                 .map(CellUi::getCell);
     }
     
+    public ImmutableSet<Position> getSelectedPositions() {
+        return getSelectedPositions(c -> true).collect(toImmutableSet());
+    }
+    
     private Stream<Position> getSelectedPositions(Predicate<? super CellUi> condition) {
         return cellUis.values().stream()
                 .filter(CellUi::isSelected)
@@ -302,7 +306,7 @@ public class GridUiModel {
             return;
         }
         cellUis.values().forEach(c -> c.setSelected(false));
-        notifyListeners(GridUiModelListener::onCellStateChanged);
+        notifyListeners(GridUiModelListener::onSelectionChanged);
     }
     
     public void decorateInvalidCells(ValidationResult validationResult) {

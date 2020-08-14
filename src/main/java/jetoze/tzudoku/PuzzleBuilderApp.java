@@ -38,8 +38,12 @@ public class PuzzleBuilderApp {
         appFrame.setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE);
         
         PuzzleBuilderModel model = new PuzzleBuilderModel(inventory);
-        PuzzleBuilderUi ui = new PuzzleBuilderUi(model);
-        PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model, ui);
+        PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model);
+        PuzzleBuilderUi ui = new PuzzleBuilderUi(model,
+                controller::createPuzzle,
+                controller::reset,
+                controller::defineSandwiches,
+                controller.getAddKillerCageAction());
 
         appFrame.addWindowListener(new WindowAdapter() {
 
