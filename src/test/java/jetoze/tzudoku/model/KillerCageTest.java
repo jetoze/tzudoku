@@ -90,6 +90,20 @@ public class KillerCageTest {
         assertEquals(cage.getPositions(), cage.getRightBoundary());
         assertEquals(ImmutableSet.of(new Position(2, 2)), cage.getUpperBoundary());
         assertEquals(ImmutableSet.of(new Position(4, 2)), cage.getLowerBoundary());
+        
+        cage = killerCage(new Position(1, 1), new Position(1, 2),
+                          new Position(2, 1),
+                          new Position(3, 1), new Position(3, 2),
+                          new Position(4, 1),
+                          new Position(5, 1), new Position(5, 2));
+        assertEquals(ImmutableSet.of(new Position(1, 1), new Position(2, 1), new Position(3, 1), new Position(4, 1), new Position(5, 1)),
+                cage.getLeftBoundary());
+        assertEquals(ImmutableSet.of(new Position(1, 2), new Position(2, 1), new Position(3, 2), new Position(4, 1), new Position(5, 2)),
+                cage.getRightBoundary());
+        assertEquals(ImmutableSet.of(new Position(1, 1), new Position(1, 2), new Position(3, 2), new Position(5, 2)),
+                cage.getUpperBoundary());
+        assertEquals(ImmutableSet.of(new Position(1, 2), new Position(3, 2), new Position(5, 1), new Position(5, 2)),
+                cage.getLowerBoundary());
     }
     
     @Test

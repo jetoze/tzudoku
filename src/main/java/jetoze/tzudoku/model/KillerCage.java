@@ -104,6 +104,13 @@ public class KillerCage {
     // suitable data structure? Something where a position is mapped to one or more of 
     // an enum LEFT, RIGHT, UPPER, LOWER?
     
+    // FIXME: The boundary implementation is broken in a couple of ways:
+    //        1. We do not find the correct upper and lower boundary for a C-shaped cage.
+    //           Similarily for an U-shaped cage.
+    //        2. Consider the case of a left boundary consisting of three cells. The border
+    //           for the middle cell needs to run the entire height of the cell, where as the
+    //           borders for the top and bottom cells need to honor the margin.
+    
     public ImmutableSet<Position> getLeftBoundary() {
         // The left boundary is the first cell in each row of the cage.
         return getBoundary(byRowAndColumn, list -> list.get(0));
