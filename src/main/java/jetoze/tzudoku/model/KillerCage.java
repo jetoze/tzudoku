@@ -11,6 +11,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.function.Function;
 import java.util.function.ToIntFunction;
+import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
 
@@ -121,6 +122,21 @@ public class KillerCage {
     public ImmutableSet<Position> getLowerBoundary() {
         // The lower boundary is the last cell in each column of the cage.
         return getBoundary(byColumnAndRow, list -> list.get(list.size() - 1));
+    }
+    
+    public Position getLocationOfSum() {
+        return IntStream.rangeClosed(1, 9)
+                .mapToObj(Integer::valueOf)
+                .filter(byRowAndColumn::containsKey)
+                .map(byRowAndColumn::get)
+                .map(list -> list.get(0))
+                .findFirst()
+                .orElseThrow();
+    }
+    
+    boolean intersects(KillerCage cage) {
+        return cage.getPositions().stream()
+                .anyMatch(this.getPositions()::contains);
     }
     
     private static ImmutableSet<Position> getBoundary(ImmutableListMultimap<Integer, Position> positions,

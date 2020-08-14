@@ -6,14 +6,18 @@ import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
 
 public class KillerCages {
 
@@ -26,11 +30,26 @@ public class KillerCages {
     }
 
     public KillerCages(Collection<KillerCage> cages) {
+        checkNoIntersects(cages);
         this.cages = cages.stream().collect(toImmutableMap(KillerCage::getPositions, c -> c));
     }
 
     public KillerCages(Map<ImmutableSet<Position>, KillerCage> cages) {
+        checkNoIntersects(cages.values());
         this.cages = ImmutableMap.copyOf(cages);
+    }
+    
+    private static void checkNoIntersects(Collection<KillerCage> cages) {
+        if (cages.isEmpty()) {
+            return;
+        }
+        Iterator<KillerCage> it = cages.iterator();
+        Set<Position> coveredPositions = new HashSet<>(it.next().getPositions());
+        while (it.hasNext()) {
+            Set<Position> cagePositions = it.next().getPositions();
+            Set<Position> intersection = Sets.intersection(coveredPositions, cagePositions);
+            checkArgument(intersection.isEmpty(), "The cages cannot intersect. They intersect in %s", intersection);
+        }
     }
     
     public boolean isEmpty() {
@@ -50,7 +69,17 @@ public class KillerCages {
         return cages.values();
     }
     
+    /**
+     * Checks if the given cage intersects with one or more of the cages
+     * contained in this instance.
+     */
+    public boolean intersects(KillerCage cage) {
+        return this.cages.values().stream()
+                .anyMatch(c -> c.intersects(cage));
+    }
+    
     public KillerCages add(KillerCage cage) {
+        checkArgument(!intersects(cage));
         return builder().addAll(getCages()).add(cage).build();
     }
     
@@ -64,14 +93,22 @@ public class KillerCages {
         
         public Builder add(KillerCage cage) {
             requireNonNull(cage);
+            checkArgument(!intersects(cage));
             this.cages.add(cage);
             return this;
         }
         
         public Builder addAll(Collection<KillerCage> cages) {
             checkArgument(cages.stream().allMatch(Objects::nonNull));
+            if (!this.cages.isEmpty()) {
+                checkArgument(cages.stream().noneMatch(this::intersects));
+            }
             this.cages.addAll(cages);
             return this;
+        }
+        
+        private boolean intersects(KillerCage cage) {
+            return cages.stream().anyMatch(c -> c.intersects(cage));
         }
         
         public KillerCages build() {
