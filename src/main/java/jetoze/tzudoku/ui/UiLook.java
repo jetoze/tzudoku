@@ -31,7 +31,10 @@ import com.google.common.collect.ImmutableMap;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.Customizable;
 import jetoze.tzudoku.model.CellColor;
+import jetoze.tzudoku.model.KillerCage;
+import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
+import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.PuzzleState;
 import jetoze.tzudoku.model.Sandwich;
 import jetoze.tzudoku.model.Sandwiches;
@@ -172,6 +175,44 @@ public final class UiLook {
         }
         
         g.setFont(originalFont);
+        g.setColor(originalColor);
+    }
+    
+    static void drawKillerCages(Graphics2D g, KillerCages cages, BoardSize boardSize) {
+        if (cages.isEmpty()) {
+            return;
+        }
+        Color originalColor = g.getColor();
+        Stroke originalStroke = g.getStroke();
+        
+        g.setColor(BORDER_COLOR);
+        Stroke dashed = new BasicStroke(1, BasicStroke.CAP_BUTT, BasicStroke.JOIN_ROUND, 1.0f, 
+                new float[]{2f, 0f, 2f}, 2.0f);
+        g.setStroke(dashed);
+        int margin = boardSize.getKillerCageMargin();
+        int length = boardSize.getCellSize() - 2 * margin;
+
+        for (KillerCage cage : cages.getCages()) {
+            // TODO: Draw the sum. Also leave a small gap in the cage border where the sum goes.
+            for (Position left : cage.getLeftBoundary()) {
+                Rectangle r = boardSize.getCellBounds(left);
+                drawVerticalLine(g, r.x + margin, r.y + margin, length);
+            }
+            for (Position right : cage.getRightBoundary()) {
+                Rectangle r = boardSize.getCellBounds(right);
+                drawVerticalLine(g, r.x + r.width - margin, r.y + margin, length);
+            }
+            for (Position top : cage.getUpperBoundary()) {
+                Rectangle r = boardSize.getCellBounds(top);
+                drawHorizontalLine(g, r.x + margin, r.y + margin, length);
+            }
+            for (Position bottom : cage.getLowerBoundary()) {
+                Rectangle r = boardSize.getCellBounds(bottom);
+                drawHorizontalLine(g, r.x + margin, r.y + r.height - margin, length);
+            }
+        }
+        
+        g.setStroke(originalStroke);
         g.setColor(originalColor);
     }
     

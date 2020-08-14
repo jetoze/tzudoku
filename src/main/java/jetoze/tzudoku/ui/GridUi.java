@@ -141,6 +141,16 @@ public class GridUi implements Widget {
         }
 
         @Override
+        protected void paintChildren(Graphics g) {
+            // When we paint the individual Cells we fill their backgrounds -->
+            // we must paint the Cells before we draw the killer cage boundaries.
+            // TODO: The same thing applies once we have Thermos - they must be 
+            // painted here as well.
+            super.paintChildren(g);
+            UiLook.drawKillerCages((Graphics2D) g, model.getKillerCages(), model.getSize());
+        }
+
+        @Override
         public Dimension getPreferredSize() {
             return new Dimension(model.getSize().getBoardSize(), model.getSize().getBoardSize());
         }

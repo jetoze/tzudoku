@@ -38,6 +38,13 @@ public enum BoardSize {
      * sandwich areas.
      */
     private final int boardSize;
+    
+    /**
+     * The width in pixels of the margin between a cell's outer boundary and the boundary 
+     * of a killer cage.
+     */
+    private final int killerCageMargin;
+    
     private final Font valueFont;
     private final Font pencilMarkFont;
     private final Font sandwichFont;
@@ -48,6 +55,7 @@ public enum BoardSize {
                 ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 
                 8/* thin borders */ * THIN_BORDER_WIDTH;
         this.sandwichAreaWidth = cellSize;
+        this.killerCageMargin = cellSize / 8;
         this.boardSize = gridSize + 2 * sandwichAreaWidth; // surround the board on all sides
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
@@ -68,6 +76,14 @@ public enum BoardSize {
         return sandwichAreaWidth;
     }
     
+    /**
+     * Returns the margin (pixels) between a cell's outer boundary and the boundary of 
+     * a killer cage cell. 
+     */
+    public int getKillerCageMargin() {
+        return killerCageMargin;
+    }
+
     /**
      * Returns the size (pixels) of the 9x9 grid of cells.
      */

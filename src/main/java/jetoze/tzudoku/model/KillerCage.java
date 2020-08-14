@@ -135,7 +135,11 @@ public class KillerCage {
     }
     
     boolean intersects(KillerCage cage) {
-        return cage.getPositions().stream()
+        return intersects(cage.getPositions());
+    }
+    
+    boolean intersects(ImmutableSet<Position> positions) {
+        return positions.stream()
                 .anyMatch(this.getPositions()::contains);
     }
     

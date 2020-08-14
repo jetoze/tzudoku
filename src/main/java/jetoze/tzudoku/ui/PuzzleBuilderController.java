@@ -21,6 +21,7 @@ import jetoze.tzudoku.TzudokuApp;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.KillerCage;
+import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.Sandwiches;
@@ -162,7 +163,8 @@ public class PuzzleBuilderController {
         }
         
         public void setSelectedPositions(ImmutableSet<Position> positions) {
-            boolean enabled = KillerCage.isValidShape(positions) && !model.getKillerCages().containsCage(positions);
+            boolean enabled = KillerCage.isValidShape(positions) && !model.getKillerCages().containsCage(positions) &&
+                    !model.getKillerCages().intersects(positions);
             setEnabled(enabled);
             if (enabled) {
                 this.selectedCells = positions;
@@ -173,7 +175,17 @@ public class PuzzleBuilderController {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            System.out.println("TODO: Implement me.");
+            // TODO: Prompt the user for an optional sum.
+            // Since we wrap this in an invokeLater we pass in a reference to this.selectedCells,
+            // to handle the corner case of the selection changing in between.
+            UiThread.acceptLater(this::addCage, this.selectedCells);
+        }
+        
+        private void addCage(ImmutableSet<Position> cageShape) {
+            KillerCages current = model.getKillerCages();
+            KillerCages withNewCage = current.add(new KillerCage(cageShape));
+            model.setKillerCages(withNewCage);
+            model.getGridModel().clearSelection();
         }
     }
     

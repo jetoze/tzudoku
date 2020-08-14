@@ -78,6 +78,11 @@ public class KillerCages {
                 .anyMatch(c -> c.intersects(cage));
     }
     
+    public boolean intersects(ImmutableSet<Position> positions) {
+        return this.cages.values().stream()
+                .anyMatch(c -> c.intersects(positions));
+    }
+    
     public KillerCages add(KillerCage cage) {
         checkArgument(!intersects(cage));
         return builder().addAll(getCages()).add(cage).build();
