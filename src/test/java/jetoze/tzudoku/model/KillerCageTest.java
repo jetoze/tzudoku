@@ -62,15 +62,15 @@ public class KillerCageTest {
     }
     
     @Test
-    public void testLocationOfSum() {
-        assertEquals(new Position(1, 1), killerCage(new Position(1, 1), new Position(1, 2)).getLocationOfSum());
-        assertEquals(new Position(1, 1), killerCage(new Position(1, 1), new Position(2, 1)).getLocationOfSum());
+    public void testPositionOfSum() {
+        assertEquals(new Position(1, 1), killerCage(new Position(1, 1), new Position(1, 2)).getPositionOfSum());
+        assertEquals(new Position(1, 1), killerCage(new Position(1, 1), new Position(2, 1)).getPositionOfSum());
         
         KillerCage cage = killerCage(            new Position(2, 4), 
                              new Position(3, 3), new Position(3, 4), new Position(3, 5), new Position(3, 6),
                                                                      new Position(4, 5), new Position(4, 6),
                                                                      new Position(5, 5));
-        assertEquals(new Position(2, 4), cage.getLocationOfSum());
+        assertEquals(new Position(2, 4), cage.getPositionOfSum());
     }
     
     @Test

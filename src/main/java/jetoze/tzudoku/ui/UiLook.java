@@ -33,7 +33,7 @@ import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.Customizable;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.KillerCage;
-import jetoze.tzudoku.model.KillerCage.CornerLocation;
+import jetoze.tzudoku.model.KillerCage.InnerCorner;
 import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
@@ -222,12 +222,9 @@ public final class UiLook {
                     int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
                     drawVerticalLine(g, r.x + r.width - margin, startY, endY - startY);
                 }
-                for (CornerLocation cornerLoc : cage.getCornerLocations(p)) {
+                for (InnerCorner cornerLoc : cage.collectInnerCorners(p)) {
                     switch (cornerLoc) {
                     case UPPER_LEFT:
-                        if (cage.hasSum() && p == cage.getLocationOfSum()) {
-                            continue;
-                        }
                         drawVerticalLine(g, r.x + margin, r.y, margin);
                         drawHorizontalLine(g, r.x, r.y + margin, margin);
                         break;
@@ -247,7 +244,7 @@ public final class UiLook {
                 }
             }
             cage.getSum().ifPresent(sum -> {
-                Position positionOfSum = cage.getLocationOfSum(); // Rename this method
+                Position positionOfSum = cage.getPositionOfSum();
                 g.setFont(boardSize.getKillerCageFont());
                 String text = Integer.toString(sum);
                 Point location = boardSize.getKillerCellSumLocation(g, positionOfSum, text);

@@ -28,7 +28,7 @@ public class KillerCage {
      * calculating the boundary when rendering the cage in the UI.
      */
     private final ImmutableTable<Integer, Integer, Position> byRowAndColumn;
-    private final ImmutableMultimap<Position, CornerLocation> cornerLocations;
+    private final ImmutableMultimap<Position, InnerCorner> innerCorners;
     
     @Nullable
     private final Integer sum;
@@ -37,14 +37,14 @@ public class KillerCage {
         checkArgument(sum >= 3 && sum <= 45);
         this.positions = validatePositions(positions);
         this.byRowAndColumn = buildRowAndColumnTable(positions);
-        this.cornerLocations = buildCornerLocationMap();
+        this.innerCorners = buildInnerCornerMap();
         this.sum = sum;
     }
     
     public KillerCage(Set<Position> positions) {
         this.positions = validatePositions(positions);
         this.byRowAndColumn = buildRowAndColumnTable(positions);
-        this.cornerLocations = buildCornerLocationMap();
+        this.innerCorners = buildInnerCornerMap();
         this.sum = null;
     }
     
@@ -73,24 +73,24 @@ public class KillerCage {
                 Position::getRow, Position::getColumn, p -> p));
     }
 
-    private ImmutableMultimap<Position, CornerLocation> buildCornerLocationMap() {
-        ImmutableMultimap.Builder<Position, CornerLocation> builder = ImmutableMultimap.builder();
+    private ImmutableMultimap<Position, InnerCorner> buildInnerCornerMap() {
+        ImmutableMultimap.Builder<Position, InnerCorner> builder = ImmutableMultimap.builder();
         for (Position p : positions) {
             if (hasCellBelow(p) && hasCellToTheLeft(p) && 
                     !byRowAndColumn.contains(p.getRow() + 1, p.getColumn() - 1)) {
-                builder.put(p, CornerLocation.LOWER_LEFT);
+                builder.put(p, InnerCorner.LOWER_LEFT);
             }
             if (hasCellBelow(p) && hasCellToTheRight(p) &&
                     !byRowAndColumn.contains(p.getRow() + 1, p.getColumn() + 1)) {
-                builder.put(p, CornerLocation.LOWER_RIGHT);
+                builder.put(p, InnerCorner.LOWER_RIGHT);
             }
             if (hasCellAbove(p) && hasCellToTheLeft(p) && 
                     !byRowAndColumn.contains(p.getRow() - 1, p.getColumn() - 1)) {
-                builder.put(p, CornerLocation.UPPER_LEFT);
+                builder.put(p, InnerCorner.UPPER_LEFT);
             }
             if (hasCellAbove(p) && hasCellToTheRight(p) && 
                     !byRowAndColumn.contains(p.getRow() - 1, p.getColumn() + 1)) {
-                builder.put(p, CornerLocation.UPPER_RIGHT);
+                builder.put(p, InnerCorner.UPPER_RIGHT);
             }
         }
         return builder.build();
@@ -116,7 +116,8 @@ public class KillerCage {
     public Optional<Integer> getSum() {
         return Optional.ofNullable(sum);
     }
-    
+
+    // TODO: Rename hasCellAbove, etc --> isUpperBound (reversing the logic)
     
     public boolean hasCellAbove(Position p) {
         return byRowAndColumn.contains(p.getRow() - 1, p.getColumn());
@@ -134,11 +135,11 @@ public class KillerCage {
         return byRowAndColumn.contains(p.getRow(), p.getColumn() + 1);
     }
 
-    public ImmutableCollection<CornerLocation> getCornerLocations(Position p) {
-        return cornerLocations.get(requireNonNull(p));
+    public ImmutableCollection<InnerCorner> collectInnerCorners(Position p) {
+        return innerCorners.get(requireNonNull(p));
     }
     
-    public Position getLocationOfSum() {
+    public Position getPositionOfSum() {
         for (int row = 1; row <= 9; ++row) {
             for (int col = 1; col <= 9; ++col) {
                 if (byRowAndColumn.contains(row, col)) {
@@ -178,7 +179,7 @@ public class KillerCage {
 
     // TODO: Implement toString().
     
-    public enum CornerLocation {
+    public enum InnerCorner {
         UPPER_LEFT, UPPER_RIGHT, LOWER_LEFT, LOWER_RIGHT
     }
 }
