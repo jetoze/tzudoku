@@ -56,7 +56,7 @@ public enum BoardSize {
                 ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 
                 8/* thin borders */ * THIN_BORDER_WIDTH;
         this.sandwichAreaWidth = cellSize;
-        this.killerCageMargin = cellSize / 8;
+        this.killerCageMargin = cellSize / 15;
         this.boardSize = gridSize + 2 * sandwichAreaWidth; // surround the board on all sides
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
