@@ -94,21 +94,20 @@ public class PuzzleBuilderController {
             return;
         }
         // TODO: Wait indication.
-        UiThread.offload(() -> createPuzzleFromTemplate(name), this::reset);
+        UiThread.offload(() -> createPuzzleFromTemplate(name), this::showPuzzleSavedMessage);
     }
     
-    private void createPuzzleFromTemplate(String name) {
+    @Nullable
+    private Puzzle createPuzzleFromTemplate(String name) {
         Grid templateGrid = model.getGridModel().getGrid();
-        // TODO: This will need to change once we have sandwiches, thermos,
-        // and other restrictions.
-        if (templateGrid.isEmpty()) {
-            UiThread.run(() -> showErrorMessage("The grid is empty."));
-            return;
+        if (model.isEmpty()) {
+            UiThread.run(() -> showErrorMessage("The puzzle is empty."));
+            return null;
         }
         ImmutableSet<Position> duplicates = templateGrid.getCellsWithDuplicateValues();
         if (!duplicates.isEmpty()) {
             UiThread.run(() -> showErrorMessage("There are duplicate values."));
-            return;
+            return null;
         }
         Map<Position, Cell> cells = new HashMap<>();
         ImmutableMap<Position, Cell> templateCells = templateGrid.getCells();
@@ -122,11 +121,12 @@ public class PuzzleBuilderController {
         Puzzle puzzle = new Puzzle(name, grid, model.getSandwiches(), model.getKillerCages());
         try {
             model.getInventory().addNewPuzzle(puzzle);
+            return puzzle;
         } catch (IOException e) {
             // TODO: Log the exception
             UiThread.run(() -> showErrorMessage("Could not save the puzzle: " + e.getMessage()));
+            return null;
         }
-        UiThread.runLater(() -> showPuzzleSavedMessage(puzzle));
     }
     
     private void showErrorMessage(String message) {
@@ -146,6 +146,8 @@ public class PuzzleBuilderController {
                 JOptionPane.INFORMATION_MESSAGE);
         if (option == JOptionPane.YES_OPTION) {
             UiThread.runLater(() -> launchTzudokuApp(puzzle));
+        } else {
+            reset();
         }
     }
     

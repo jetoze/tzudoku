@@ -60,6 +60,10 @@ public class PuzzleBuilderModel {
         gridModel.setKillerCages(cages);
     }
     
+    public boolean isEmpty() {
+        return gridModel.getGrid().isEmpty() && getSandwiches().isEmpty() && getKillerCages().isEmpty();
+    }
+    
     public void reset() {
         String name = inventory.getAvailablePuzzleName("New Puzzle");
         setPuzzleName(name);
