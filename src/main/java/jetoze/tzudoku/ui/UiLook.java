@@ -185,6 +185,7 @@ public final class UiLook {
             return;
         }
         Color originalColor = g.getColor();
+        Font originalFont = g.getFont();
         Stroke originalStroke = g.getStroke();
         
         g.setColor(BORDER_COLOR);
@@ -194,7 +195,6 @@ public final class UiLook {
         int margin = boardSize.getKillerCageMargin();
 
         for (KillerCage cage : cages.getCages()) {
-            // TODO: Draw the sum. Also leave a small gap in the cage border where the sum goes.
             ImmutableSet<Position> positions = cage.getPositions();
             for (Position p : positions) {
                 Rectangle r = boardSize.getCellBounds(p);
@@ -225,6 +225,9 @@ public final class UiLook {
                 for (CornerLocation cornerLoc : cage.getCornerLocations(p)) {
                     switch (cornerLoc) {
                     case UPPER_LEFT:
+                        if (cage.hasSum() && p == cage.getLocationOfSum()) {
+                            continue;
+                        }
                         drawVerticalLine(g, r.x + margin, r.y, margin);
                         drawHorizontalLine(g, r.x, r.y + margin, margin);
                         break;
@@ -243,9 +246,17 @@ public final class UiLook {
                     }
                 }
             }
+            cage.getSum().ifPresent(sum -> {
+                Position positionOfSum = cage.getLocationOfSum(); // Rename this method
+                g.setFont(boardSize.getKillerCageFont());
+                String text = Integer.toString(sum);
+                Point location = boardSize.getKillerCellSumLocation(g, positionOfSum, text);
+                g.drawString(text, location.x, location.y);
+            });
         }
         
         g.setStroke(originalStroke);
+        g.setFont(originalFont);
         g.setColor(originalColor);
     }
     

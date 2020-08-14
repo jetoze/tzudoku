@@ -48,6 +48,7 @@ public enum BoardSize {
     private final Font valueFont;
     private final Font pencilMarkFont;
     private final Font sandwichFont;
+    private final Font killerCageFont;
     
     private BoardSize(int cellSize) {
         this.cellSize = cellSize;        this.gridSize = 9/* cells */ * cellSize +
@@ -60,6 +61,7 @@ public enum BoardSize {
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
         this.sandwichFont = new Font("Tahoma", Font.PLAIN, cellSize / 2);
+        this.killerCageFont = new Font("Tahoma", Font.BOLD, cellSize / 4);
     }
     
     /**
@@ -109,6 +111,10 @@ public enum BoardSize {
 
     public Font getSandwichFont() {
         return sandwichFont;
+    }
+
+    public Font getKillerCageFont() {
+        return killerCageFont;
     }
 
     public Rectangle getCellBounds(Position pos) {
@@ -174,5 +180,11 @@ public enum BoardSize {
         default:
             throw new RuntimeException("Unexpected number of pencil marks: " + pencilMarkNo);
         }
+    }
+    
+    public Point getKillerCellSumLocation(Graphics2D g, Position pos, String sumAsString) {
+        Rectangle r = getCellBounds(pos);
+        FontMetrics metrics = g.getFontMetrics(g.getFont());
+        return new Point(r.x + 1, r.y + 1 + (killerCageMargin + metrics.getHeight()) / 2);
     }
 }
