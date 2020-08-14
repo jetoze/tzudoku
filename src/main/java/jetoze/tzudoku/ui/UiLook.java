@@ -27,7 +27,6 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.Customizable;
@@ -195,8 +194,8 @@ public final class UiLook {
         int margin = boardSize.getKillerCageMargin();
 
         for (KillerCage cage : cages.getCages()) {
-            ImmutableSet<Position> positions = cage.getPositions();
-            for (Position p : positions) {
+            Position positionOfSum = cage.getPositionOfSum();
+            for (Position p : cage.getPositions()) {
                 Rectangle r = boardSize.getCellBounds(p);
                 boolean upperBoundary = !cage.hasCellAbove(p);
                 boolean lowerBoundary = !cage.hasCellBelow(p);
@@ -205,11 +204,19 @@ public final class UiLook {
                 if (upperBoundary) {
                     int startX = leftboundary ? r.x + margin : r.x;
                     int endX = rightBoundary ? r.x + r.width - margin : r.x + r.width;
+                    if (p == positionOfSum && cage.hasSum()) {
+                        // The cell with the sum will always have uppBoundary == true and leftBoundary == true
+                        startX += g.getFontMetrics().stringWidth(String.valueOf(cage.getSum().orElse(35)));
+                    }
                     drawHorizontalLine(g, startX, r.y + margin, endX - startX);
                 }
                 if (leftboundary) {
                     int startY = upperBoundary ? r.y + margin : r.y;
                     int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
+                    if (p == positionOfSum && cage.hasSum()) {
+                        // The cell with the sum will always have uppBoundary == true and leftBoundary == true
+                        startY += (g.getFontMetrics().getHeight() - g.getFontMetrics().getDescent());
+                    }
                     drawVerticalLine(g, r.x + margin, startY, endY - startY);
                 }
                 if (lowerBoundary) {
@@ -244,7 +251,6 @@ public final class UiLook {
                 }
             }
             cage.getSum().ifPresent(sum -> {
-                Position positionOfSum = cage.getPositionOfSum();
                 g.setFont(boardSize.getKillerCageFont());
                 String text = Integer.toString(sum);
                 Point location = boardSize.getKillerCellSumLocation(g, positionOfSum, text);
