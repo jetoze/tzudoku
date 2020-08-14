@@ -1,9 +1,14 @@
 package jetoze.tzudoku.model;
 
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.stream.Collectors.toSet;
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.util.Set;
+import java.util.function.Predicate;
 
 import org.junit.jupiter.api.Test;
 
@@ -74,36 +79,53 @@ public class KillerCageTest {
                             new Position(3, 3), new Position(3, 4), new Position(3, 5), new Position(3, 6),
                                                                     new Position(4, 5), new Position(4, 6),
                                                                     new Position(5, 5));
+        
+        ImmutableSet<Position> leftBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellToTheLeft))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(2, 4), new Position(3, 3), new Position(4, 5), new Position(5, 5)),
-                cage.getLeftBoundary());
+                leftBoundary);
+        ImmutableSet<Position> rightBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellToTheRight))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(2, 4), new Position(3, 6), new Position(4, 6), new Position(5, 5)),
-                cage.getRightBoundary());
+                rightBoundary);
+        ImmutableSet<Position> topBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellAbove))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(2, 4), new Position(3, 3), new Position(3, 5), new Position(3, 6)),
-                cage.getUpperBoundary());
+                topBoundary);
+        ImmutableSet<Position> lowerBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellBelow))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(3, 3), new Position(3, 4), new Position(5, 5), new Position(4, 6)),
-                cage.getLowerBoundary());
-
-        cage = killerCage(new Position(2, 2),
-                          new Position(3, 2),
-                          new Position(4, 2));
-        assertEquals(cage.getPositions(), cage.getLeftBoundary());
-        assertEquals(cage.getPositions(), cage.getRightBoundary());
-        assertEquals(ImmutableSet.of(new Position(2, 2)), cage.getUpperBoundary());
-        assertEquals(ImmutableSet.of(new Position(4, 2)), cage.getLowerBoundary());
+                lowerBoundary);
         
         cage = killerCage(new Position(1, 1), new Position(1, 2),
                           new Position(2, 1),
                           new Position(3, 1), new Position(3, 2),
                           new Position(4, 1),
                           new Position(5, 1), new Position(5, 2));
+        leftBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellToTheLeft))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(1, 1), new Position(2, 1), new Position(3, 1), new Position(4, 1), new Position(5, 1)),
-                cage.getLeftBoundary());
+                leftBoundary);
+        rightBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellToTheRight))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(1, 2), new Position(2, 1), new Position(3, 2), new Position(4, 1), new Position(5, 2)),
-                cage.getRightBoundary());
+                rightBoundary);
+        topBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellAbove))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(1, 1), new Position(1, 2), new Position(3, 2), new Position(5, 2)),
-                cage.getUpperBoundary());
+                topBoundary);
+        lowerBoundary = cage.getPositions().stream()
+                .filter(Predicate.not(cage::hasCellBelow))
+                .collect(toImmutableSet());
         assertEquals(ImmutableSet.of(new Position(1, 2), new Position(3, 2), new Position(5, 1), new Position(5, 2)),
-                cage.getLowerBoundary());
+                lowerBoundary);
     }
     
     @Test

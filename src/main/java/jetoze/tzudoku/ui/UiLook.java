@@ -27,6 +27,7 @@ import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
 import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
 
 import jetoze.gunga.UiThread;
 import jetoze.gunga.widget.Customizable;
@@ -190,25 +191,36 @@ public final class UiLook {
                 new float[]{2f, 0f, 2f}, 2.0f);
         g.setStroke(dashed);
         int margin = boardSize.getKillerCageMargin();
-        int length = boardSize.getCellSize() - 2 * margin;
 
         for (KillerCage cage : cages.getCages()) {
             // TODO: Draw the sum. Also leave a small gap in the cage border where the sum goes.
-            for (Position left : cage.getLeftBoundary()) {
-                Rectangle r = boardSize.getCellBounds(left);
-                drawVerticalLine(g, r.x + margin, r.y + margin, length);
-            }
-            for (Position right : cage.getRightBoundary()) {
-                Rectangle r = boardSize.getCellBounds(right);
-                drawVerticalLine(g, r.x + r.width - margin, r.y + margin, length);
-            }
-            for (Position top : cage.getUpperBoundary()) {
-                Rectangle r = boardSize.getCellBounds(top);
-                drawHorizontalLine(g, r.x + margin, r.y + margin, length);
-            }
-            for (Position bottom : cage.getLowerBoundary()) {
-                Rectangle r = boardSize.getCellBounds(bottom);
-                drawHorizontalLine(g, r.x + margin, r.y + r.height - margin, length);
+            ImmutableSet<Position> positions = cage.getPositions();
+            for (Position p : positions) {
+                Rectangle r = boardSize.getCellBounds(p);
+                boolean upperBoundary = !cage.hasCellAbove(p);
+                boolean lowerBoundary = !cage.hasCellBelow(p);
+                boolean leftboundary = !cage.hasCellToTheLeft(p);
+                boolean rightBoundary = !cage.hasCellToTheRight(p);
+                if (upperBoundary) {
+                    int startX = leftboundary ? r.x + margin : r.x;
+                    int endX = rightBoundary ? r.x + r.width - margin : r.x + r.width;
+                    drawHorizontalLine(g, startX, r.y + margin, endX - startX);
+                }
+                if (leftboundary) {
+                    int startY = upperBoundary ? r.y + margin : r.y;
+                    int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
+                    drawVerticalLine(g, r.x + margin, startY, endY - startY);
+                }
+                if (lowerBoundary) {
+                    int startX = leftboundary ? r.x + margin : r.x;
+                    int endX = rightBoundary ? r.x + r.width - margin : r.x + r.width;
+                    drawHorizontalLine(g, startX, r.y + r.height - margin, endX - startX);
+                }
+                if (rightBoundary) {
+                    int startY = upperBoundary ? r.y + margin : r.y;
+                    int endY = lowerBoundary ? r.y + r.height - margin : r.y + r.height;
+                    drawVerticalLine(g, r.x + r.width - margin, startY, endY - startY);
+                }
             }
         }
         

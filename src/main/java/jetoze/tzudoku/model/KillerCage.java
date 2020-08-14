@@ -1,37 +1,30 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableListMultimap.toImmutableListMultimap;
-import static com.google.common.collect.ImmutableSet.toImmutableSet;
+import static com.google.common.collect.ImmutableTable.toImmutableTable;
 
-import java.util.Comparator;
 import java.util.HashSet;
+import java.util.NoSuchElementException;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
-import java.util.function.Function;
-import java.util.function.ToIntFunction;
-import java.util.stream.IntStream;
 
 import javax.annotation.Nullable;
 
-import com.google.common.collect.ImmutableList;
-import com.google.common.collect.ImmutableListMultimap;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.ImmutableTable;
 
 public class KillerCage {
 
+    // TODO: It is technically not necessary to store the positions separately
+    // like this, since we also have them in a Table. This allows us to implement
+    // getPositions() quickly and efficiently. Is that necessary?
     private final ImmutableSet<Position> positions;
     /**
-     * Maps the row number to a list of the killer cells in that row,
-     * ordered by column.
+     * Stores the positions of the cage by row and column. This is used for
+     * calculating the boundary when rendering the cage in the UI.
      */
-    private final ImmutableListMultimap<Integer, Position> byRowAndColumn;
-    /**
-     * Maps the column number to a list of the killer cells in that row,
-     * ordered by row.
-     */
-    private final ImmutableListMultimap<Integer, Position> byColumnAndRow;
+    private final ImmutableTable<Integer, Integer, Position> byRowAndColumn;
     
     @Nullable
     private final Integer sum;
@@ -39,15 +32,15 @@ public class KillerCage {
     public KillerCage(Set<Position> positions, int sum) {
         checkArgument(sum >= 3 && sum <= 45);
         this.positions = validatePositions(positions);
-        this.byRowAndColumn = toMultimap(positions, Position::getRow, Position::getColumn);
-        this.byColumnAndRow = toMultimap(positions, Position::getColumn, Position::getRow);
+        this.byRowAndColumn = positions.stream().collect(toImmutableTable(
+                Position::getRow, Position::getColumn, p -> p));
         this.sum = sum;
     }
     
     public KillerCage(Set<Position> positions) {
         this.positions = validatePositions(positions);
-        this.byRowAndColumn = toMultimap(positions, Position::getRow, Position::getColumn);
-        this.byColumnAndRow = toMultimap(positions, Position::getColumn, Position::getRow);
+        this.byRowAndColumn = positions.stream().collect(toImmutableTable(
+                Position::getRow, Position::getColumn, p -> p));
         this.sum = null;
     }
     
@@ -59,14 +52,6 @@ public class KillerCage {
         // XXX: isValidShape repeats some of the checks we've already performed here.
         checkArgument(isValidShape(positions), "The killer cage cells must be orthogonally connected");
         return ImmutableSet.copyOf(positions);
-    }
-    
-    private static ImmutableListMultimap<Integer, Position> toMultimap(Set<Position> positions,
-                                                                       Function<Position, Integer> keyFunction,
-                                                                       ToIntFunction<Position> valueOrder) {
-        return positions.stream()
-                .sorted(Comparator.comparingInt(valueOrder))
-                .collect(toImmutableListMultimap(keyFunction, p -> p));
     }
     
     public static boolean isValidShape(Set<Position> positions) {
@@ -100,45 +85,33 @@ public class KillerCage {
         return Optional.ofNullable(sum);
     }
     
-    // TODO: Replace the getXXXBoundary() methods with a single getBoundary() that returns a 
-    // suitable data structure? Something where a position is mapped to one or more of 
-    // an enum LEFT, RIGHT, UPPER, LOWER?
     
-    // FIXME: The boundary implementation is broken in a couple of ways:
-    //        1. We do not find the correct upper and lower boundary for a C-shaped cage.
-    //           Similarily for an U-shaped cage.
-    //        2. Consider the case of a left boundary consisting of three cells. The border
-    //           for the middle cell needs to run the entire height of the cell, where as the
-    //           borders for the top and bottom cells need to honor the margin.
-    
-    public ImmutableSet<Position> getLeftBoundary() {
-        // The left boundary is the first cell in each row of the cage.
-        return getBoundary(byRowAndColumn, list -> list.get(0));
+    public boolean hasCellAbove(Position p) {
+        return byRowAndColumn.contains(p.getRow() - 1, p.getColumn());
     }
     
-    public ImmutableSet<Position> getRightBoundary() {
-        // The right boundary is the last cell in each row of the cage.
-        return getBoundary(byRowAndColumn, list -> list.get(list.size() - 1));
+    public boolean hasCellBelow(Position p) {
+        return byRowAndColumn.contains(p.getRow() + 1, p.getColumn());
     }
     
-    public ImmutableSet<Position> getUpperBoundary() {
-        // The upper boundary is the first cell in each column of the cage.
-        return getBoundary(byColumnAndRow, list -> list.get(0));
+    public boolean hasCellToTheLeft(Position p) {
+        return byRowAndColumn.contains(p.getRow(), p.getColumn() - 1);
     }
     
-    public ImmutableSet<Position> getLowerBoundary() {
-        // The lower boundary is the last cell in each column of the cage.
-        return getBoundary(byColumnAndRow, list -> list.get(list.size() - 1));
+    public boolean hasCellToTheRight(Position p) {
+        return byRowAndColumn.contains(p.getRow(), p.getColumn() + 1);
     }
     
     public Position getLocationOfSum() {
-        return IntStream.rangeClosed(1, 9)
-                .mapToObj(Integer::valueOf)
-                .filter(byRowAndColumn::containsKey)
-                .map(byRowAndColumn::get)
-                .map(list -> list.get(0))
-                .findFirst()
-                .orElseThrow();
+        for (int row = 1; row <= 9; ++row) {
+            for (int col = 1; col <= 9; ++col) {
+                if (byRowAndColumn.contains(row, col)) {
+                    return byRowAndColumn.get(row, col);
+                }
+            }
+        }
+        // We will never reach here.
+        throw new NoSuchElementException();
     }
     
     boolean intersects(KillerCage cage) {
@@ -148,14 +121,6 @@ public class KillerCage {
     boolean intersects(ImmutableSet<Position> positions) {
         return positions.stream()
                 .anyMatch(this.getPositions()::contains);
-    }
-    
-    private static ImmutableSet<Position> getBoundary(ImmutableListMultimap<Integer, Position> positions,
-                                                      Function<ImmutableList<Position>, Position> extractor) {
-        return positions.keys().stream()
-                .map(positions::get)
-                .map(extractor)
-                .collect(toImmutableSet());
     }
 
     @Override
