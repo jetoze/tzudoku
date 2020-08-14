@@ -74,6 +74,7 @@ public class GridUiModel {
     public void setPuzzle(Puzzle puzzle) {
         this.grid = puzzle.getGrid();
         this.sandwiches.set(puzzle.getSandwiches());
+        this.killerCages.set(puzzle.getKillerCages());
         cellUis.keySet().forEach(p -> {
             CellUi cellUi = cellUis.get(p);
             Cell cell = grid.cellAt(p);
