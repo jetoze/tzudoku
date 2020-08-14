@@ -134,9 +134,29 @@ public class Position {
                 .flatMap(Optional::stream);
     }
 
+    /**
+     * Returns the string "r[row]c[column]", i.e. "r3c7" for the position
+     * at row 3, column 7.
+     * <p>
+     * The returned string can be parsed back into an equivalent Position by calling {@link #fromString(String)}.
+     */
     @Override
     public String toString() {
         return String.format("r%dc%d", row, column);
+    }
+    
+    /**
+     * Creates a Position instance from its {@link #toString() string representation}. 
+     */
+    public static Position fromString(String s) {
+        checkArgument(s.length() == 4, "Invalid string: %s", s);
+        checkArgument(s.charAt(0) == 'r', "Invalid string: %s", s);
+        checkArgument(s.charAt(2) == 'c', "Invalid string: %s", s);
+        int row = s.charAt(1) - 48;
+        checkArgument(row >= 1 && row <= 9, "Invalid string: %s", s);
+        int col = s.charAt(3) - 48;
+        checkArgument(col >= 1 && col <= 9, "Invalid string: %s", s);
+        return new Position(row, col);
     }
 
     @Override

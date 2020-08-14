@@ -112,6 +112,22 @@ public class KillerCages {
         }
     }
     
+    @Override
+    public int hashCode() {
+        return cages.hashCode();
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        return (obj instanceof KillerCages) && this.cages.equals(((KillerCages) obj).cages);
+    }
+    
+    // TODO: Implement toString()
+    
+
     public static Builder builder() {
         return new Builder();
     }

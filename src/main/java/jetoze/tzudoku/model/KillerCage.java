@@ -151,4 +151,22 @@ public class KillerCage {
                 .collect(toImmutableSet());
     }
 
+    @Override
+    public int hashCode() {
+        return Objects.hash(sum, positions);
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj instanceof KillerCage) {
+            KillerCage that = (KillerCage) obj;
+            return Objects.equals(this.sum, that.sum) && this.positions.equals(that.positions);
+        }
+        return false;
+    }
+
+    // TODO: Implement toString().
 }
