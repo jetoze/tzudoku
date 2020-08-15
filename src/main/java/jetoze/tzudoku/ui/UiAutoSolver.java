@@ -150,6 +150,7 @@ public class UiAutoSolver {
         
         public void updateUi(Hint hint) {
             UiThread.run(() -> {
+                model.clearSelection();
                 model.clearHighlightColors();
                 HintUi hintUi = hintUiFactory.getUi(hint);
                 HintCellDecorator cellDecorator = hintUi.getCellDecorator(model);
