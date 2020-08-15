@@ -2,8 +2,6 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.GridLayout;
-
 import javax.swing.Action;
 import javax.swing.JButton;
 import javax.swing.JComponent;
@@ -81,22 +79,27 @@ public final class PuzzleBuilderUi implements Widget {
         sandwichesPanel.setBorder(new TitledBorder("Sandwiches"));
         sandwichesPanel.add(UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction));
         
-        JPanel killerCagesPanel = new JPanel(new GridLayout(0, 1));
-        killerCagesPanel.setBorder(new TitledBorder("Killer Cages"));
-        killerCagesPanel.add(new JButton(addKillerCageAction));
-        killerCagesPanel.add(new JButton(deleteKillerCageAction));
+        JPanel killerCagesPanel = Layouts.oneColumnGrid()
+                .withVerticalGap(5)
+                .withBorder(new TitledBorder("Killer Cages"))
+                .add(addKillerCageAction)
+                .add(deleteKillerCageAction)
+                .build();
         
-        JPanel optionsPanel = new JPanel(new GridLayout(0, 1));
-        optionsPanel.add(sandwichesPanel);
-        optionsPanel.add(killerCagesPanel);
+        JPanel optionsPanel = Layouts.oneColumnGrid()
+                .add(sandwichesPanel)
+                .add(killerCagesPanel)
+                .build();
         JPanel optionsPanelWrapper = Layouts.border().north(optionsPanel).build();
-        
-        JPanel buttonPanel = new JPanel(new GridLayout(1, 0, 10, 0));
+
         JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
-        buttonPanel.add(resetButton);
         // TODO: Bind the save action to the valid state of the model?
         JButton saveButton = UiLook.makeLargeButton("Save", saveAction);
-        buttonPanel.add(saveButton);
+        JPanel buttonPanel = Layouts.oneRowGrid()
+                .withHorizontalGap(10)
+                .add(resetButton)
+                .add(saveButton)
+                .build();
         
         JPanel ui = Layouts.border()
                 .withVerticalGap(8)

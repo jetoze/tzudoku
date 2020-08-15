@@ -6,7 +6,6 @@ import static java.util.stream.Collectors.toList;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.util.ArrayList;
 import java.util.List;
@@ -128,20 +127,18 @@ public class ControlPanel {
             }
         }
 
-        JPanel bottom = new JPanel(new GridLayout(0, 2));
-        bottom.add(largeButton("Undo", model::undo));
-        bottom.add(largeButton("Redo", model::redo));
-        bottom.add(largeButton("Restart", model::reset));
-        bottom.add(largeButton("Check", puzzleController::checkSolution));        
-        
         PopupMenuButton optionsButton = createOptionsButton();
-        bottom.add(optionsButton.getUi());
-        
         PopupMenuButton hintsButton = createHintsButton();
-        bottom.add(hintsButton.getUi());
-        
-        bottom.add(largeButton("Save", puzzleController::saveProgress));
-        bottom.add(largeButton("Load", puzzleController::selectPuzzle));
+        JPanel bottom = Layouts.twoColumnGrid()
+                .add(largeButton("Undo", model::undo))
+                .add(largeButton("Redo", model::redo))
+                .add(largeButton("Restart", model::reset))
+                .add(largeButton("Check", puzzleController::checkSolution))        
+                .add(optionsButton.getUi())
+                .add(hintsButton.getUi())
+                .add(largeButton("Save", puzzleController::saveProgress))
+                .add(largeButton("Load", puzzleController::selectPuzzle))
+                .build();
         
         return Layouts.border(0, 10)
                 .north(top)

@@ -5,7 +5,6 @@ import static java.util.stream.Collectors.toList;
 
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.GridLayout;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
@@ -62,12 +61,12 @@ public class SandwichDefinitionsUi implements Widget {
     }
     
     private JComponent layoutUi() {
-        JPanel top = new JPanel(new GridLayout(0, 2, 10, 0));
-        top.add(layoutSumSelectors(House.Type.ROW, rowSandwiches));
-        top.add(layoutSumSelectors(House.Type.COLUMN, columnSandwiches));
-        
+        JPanel top = Layouts.twoColumnGrid()
+                .withHorizontalGap(10)
+                .add(layoutSumSelectors(House.Type.ROW, rowSandwiches))
+                .add(layoutSumSelectors(House.Type.COLUMN, columnSandwiches))
+                .build();
         JPanel bottom = Layouts.border().west(UiLook.makeSmallButton("Clear", this::clear)).build();
-        
         return Layouts.border(0, 4).center(top).south(bottom).build();
     }
     
