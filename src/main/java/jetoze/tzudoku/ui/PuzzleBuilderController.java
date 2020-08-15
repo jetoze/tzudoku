@@ -33,6 +33,8 @@ import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.Sandwiches;
 
 public class PuzzleBuilderController {
+    // TODO: Edit Killer Cage action. To begin with at least allow changing the cage sum.
+    //       Ultimately we obviously also want to allow changing the shape of the cell.
     private final JFrame appFrame;
     private final PuzzleBuilderModel model;
     private final AddKillerCageAction addKillerCageAction = new AddKillerCageAction();
