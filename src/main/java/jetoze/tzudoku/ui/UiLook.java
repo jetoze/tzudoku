@@ -29,8 +29,10 @@ import javax.swing.border.LineBorder;
 import com.google.common.collect.ImmutableMap;
 
 import jetoze.gunga.UiThread;
+import jetoze.gunga.icon.ColoredDiskIcon;
 import jetoze.gunga.widget.Customizable;
 import jetoze.tzudoku.model.CellColor;
+import jetoze.tzudoku.model.GridSolver.Result;
 import jetoze.tzudoku.model.KillerCage;
 import jetoze.tzudoku.model.KillerCage.InnerCorner;
 import jetoze.tzudoku.model.KillerCages;
@@ -414,19 +416,31 @@ public final class UiLook {
     }
     
     static Icon getPuzzleStateIcon(PuzzleState state) {
+        CellColor color = getPuzzleStateIconColor(state);
+        return new ColoredDiskIcon(CELL_COLOR_MAP.get(color), ICON_BORDER_COLOR, PUZZLE_STATE_ICON_SIZE);
+    }
+    
+    private static CellColor getPuzzleStateIconColor(PuzzleState state) {
         switch (state) {
         case NEW:
-            return new PuzzleStateIcon(CELL_COLOR_MAP.get(CellColor.BLUE));
+            return CellColor.BLUE;
         case PROGRESS:
-            return new PuzzleStateIcon(CELL_COLOR_MAP.get(CellColor.ORANGE));
+            return CellColor.ORANGE;
         case SOLVED:
-            return new PuzzleStateIcon(CELL_COLOR_MAP.get(CellColor.GREEN));
+            return CellColor.GREEN;
         default:
             throw new RuntimeException("Unknown state: " + state);
         }
     }
     
+    static Icon getAnalyzerResultIcon(Result result) {
+        CellColor color = result.isSolved()
+                ? CellColor.GREEN
+                : CellColor.RED;
+        return new ColoredDiskIcon(CELL_COLOR_MAP.get(color), ICON_BORDER_COLOR, 12);
+    }
     
+    // TODO: Move this to gunga.
     private static class CellColorIcon implements Icon {
         private final Color color;
 
@@ -454,37 +468,6 @@ public final class UiLook {
             return COLOR_SELECTION_ICON_SIZE;
         }
     }
-    
-    
-    private static class PuzzleStateIcon implements Icon {
-        private final Color color;
-
-        public PuzzleStateIcon(Color color) {
-            this.color = requireNonNull(color);
-        }
-
-        @Override
-        public void paintIcon(Component c, Graphics g, int x, int y) {
-            Color originalColor = g.getColor();
-            g.setColor(color);
-            g.fillOval(x, y, getIconWidth(), getIconHeight());
-            g.setColor(ICON_BORDER_COLOR);
-            g.drawOval(x, y, getIconWidth(), getIconHeight());
-            g.setColor(originalColor);
-        }
-
-        @Override
-        public int getIconWidth() {
-            return PUZZLE_STATE_ICON_SIZE;
-        }
-
-        @Override
-        public int getIconHeight() {
-            return PUZZLE_STATE_ICON_SIZE;
-        }
-    }
-    
-    
 
     private UiLook() {/**/}
 
