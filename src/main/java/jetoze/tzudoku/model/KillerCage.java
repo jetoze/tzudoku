@@ -76,19 +76,19 @@ public class KillerCage {
     private ImmutableMultimap<Position, InnerCorner> buildInnerCornerMap() {
         ImmutableMultimap.Builder<Position, InnerCorner> builder = ImmutableMultimap.builder();
         for (Position p : positions) {
-            if (hasCellBelow(p) && hasCellToTheLeft(p) && 
+            if (!isLowerBoundary(p) && !isLeftBoundary(p) && 
                     !byRowAndColumn.contains(p.getRow() + 1, p.getColumn() - 1)) {
                 builder.put(p, InnerCorner.LOWER_LEFT);
             }
-            if (hasCellBelow(p) && hasCellToTheRight(p) &&
+            if (!isLowerBoundary(p) && !isRightBoundary(p) &&
                     !byRowAndColumn.contains(p.getRow() + 1, p.getColumn() + 1)) {
                 builder.put(p, InnerCorner.LOWER_RIGHT);
             }
-            if (hasCellAbove(p) && hasCellToTheLeft(p) && 
+            if (!isUpperBoundary(p) && !isLeftBoundary(p) && 
                     !byRowAndColumn.contains(p.getRow() - 1, p.getColumn() - 1)) {
                 builder.put(p, InnerCorner.UPPER_LEFT);
             }
-            if (hasCellAbove(p) && hasCellToTheRight(p) && 
+            if (!isUpperBoundary(p) && !isRightBoundary(p) && 
                     !byRowAndColumn.contains(p.getRow() - 1, p.getColumn() + 1)) {
                 builder.put(p, InnerCorner.UPPER_RIGHT);
             }
@@ -116,23 +116,21 @@ public class KillerCage {
     public Optional<Integer> getSum() {
         return Optional.ofNullable(sum);
     }
-
-    // TODO: Rename hasCellAbove, etc --> isUpperBound (reversing the logic)
     
-    public boolean hasCellAbove(Position p) {
-        return byRowAndColumn.contains(p.getRow() - 1, p.getColumn());
+    public boolean isUpperBoundary(Position p) {
+        return !byRowAndColumn.contains(p.getRow() - 1, p.getColumn());
     }
     
-    public boolean hasCellBelow(Position p) {
-        return byRowAndColumn.contains(p.getRow() + 1, p.getColumn());
+    public boolean isLowerBoundary(Position p) {
+        return !byRowAndColumn.contains(p.getRow() + 1, p.getColumn());
     }
     
-    public boolean hasCellToTheLeft(Position p) {
-        return byRowAndColumn.contains(p.getRow(), p.getColumn() - 1);
+    public boolean isLeftBoundary(Position p) {
+        return !byRowAndColumn.contains(p.getRow(), p.getColumn() - 1);
     }
     
-    public boolean hasCellToTheRight(Position p) {
-        return byRowAndColumn.contains(p.getRow(), p.getColumn() + 1);
+    public boolean isRightBoundary(Position p) {
+        return !byRowAndColumn.contains(p.getRow(), p.getColumn() + 1);
     }
 
     public ImmutableCollection<InnerCorner> collectInnerCorners(Position p) {

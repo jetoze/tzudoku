@@ -197,10 +197,10 @@ public final class UiLook {
             Position positionOfSum = cage.getPositionOfSum();
             for (Position p : cage.getPositions()) {
                 Rectangle r = boardSize.getCellBounds(p);
-                boolean upperBoundary = !cage.hasCellAbove(p);
-                boolean lowerBoundary = !cage.hasCellBelow(p);
-                boolean leftboundary = !cage.hasCellToTheLeft(p);
-                boolean rightBoundary = !cage.hasCellToTheRight(p);
+                boolean upperBoundary = cage.isUpperBoundary(p);
+                boolean lowerBoundary = cage.isLowerBoundary(p);
+                boolean leftboundary = cage.isLeftBoundary(p);
+                boolean rightBoundary = cage.isRightBoundary(p);
                 if (upperBoundary) {
                     int startX = leftboundary ? r.x + margin : r.x;
                     int endX = rightBoundary ? r.x + r.width - margin : r.x + r.width;
