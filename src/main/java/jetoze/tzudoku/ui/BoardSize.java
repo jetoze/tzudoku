@@ -15,8 +15,8 @@ import jetoze.tzudoku.model.Position;
  * Defines the size of various elements of the playing board.
  */
 public enum BoardSize {
-    SMALL(30),
-    REGULAR(50);
+    SMALL(35, 10),
+    REGULAR(50, 12);
     
     /**
      * The size in pixels of a single cell.
@@ -50,7 +50,7 @@ public enum BoardSize {
     private final Font sandwichFont;
     private final Font killerCageFont;
     
-    private BoardSize(int cellSize) {
+    private BoardSize(int cellSize, int killerCageSize) {
         this.cellSize = cellSize;        this.gridSize = 9/* cells */ * cellSize +
                 // TODO: No idea why this is necessary
                 ((int) (3.5/* thick borders */ * THICK_BORDER_WIDTH)) + 
@@ -61,7 +61,7 @@ public enum BoardSize {
         this.valueFont = new Font("Tahoma", Font.PLAIN, (2 * cellSize) / 3);
         this.pencilMarkFont = new Font("Tahoma", Font.PLAIN, cellSize / 4);
         this.sandwichFont = new Font("Tahoma", Font.PLAIN, cellSize / 2);
-        this.killerCageFont = new Font("Tahoma", Font.BOLD, cellSize / 4);
+        this.killerCageFont = new Font("Tahoma", Font.BOLD, killerCageSize);
     }
     
     /**
