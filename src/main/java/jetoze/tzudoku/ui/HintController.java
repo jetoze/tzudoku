@@ -160,6 +160,7 @@ public class HintController { // TODO: Or "HintEngine"?
     
     private void display(Hint hint) {
         requireNonNull(hint);
+        model.clearSelection();
         HintUi hintUi = hintUiFactory.getUi(hint);
         HintCellDecorator decorator = hintUi.getCellDecorator(model);
         decorator.decorate();
