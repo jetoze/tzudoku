@@ -77,25 +77,8 @@ public class TzudokuApp {
             .south(statusPanel)
             .buildAsContent(appFrame);
         
-        // TODO: Mnemonics. Create MenuWidget and MenuItemWidget that understands things like "&Puzzle".
-        //       Use the same strategy for buttons.
-        // TODO: Add a "menu builder"?
-        JMenuBar menuBar = new JMenuBar();
-        JMenu puzzleMenu = new JMenu("Puzzle");
-        // TODO: Use an "action builder" for this?
-        Action openAction = Actions.toAction("Open...", controller::selectPuzzle);
-        openAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_O));
-        Action newAction = Actions.toAction("New...", () -> System.out.println("TODO: Open the Puzzle Builder"));
-        newAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_N));
-        Action saveAction = Actions.toAction("Save", controller::saveProgress);
-        saveAction.putValue(Action.ACCELERATOR_KEY,  KeyStrokes.commandDown(KeyEvent.VK_S));
-        puzzleMenu.add(new JMenuItem(openAction));
-        puzzleMenu.add(new JMenuItem(newAction));
-        puzzleMenu.add(new JSeparator());
-        puzzleMenu.add(new JMenuItem(saveAction));
-        menuBar.add(puzzleMenu);
+        JMenuBar menuBar = buildMenuBar(controller);
         appFrame.setJMenuBar(menuBar);
-        
         
         KeyBindings keyBindings = KeyBindings.whenInFocusedWindow(appFrame.getRootPane());
         gridUi.registerDefaultActions(keyBindings);
@@ -114,4 +97,28 @@ public class TzudokuApp {
         }
     }
 
+    private JMenuBar buildMenuBar(PuzzleUiController controller) {
+        // TODO: Mnemonics. Create MenuWidget and MenuItemWidget that understands things like "&Puzzle".
+        //       Use the same strategy for buttons.
+        // TODO: Add a "menu builder"?
+        JMenuBar menuBar = new JMenuBar();
+        JMenu puzzleMenu = new JMenu("Puzzle");
+        // TODO: Use an "action builder" for this?
+        Action openAction = Actions.toAction("Open...", controller::selectPuzzle);
+        openAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_O));
+        Action newAction = Actions.toAction("New...", () -> System.out.println("TODO: Open the Puzzle Builder"));
+        Action restartAction = Actions.toAction("Restart", controller::restart);
+        restartAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_R));
+        newAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_N));
+        Action saveAction = Actions.toAction("Save", controller::saveProgress);
+        saveAction.putValue(Action.ACCELERATOR_KEY,  KeyStrokes.commandDown(KeyEvent.VK_S));
+        puzzleMenu.add(new JMenuItem(openAction));
+        puzzleMenu.add(new JMenuItem(newAction));
+        puzzleMenu.add(new JSeparator());
+        puzzleMenu.add(new JMenuItem(saveAction));
+        puzzleMenu.add(new JSeparator());
+        puzzleMenu.add(new JMenuItem(restartAction));
+        menuBar.add(puzzleMenu);
+        return menuBar;
+    }
 }

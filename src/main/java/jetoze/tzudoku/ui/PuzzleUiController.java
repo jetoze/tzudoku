@@ -150,4 +150,15 @@ public class PuzzleUiController {
             puzzleModel.getGridModel().removeInvalidCellsDecoration();
         }
     }
+    
+    public void restart() {
+        int option = JOptionPane.showConfirmDialog(
+                appFrame, "Are you sure?", "Restart the puzzle", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+        if (option == JOptionPane.OK_OPTION) {
+            // TODO: This should really reload the existing puzzle, to guarantee correct behavior
+            // e.g. around cells that are colored by the puzzle itself. When we do that we must also
+            // truncate the current undo-redo history.
+            puzzleModel.getGridModel().reset();
+        }
+    }
 }
