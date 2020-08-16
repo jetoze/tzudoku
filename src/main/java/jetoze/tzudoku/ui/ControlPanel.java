@@ -136,8 +136,6 @@ public class ControlPanel {
                 .add(largeButton("Check", puzzleController::checkSolution))        
                 .add(optionsButton.getUi())
                 .add(hintsButton.getUi())
-                .add(largeButton("Save", puzzleController::saveProgress))
-                .add(largeButton("Load", puzzleController::selectPuzzle))
                 .build();
         
         return Layouts.border(0, 10)
