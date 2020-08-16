@@ -2,6 +2,9 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
 import javax.swing.Action;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
@@ -86,12 +89,25 @@ public final class PuzzleBuilderUi implements Widget {
                 .build();
         JPanel optionsPanelWrapper = Layouts.border().north(optionsPanel).build();
         
-        JPanel ui = Layouts.border()
-                .withVerticalGap(8)
-                .north(nameFieldPanel)
-                .center(gridWrapper)
-                .east(optionsPanelWrapper)
-                .build();
+        
+        JPanel ui = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        ui.add(nameFieldPanel, c);
+        
+        c.gridx = 0;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.BOTH;
+        ui.add(gridWrapper, c);
+        
+        c.gridx = 1;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        ui.add(optionsPanelWrapper, c);
+
         ui.setBorder(new EmptyBorder(5, 5, 5, 5));
         KeyBindings keyBindings = KeyBindings.whenAncestorOfFocusedComponent(gridWrapper);
         gridUi.registerDefaultActions(keyBindings);
