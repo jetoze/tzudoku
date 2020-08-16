@@ -36,6 +36,7 @@ public class TzudokuApp {
     public static void main(String[] args) throws IOException {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
+        System.setProperty("apple.laf.useScreenMenuBar", "true");
         PuzzleInventory inventory = new PuzzleInventory(new File("/Users/torgil/coding/data/tzudoku"));
         TzudokuApp app = new TzudokuApp(inventory);
         UiThread.run(app::start);
