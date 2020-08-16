@@ -25,9 +25,10 @@ class SimpleColoringUi implements HintUi {
 
     @Override
     public void apply(GridUiModel model) {
-        // TODO: This messes up undo/redo since we are not applying these changes as an atomic operation.
-        hint.getCellsThatCanBePenciledIn().forEach(p -> model.enterValue(p, hint.getValue()));
-        model.removeCandidatesFromCells(hint.getCellsToEliminate(), ImmutableSet.of(hint.getValue()));
+        model.performCompoundUndoableAction(() -> {
+            hint.getCellsThatCanBePenciledIn().forEach(p -> model.enterValue(p, hint.getValue()));
+            model.removeCandidatesFromCells(hint.getCellsToEliminate(), ImmutableSet.of(hint.getValue()));
+        });
     }
 
     @Override

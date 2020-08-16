@@ -187,11 +187,6 @@ public class GridUiModel {
         ImmutableSet<Position> duplicates = grid.getCellsWithDuplicateValues();
         cellUis.forEach((p, c) -> c.setInvalid(duplicates.contains(p)));
     }
-    
-    @Deprecated
-    public void setEnterValueMode(EnterValueMode mode) {
-        throw new UnsupportedOperationException();
-    }
 
     /**
      * Enters the given value into the currently selected cells. Any {@link Cell#isGiven() given} 
@@ -400,6 +395,12 @@ public class GridUiModel {
 
     public void redo() {
         undoRedoState.redo();
+    }
+
+    public void performCompoundUndoableAction(Runnable action) {
+        undoRedoState.startCompoundChange();
+        action.run();
+        undoRedoState.stopCompoundChange();
     }
 
     public void addListener(GridUiModelListener listener) {
