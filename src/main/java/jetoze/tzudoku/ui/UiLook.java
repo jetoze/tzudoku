@@ -23,6 +23,7 @@ import javax.swing.JButton;
 import javax.swing.SwingUtilities;
 import javax.swing.UIManager;
 import javax.swing.UIManager.LookAndFeelInfo;
+import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.border.Border;
 import javax.swing.border.LineBorder;
 
@@ -101,7 +102,16 @@ public final class UiLook {
                 }
             }
         } catch (Exception e) {
-            // If Nimbus is not available, you can set the GUI to another look and feel.
+            e.printStackTrace();
+        }
+    }
+    
+    public static void installSystemLookAndFeel() {
+        UiThread.throwIfNotUiThread();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 

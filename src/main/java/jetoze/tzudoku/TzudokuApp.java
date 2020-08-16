@@ -37,6 +37,7 @@ public class TzudokuApp {
         System.setProperty("awt.useSystemAAFontSettings", "on");
         System.setProperty("swing.aatext", "true");
         System.setProperty("apple.laf.useScreenMenuBar", "true");
+        System.setProperty("com.apple.mrj.application.apple.menu.about.name", "WikiTeX");
         PuzzleInventory inventory = new PuzzleInventory(new File("/Users/torgil/coding/data/tzudoku"));
         TzudokuApp app = new TzudokuApp(inventory);
         UiThread.run(app::start);
@@ -57,7 +58,7 @@ public class TzudokuApp {
     
     public void start() {
         UiThread.throwIfNotUiThread();
-        UiLook.installNimbus();
+        UiLook.installSystemLookAndFeel();
         
         PuzzleUiModel model = new PuzzleUiModel(inventory);
         JFrame appFrame = new JFrame("tzudoku");
