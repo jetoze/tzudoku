@@ -161,4 +161,18 @@ public class PuzzleUiController {
             puzzleModel.getGridModel().reset();
         }
     }
+    
+    public void buildNewPuzzle() {
+        PuzzleBuilderModel model = new PuzzleBuilderModel(puzzleModel.getInventory());
+        PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model);
+        PuzzleBuilderUi ui = new PuzzleBuilderUi(model,
+                controller::createPuzzle,
+                controller::reset,
+                controller::defineSandwiches,
+                controller.getAddKillerCageAction(),
+                controller.getDeleteKillerCageAction());
+        // TODO: I will likely need a more advanced dialog than this -- this is just to
+        // get the code up and running and get a sense of user experience.
+        JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", JOptionPane.OK_CANCEL_OPTION);
+    }
 }
