@@ -132,12 +132,10 @@ public class ControlPanel {
         JPanel bottom = Layouts.twoColumnGrid()
                 .add(largeButton("Undo", model::undo))
                 .add(largeButton("Redo", model::redo))
-                .add(largeButton("Restart", model::reset))
+                .add(largeButton("Restart", puzzleController::restart))
                 .add(largeButton("Check", puzzleController::checkSolution))        
                 .add(optionsButton.getUi())
                 .add(hintsButton.getUi())
-                .add(largeButton("Save", puzzleController::saveProgress))
-                .add(largeButton("Load", puzzleController::selectPuzzle))
                 .build();
         
         return Layouts.border(0, 10)

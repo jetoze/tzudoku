@@ -101,7 +101,16 @@ public final class UiLook {
                 }
             }
         } catch (Exception e) {
-            // If Nimbus is not available, you can set the GUI to another look and feel.
+            e.printStackTrace();
+        }
+    }
+    
+    public static void installSystemLookAndFeel() {
+        UiThread.throwIfNotUiThread();
+        try {
+            UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
