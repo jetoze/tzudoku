@@ -12,6 +12,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import jetoze.gunga.KeyBindings;
+import jetoze.gunga.KeyStrokes;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
@@ -42,7 +44,6 @@ public class PuzzleUiController {
         InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
         InventoryUi inventoryUi = new InventoryUi(model);
         // TODO: Use a utility for this.
-        // TODO: ESC should cancel the dialog.
         JButton ok = UiLook.createOptionDialogButton("Select", () -> {
             inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
         });
@@ -65,6 +66,8 @@ public class PuzzleUiController {
                 inventoryUi.requestFocus();
             }
         });
+        KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
+            .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
         inventoryUi.setPuzzleLoader(pi -> {
             dialog.dispose();
             loadPuzzle(pi);
