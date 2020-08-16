@@ -40,8 +40,6 @@ public class PuzzleBuilderApp {
         PuzzleBuilderModel model = new PuzzleBuilderModel(inventory);
         PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model);
         PuzzleBuilderUi ui = new PuzzleBuilderUi(model,
-                controller::createPuzzle,
-                controller::reset,
                 controller::defineSandwiches,
                 controller.getAddKillerCageAction(),
                 controller.getDeleteKillerCageAction());

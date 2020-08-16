@@ -42,6 +42,7 @@ public class PuzzleUiController {
         InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
         InventoryUi inventoryUi = new InventoryUi(model);
         // TODO: Use a utility for this.
+        // TODO: ESC should cancel the dialog.
         JButton ok = UiLook.createOptionDialogButton("Select", () -> {
             inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
         });
@@ -166,13 +167,12 @@ public class PuzzleUiController {
         PuzzleBuilderModel model = new PuzzleBuilderModel(puzzleModel.getInventory());
         PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model);
         PuzzleBuilderUi ui = new PuzzleBuilderUi(model,
-                controller::createPuzzle,
-                controller::reset,
                 controller::defineSandwiches,
                 controller.getAddKillerCageAction(),
                 controller.getDeleteKillerCageAction());
         // TODO: I will likely need a more advanced dialog than this -- this is just to
         // get the code up and running and get a sense of user experience.
-        JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", JOptionPane.OK_CANCEL_OPTION);
+        JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", JOptionPane.OK_CANCEL_OPTION,
+                JOptionPane.PLAIN_MESSAGE, null);
     }
 }
