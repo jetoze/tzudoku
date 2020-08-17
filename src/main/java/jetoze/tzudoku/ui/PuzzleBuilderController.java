@@ -89,27 +89,25 @@ public class PuzzleBuilderController {
         model.reset();
     }
     
-    public void createPuzzle(Consumer<? super Puzzle> consumer) {
+    public void createPuzzle(Consumer<? super Puzzle> consumer, Consumer<? super Throwable> invalidPuzzleHandler) {
         String name = model.getPuzzleName();
         if (name.isBlank()) {
             showErrorMessage("Please enter a puzzle name.");
             return;
         }
         // TODO: Wait indication.
-        UiThread.offload(() -> createPuzzleFromTemplate(name), consumer);
+        UiThread.offload(() -> createPuzzleFromTemplate(name), consumer, invalidPuzzleHandler);
     }
     
     @Nullable
-    private Puzzle createPuzzleFromTemplate(String name) {
+    private Puzzle createPuzzleFromTemplate(String name) throws PuzzleBuilderException {
         Grid templateGrid = model.getGridModel().getGrid();
         if (model.isEmpty()) {
-            UiThread.run(() -> showErrorMessage("The puzzle is empty."));
-            return null;
+            throw new PuzzleBuilderException("The puzzle is empty.");
         }
         ImmutableSet<Position> duplicates = templateGrid.getCellsWithDuplicateValues();
         if (!duplicates.isEmpty()) {
-            UiThread.run(() -> showErrorMessage("There are duplicate values."));
-            return null;
+            throw new PuzzleBuilderException("There are duplicate values.");
         }
         Map<Position, Cell> cells = new HashMap<>();
         ImmutableMap<Position, Cell> templateCells = templateGrid.getCells();
@@ -126,8 +124,7 @@ public class PuzzleBuilderController {
             return puzzle;
         } catch (IOException e) {
             // TODO: Log the exception
-            UiThread.run(() -> showErrorMessage("Could not save the puzzle: " + e.getMessage()));
-            return null;
+            throw new PuzzleBuilderException("Could not save the puzzle: " + e.getMessage(), e);
         }
     }
     

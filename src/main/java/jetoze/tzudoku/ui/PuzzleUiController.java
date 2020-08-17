@@ -167,18 +167,51 @@ public class PuzzleUiController {
     }
     
     public void buildNewPuzzle() {
-        PuzzleBuilderModel model = new PuzzleBuilderModel(puzzleModel.getInventory());
-        PuzzleBuilderController controller = new PuzzleBuilderController(appFrame, model);
-        PuzzleBuilderUi ui = new PuzzleBuilderUi(model,
-                controller::defineSandwiches,
-                controller.getAddKillerCageAction(),
-                controller.getDeleteKillerCageAction());
-        int input = JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", 
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
-        if (input == JOptionPane.OK_OPTION) {
-            // TODO: Wait indication.
-            // TODO: Prompt to save changes made to existing puzzle before overwriting it.
-            controller.createPuzzle(this::loadPuzzle);
+        PuzzleBuilder puzzleBuilder = new PuzzleBuilder();
+        puzzleBuilder.launch();
+    }
+    
+    
+    private class PuzzleBuilder {
+        private final PuzzleBuilderModel model;
+        private final PuzzleBuilderController controller;
+        private final PuzzleBuilderUi ui;
+        
+        public PuzzleBuilder() {
+            model = new PuzzleBuilderModel(puzzleModel.getInventory());
+            controller = new PuzzleBuilderController(appFrame, model);
+            ui = new PuzzleBuilderUi(model,
+                    controller::defineSandwiches,
+                    controller.getAddKillerCageAction(),
+                    controller.getDeleteKillerCageAction());
+        }
+        
+        public void launch() {
+            int input = JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", 
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+            if (input == JOptionPane.OK_OPTION) {
+                // TODO: Wait indication.
+                // TODO: If the puzzle is invalid, the current behavior is to dismiss the dialog, 
+                //       show an error dialog explaining what's wrong, and then reopen the 
+                //       puzzle builder dialog again, with the same model and UI meaning the user 
+                //       input is retained. It would be better to show the error dialog while the
+                //       puzzle builder dialog is still open.
+                // TODO: Prompt to save changes made to existing puzzle before overwriting it.
+                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
+            }
+        }
+        
+        private void showInvalidPuzzleMessage(Throwable e) {
+            String title = (e instanceof PuzzleBuilderException)
+                    ? "Invalid or Incomplete Puzzle"
+                    : "Unexpected Error";
+            JOptionPane.showMessageDialog(
+                    appFrame, 
+                    e.getMessage(), 
+                    title, 
+                    JOptionPane.ERROR_MESSAGE);
+            launch();
         }
     }
+
 }
