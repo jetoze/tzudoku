@@ -173,9 +173,12 @@ public class PuzzleUiController {
                 controller::defineSandwiches,
                 controller.getAddKillerCageAction(),
                 controller.getDeleteKillerCageAction());
-        // TODO: I will likely need a more advanced dialog than this -- this is just to
-        // get the code up and running and get a sense of user experience.
-        JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", JOptionPane.OK_CANCEL_OPTION,
-                JOptionPane.PLAIN_MESSAGE, null);
+        int input = JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", 
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+        if (input == JOptionPane.OK_OPTION) {
+            // TODO: Wait indication.
+            // TODO: Prompt to save changes made to existing puzzle before overwriting it.
+            controller.createPuzzle(this::loadPuzzle);
+        }
     }
 }
