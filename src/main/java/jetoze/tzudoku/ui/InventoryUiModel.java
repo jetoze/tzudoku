@@ -4,7 +4,11 @@ import java.beans.PropertyChangeSupport;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
+import java.util.function.Consumer;
 import java.util.function.Predicate;
+
+import javax.annotation.Nullable;
 
 import com.google.common.collect.Comparators;
 
@@ -42,6 +46,7 @@ public class InventoryUiModel {
     private final PropertyChangeSupport changeSupport = new PropertyChangeSupport(this);
     
     private final ListProperty<PuzzleInfo> puzzleInfos;
+    private final Property<PuzzleInfo> selectedPuzzle = Properties.newNullableProperty("selectedPuzzleInfo");
     
     private final Property<Boolean> showCompletedPuzzles = Properties.newProperty(
             "showCompletedPuzzles", Boolean.FALSE, changeSupport);
@@ -73,6 +78,10 @@ public class InventoryUiModel {
         });
     }
     
+    public boolean isEmpty() {
+        return puzzleInfos.isEmpty();
+    }
+    
     public ListProperty<PuzzleInfo> getListItems() {
         return puzzleInfos;
     }
@@ -88,5 +97,25 @@ public class InventoryUiModel {
     public Property<SortOrder> getSortOrder() {
         return sortOrder;
     }
+
+    public Optional<PuzzleInfo> getSelectedPuzzle() {
+        return Optional.ofNullable(selectedPuzzle.get());
+    }
     
+    public void setSelectedPuzzle(@Nullable PuzzleInfo puzzleInfo) {
+        this.selectedPuzzle.set(puzzleInfo);
+    }
+    
+    public Property<PuzzleInfo> getSelectedPuzzleProperty() {
+        return selectedPuzzle;
+    }
+    
+    public void addValidationListener(Consumer<Boolean> listener) {
+        // TODO: Add a corresponding removeListener method
+        listener.accept(selectedPuzzle.get() != null);
+        selectedPuzzle.addListener(e -> {
+            Object newValue = e.getNewValue();
+            listener.accept(newValue != null);
+        });
+    }
 }

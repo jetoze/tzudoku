@@ -40,25 +40,34 @@ public class PuzzleUiController {
         this.statusPanel = requireNonNull(statusPanel);
     }
     
+    public void launchOpeningScreen() { // TODO: I need a better name.
+        SelectPuzzleModel selectPuzzleModel = new SelectPuzzleModel(puzzleModel);
+        InventoryUi inventoryUi = new InventoryUi(selectPuzzleModel.getInventoryUiModel());
+        PuzzleBuilderModel puzzleBuilderModel = selectPuzzleModel.getPuzzleBuilderModel();
+        PuzzleBuilderController puzzleBuilderController = new PuzzleBuilderController(appFrame, puzzleBuilderModel);
+        PuzzleBuilderUi puzzleBuilderUi = new PuzzleBuilderUi(puzzleBuilderModel,
+                puzzleBuilderController::defineSandwiches,
+                puzzleBuilderController.getAddKillerCageAction(),
+                puzzleBuilderController.getDeleteKillerCageAction());
+        SelectPuzzleUi2 os = new SelectPuzzleUi2(selectPuzzleModel, inventoryUi, puzzleBuilderUi);
+        selectPuzzleModel.addValidationListener(System.out::println);
+        int input = JOptionPane.showConfirmDialog(appFrame, os.getUi(), "Pick a Puzzle", 
+                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+        if (input == JOptionPane.OK_OPTION) {
+            
+        }
+    }
+    
     public void selectPuzzle() {
         // TODO: Use a utility for this type of dialog use.
-        // TODO: The user experience is clunky. We show this dialog on app startup.
-        //       In order to build a new puzzle, the user must select the Build New Puzzle
-        //       radio button in the dialog, and then click the Select button. We should be
-        //       able to go to the puzzle builder with a single click.
         InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
         InventoryUi inventoryUi = new InventoryUi(model);
-        SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi);
         JButton ok = UiLook.createOptionDialogButton("Select", () -> {
-            if (selectPuzzleUi.isSelectExistingPuzzleSelected()) {
-                inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
-            } else {
-                buildNewPuzzle();
-            }
+            inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
         });
         JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
         JOptionPane optionPane = new JOptionPane(
-                selectPuzzleUi.getUi(), 
+                inventoryUi.getUi(), 
                 JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.YES_NO_OPTION,
                 null, 
@@ -81,7 +90,7 @@ public class PuzzleUiController {
             dialog.dispose();
             loadPuzzle(pi);
         });
-        inventoryUi.addValidationListener(ok::setEnabled);
+        model.addValidationListener(ok::setEnabled);
         dialog.setVisible(true);
     }
     

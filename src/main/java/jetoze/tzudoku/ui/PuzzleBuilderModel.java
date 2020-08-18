@@ -64,6 +64,12 @@ public class PuzzleBuilderModel {
         return gridModel.getGrid().isEmpty() && getSandwiches().isEmpty() && getKillerCages().isEmpty();
     }
     
+    public boolean isValid() {
+        return !isEmpty() &&
+                (!puzzleNameProperty.get().isBlank() && !inventory.containsPuzzle(puzzleNameProperty.get())) &&
+                gridModel.getGrid().getCellsWithDuplicateValues().isEmpty();
+    }
+    
     public void reset() {
         String name = inventory.getAvailablePuzzleName("New Puzzle");
         setPuzzleName(name);
