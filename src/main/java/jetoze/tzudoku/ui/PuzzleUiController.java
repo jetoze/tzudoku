@@ -141,11 +141,12 @@ public class PuzzleUiController {
     private class PuzzleSelector {
         private final SelectPuzzleModel selectPuzzleModel;
         private final PuzzleBuilderController puzzleBuilderController;
+        private final InventoryUi inventoryUi;
         private final SelectPuzzleUi selectPuzzleUi;
         
         public PuzzleSelector(PuzzleUiModel masterModel) {
             selectPuzzleModel = new SelectPuzzleModel(masterModel);
-            InventoryUi inventoryUi = new InventoryUi(selectPuzzleModel.getInventoryUiModel());
+            inventoryUi = new InventoryUi(selectPuzzleModel.getInventoryUiModel());
             PuzzleBuilderModel puzzleBuilderModel = selectPuzzleModel.getPuzzleBuilderModel();
             puzzleBuilderController = new PuzzleBuilderController(appFrame, puzzleBuilderModel);
             PuzzleBuilderUi puzzleBuilderUi = new PuzzleBuilderUi(puzzleBuilderModel,
@@ -159,6 +160,9 @@ public class PuzzleUiController {
             JButton ok = UiLook.createOptionDialogButton("Ok", this::loadPuzzle);
             JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
 
+            
+            inventoryUi.setPuzzleLoader(pi -> ok.doClick());
+            
             selectPuzzleModel.addValidationListener(ok::setEnabled);
             JOptionPane optionPane = new JOptionPane(
                     selectPuzzleUi.getUi(),
