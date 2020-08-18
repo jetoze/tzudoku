@@ -40,49 +40,9 @@ public class PuzzleUiController {
         this.statusPanel = requireNonNull(statusPanel);
     }
     
-    public void launchOpeningScreen() { // TODO: I need a better name.
+    public void selectPuzzle() {
         PuzzleSelector puzzleSelector = new PuzzleSelector(puzzleModel);
         puzzleSelector.open();
-    }
-    
-    public void selectPuzzle() {
-        // TODO: Use a utility for this type of dialog use.
-        InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
-        InventoryUi inventoryUi = new InventoryUi(model);
-        JButton ok = UiLook.createOptionDialogButton("Select", () -> {
-            inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
-        });
-        JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
-        JOptionPane optionPane = new JOptionPane(
-                inventoryUi.getUi(), 
-                JOptionPane.PLAIN_MESSAGE,
-                JOptionPane.YES_NO_OPTION,
-                null, 
-                new JButton[] {ok, cancel}, 
-                ok);
-        JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
-        dialog.setContentPane(optionPane);
-        dialog.pack();
-        dialog.setLocationRelativeTo(appFrame);
-        dialog.addWindowListener(new WindowAdapter() {
-
-            @Override
-            public void windowOpened(WindowEvent e) {
-                inventoryUi.requestFocus();
-            }
-        });
-        KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
-            .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
-        inventoryUi.setPuzzleLoader(pi -> {
-            dialog.dispose();
-            loadPuzzle(pi);
-        });
-        model.addValidationListener(ok::setEnabled);
-        dialog.setVisible(true);
-    }
-    
-    private void loadPuzzle(PuzzleInfo puzzleInfo) {
-        UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), this::loadPuzzle);
     }
     
     public void loadPuzzle(Puzzle puzzle) {
@@ -181,7 +141,7 @@ public class PuzzleUiController {
     private class PuzzleSelector {
         private final SelectPuzzleModel selectPuzzleModel;
         private final PuzzleBuilderController puzzleBuilderController;
-        private final SelectPuzzleUi2 selectPuzzleUi;
+        private final SelectPuzzleUi selectPuzzleUi;
         
         public PuzzleSelector(PuzzleUiModel masterModel) {
             selectPuzzleModel = new SelectPuzzleModel(masterModel);
@@ -192,7 +152,7 @@ public class PuzzleUiController {
                     puzzleBuilderController::defineSandwiches,
                     puzzleBuilderController.getAddKillerCageAction(),
                     puzzleBuilderController.getDeleteKillerCageAction());
-            selectPuzzleUi = new SelectPuzzleUi2(selectPuzzleModel, inventoryUi, puzzleBuilderUi);
+            selectPuzzleUi = new SelectPuzzleUi(selectPuzzleModel, inventoryUi, puzzleBuilderUi);
         }
         
         public void open() {
@@ -227,7 +187,7 @@ public class PuzzleUiController {
             switch (selectPuzzleModel.getSelectedOption()) {
             case SELECT_EXISTING_PUZZLE:
                 selectPuzzleModel.getInventoryUiModel().getSelectedPuzzle()
-                .ifPresent(PuzzleUiController.this::loadPuzzle);
+                .ifPresent(this::loadExistingPuzzle);
                 break;
             case BUILD_NEW_PUZZLE:
                 puzzleBuilderController.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
@@ -235,6 +195,10 @@ public class PuzzleUiController {
             }
         }
         
+        private void loadExistingPuzzle(PuzzleInfo puzzleInfo) {
+            UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), PuzzleUiController.this::loadPuzzle);
+        }
+
         // FIXME: Duplicate code in PuzzleBuilder
         private void showInvalidPuzzleMessage(Throwable e) {
             String title = (e instanceof PuzzleBuilderException)

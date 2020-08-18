@@ -93,7 +93,7 @@ public class TzudokuApp {
         if (puzzle != null) {
             controller.loadPuzzle(puzzle);
         } else {
-            controller.launchOpeningScreen();
+            controller.selectPuzzle();
         }
     }
 
