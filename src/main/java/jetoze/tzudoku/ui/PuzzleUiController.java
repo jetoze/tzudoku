@@ -41,21 +41,8 @@ public class PuzzleUiController {
     }
     
     public void launchOpeningScreen() { // TODO: I need a better name.
-        SelectPuzzleModel selectPuzzleModel = new SelectPuzzleModel(puzzleModel);
-        InventoryUi inventoryUi = new InventoryUi(selectPuzzleModel.getInventoryUiModel());
-        PuzzleBuilderModel puzzleBuilderModel = selectPuzzleModel.getPuzzleBuilderModel();
-        PuzzleBuilderController puzzleBuilderController = new PuzzleBuilderController(appFrame, puzzleBuilderModel);
-        PuzzleBuilderUi puzzleBuilderUi = new PuzzleBuilderUi(puzzleBuilderModel,
-                puzzleBuilderController::defineSandwiches,
-                puzzleBuilderController.getAddKillerCageAction(),
-                puzzleBuilderController.getDeleteKillerCageAction());
-        SelectPuzzleUi2 os = new SelectPuzzleUi2(selectPuzzleModel, inventoryUi, puzzleBuilderUi);
-        selectPuzzleModel.addValidationListener(System.out::println);
-        int input = JOptionPane.showConfirmDialog(appFrame, os.getUi(), "Pick a Puzzle", 
-                JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
-        if (input == JOptionPane.OK_OPTION) {
-            
-        }
+        PuzzleSelector puzzleSelector = new PuzzleSelector(puzzleModel);
+        puzzleSelector.open();
     }
     
     public void selectPuzzle() {
@@ -187,6 +174,79 @@ public class PuzzleUiController {
     public void buildNewPuzzle() {
         PuzzleBuilder puzzleBuilder = new PuzzleBuilder();
         puzzleBuilder.launch();
+    }
+    
+    
+    
+    private class PuzzleSelector {
+        private final SelectPuzzleModel selectPuzzleModel;
+        private final PuzzleBuilderController puzzleBuilderController;
+        private final SelectPuzzleUi2 selectPuzzleUi;
+        
+        public PuzzleSelector(PuzzleUiModel masterModel) {
+            selectPuzzleModel = new SelectPuzzleModel(masterModel);
+            InventoryUi inventoryUi = new InventoryUi(selectPuzzleModel.getInventoryUiModel());
+            PuzzleBuilderModel puzzleBuilderModel = selectPuzzleModel.getPuzzleBuilderModel();
+            puzzleBuilderController = new PuzzleBuilderController(appFrame, puzzleBuilderModel);
+            PuzzleBuilderUi puzzleBuilderUi = new PuzzleBuilderUi(puzzleBuilderModel,
+                    puzzleBuilderController::defineSandwiches,
+                    puzzleBuilderController.getAddKillerCageAction(),
+                    puzzleBuilderController.getDeleteKillerCageAction());
+            selectPuzzleUi = new SelectPuzzleUi2(selectPuzzleModel, inventoryUi, puzzleBuilderUi);
+        }
+        
+        public void open() {
+            JButton ok = UiLook.createOptionDialogButton("Ok", this::loadPuzzle);
+            JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
+
+            selectPuzzleModel.addValidationListener(ok::setEnabled);
+            JOptionPane optionPane = new JOptionPane(
+                    selectPuzzleUi.getUi(),
+                    JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.OK_CANCEL_OPTION,
+                    null,
+                    new JButton[] {ok, cancel},
+                    ok);
+            JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
+            dialog.setContentPane(optionPane);
+            dialog.pack();
+            dialog.setLocationRelativeTo(appFrame);
+            dialog.addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    selectPuzzleUi.requestFocus();
+                }
+            });
+            KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
+                .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
+            dialog.setVisible(true);
+        }
+        
+        private void loadPuzzle() {
+            switch (selectPuzzleModel.getSelectedOption()) {
+            case SELECT_EXISTING_PUZZLE:
+                selectPuzzleModel.getInventoryUiModel().getSelectedPuzzle()
+                .ifPresent(PuzzleUiController.this::loadPuzzle);
+                break;
+            case BUILD_NEW_PUZZLE:
+                puzzleBuilderController.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
+                break;
+            }
+        }
+        
+        // FIXME: Duplicate code in PuzzleBuilder
+        private void showInvalidPuzzleMessage(Throwable e) {
+            String title = (e instanceof PuzzleBuilderException)
+                    ? "Invalid or Incomplete Puzzle"
+                    : "Unexpected Error";
+            JOptionPane.showMessageDialog(
+                    appFrame, 
+                    e.getMessage(), 
+                    title, 
+                    JOptionPane.ERROR_MESSAGE);
+            open();
+        }
     }
     
     

@@ -30,8 +30,14 @@ public class SelectPuzzleModel {
         PropertyChangeListener internalChangeListener = e -> notifyValidationListeners();
         inventoryModel.getSelectedPuzzleProperty().addListener(internalChangeListener);
         option.addListener(internalChangeListener);
-        // TODO: Add proper change notification to the PuzzleBuilderModel, so that we can listen to it here.
-        // For example, entering duplicate values in the grid should turn valid -> false.
+        puzzleBuilderModel.getPuzzleNameProperty().addListener(internalChangeListener);
+        puzzleBuilderModel.addGridListener(new GridUiModelListener() {
+
+            @Override
+            public void onCellStateChanged() {
+                notifyValidationListeners();
+            }
+        });
     }
     
     private void notifyValidationListeners() {
@@ -47,6 +53,10 @@ public class SelectPuzzleModel {
         return puzzleBuilderModel;
     }
     
+    public Option getSelectedOption() {
+        return option.get();
+    }
+    
     public Property<Option> getOptionProperty() {
         return option;
     }
@@ -56,7 +66,7 @@ public class SelectPuzzleModel {
         case SELECT_EXISTING_PUZZLE:
             return inventoryModel.getSelectedPuzzle().isPresent();
         case BUILD_NEW_PUZZLE:
-            return puzzleBuilderModel.isEmpty();
+            return puzzleBuilderModel.isValid();
         default:
             throw new RuntimeException("Unknown option: " + option.get());
         }
@@ -64,7 +74,7 @@ public class SelectPuzzleModel {
     
     public void addValidationListener(Consumer<Boolean> listener) {
         listener.accept(isValid());
-        validationListeners.remove(listener);
+        validationListeners.add(listener);
     }
     
     public void removeValidationListener(Consumer<Boolean> listener) {

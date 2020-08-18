@@ -70,6 +70,14 @@ public class PuzzleBuilderModel {
                 gridModel.getGrid().getCellsWithDuplicateValues().isEmpty();
     }
     
+    public void addGridListener(GridUiModelListener listener) {
+        gridModel.addListener(listener);
+    }
+    
+    public void removeGridListener(GridUiModelListener listener) {
+        gridModel.addListener(listener);
+    }
+    
     public void reset() {
         String name = inventory.getAvailablePuzzleName("New Puzzle");
         setPuzzleName(name);
