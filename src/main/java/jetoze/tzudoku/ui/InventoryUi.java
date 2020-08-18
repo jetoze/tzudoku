@@ -103,5 +103,6 @@ public final class InventoryUi implements Widget {
     
     public void setEnabled(boolean enabled) {
         list.setEnabled(enabled);
+        showCompletedPuzzlesCheckBox.setEnabled(enabled);
     }
 }

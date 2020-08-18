@@ -106,7 +106,7 @@ public class TzudokuApp {
         // TODO: Use an "action builder" for this?
         Action openAction = Actions.toAction("Open...", controller::selectPuzzle);
         openAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_O));
-        Action newAction = Actions.toAction("New...", () -> System.out.println("TODO: Open the Puzzle Builder"));
+        Action newAction = Actions.toAction("New...", controller::buildNewPuzzle);
         Action restartAction = Actions.toAction("Restart", controller::restart);
         restartAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_R));
         newAction.putValue(Action.ACCELERATOR_KEY, KeyStrokes.commandDown(KeyEvent.VK_N));

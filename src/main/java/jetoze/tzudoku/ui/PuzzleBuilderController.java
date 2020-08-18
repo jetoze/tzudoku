@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.function.BiFunction;
+import java.util.function.Consumer;
 
 import javax.annotation.Nullable;
 import javax.swing.AbstractAction;
@@ -22,7 +23,6 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.ComboBoxWidget;
-import jetoze.tzudoku.TzudokuApp;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.KillerCage;
@@ -89,27 +89,25 @@ public class PuzzleBuilderController {
         model.reset();
     }
     
-    public void createPuzzle() {
+    public void createPuzzle(Consumer<? super Puzzle> consumer, Consumer<? super Throwable> invalidPuzzleHandler) {
         String name = model.getPuzzleName();
         if (name.isBlank()) {
             showErrorMessage("Please enter a puzzle name.");
             return;
         }
         // TODO: Wait indication.
-        UiThread.offload(() -> createPuzzleFromTemplate(name), this::showPuzzleSavedMessage);
+        UiThread.offload(() -> createPuzzleFromTemplate(name), consumer, invalidPuzzleHandler);
     }
     
     @Nullable
-    private Puzzle createPuzzleFromTemplate(String name) {
+    private Puzzle createPuzzleFromTemplate(String name) throws PuzzleBuilderException {
         Grid templateGrid = model.getGridModel().getGrid();
         if (model.isEmpty()) {
-            UiThread.run(() -> showErrorMessage("The puzzle is empty."));
-            return null;
+            throw new PuzzleBuilderException("The puzzle is empty.");
         }
         ImmutableSet<Position> duplicates = templateGrid.getCellsWithDuplicateValues();
         if (!duplicates.isEmpty()) {
-            UiThread.run(() -> showErrorMessage("There are duplicate values."));
-            return null;
+            throw new PuzzleBuilderException("There are duplicate values.");
         }
         Map<Position, Cell> cells = new HashMap<>();
         ImmutableMap<Position, Cell> templateCells = templateGrid.getCells();
@@ -126,8 +124,7 @@ public class PuzzleBuilderController {
             return puzzle;
         } catch (IOException e) {
             // TODO: Log the exception
-            UiThread.run(() -> showErrorMessage("Could not save the puzzle: " + e.getMessage()));
-            return null;
+            throw new PuzzleBuilderException("Could not save the puzzle: " + e.getMessage(), e);
         }
     }
     
@@ -137,29 +134,6 @@ public class PuzzleBuilderController {
                 message, 
                 "Invalid puzzle", 
                 JOptionPane.ERROR_MESSAGE);
-    }
-    
-    private void showPuzzleSavedMessage(Puzzle puzzle) {
-        int option = JOptionPane.showConfirmDialog(
-                appFrame, 
-                "The puzzle has been created. Do you want to solve it?", 
-                "Puzzle Saved", 
-                JOptionPane.YES_NO_OPTION,
-                JOptionPane.INFORMATION_MESSAGE);
-        if (option == JOptionPane.YES_OPTION) {
-            UiThread.runLater(() -> launchTzudokuApp(puzzle));
-        } else {
-            reset();
-        }
-    }
-    
-    private void launchTzudokuApp(Puzzle puzzle) {
-        appFrame.dispose();
-        TzudokuApp tzudoku = new TzudokuApp(model.getInventory(), puzzle);
-        tzudoku.start();
-        // TODO: Interesting dilemma, in that as far as the OS is concerned,
-        // it is still the Puzzle Builder App that is running (as seen e.g. in
-        // the OSX menu bar).
     }
     
     private void addOrRemoveKillerCage(KillerCage cage, BiFunction<KillerCages, KillerCage, KillerCages> operator) {

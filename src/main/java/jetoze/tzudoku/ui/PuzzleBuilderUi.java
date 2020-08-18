@@ -2,10 +2,11 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
+import java.awt.GridBagConstraints;
+import java.awt.GridBagLayout;
+
 import javax.swing.Action;
-import javax.swing.JButton;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.TitledBorder;
@@ -27,22 +28,16 @@ public final class PuzzleBuilderUi implements Widget {
     private final GridUi gridUi;
     // TODO: Restrict input to valid characters only.
     private final TextFieldWidget nameField = new TextFieldWidget(25);
-    private final Runnable saveAction;
-    private final Runnable resetAction;
     private final Runnable defineSandwichesAction;
     private final Action addKillerCageAction;
     private final Action deleteKillerCageAction;
     
     // FIXME: Inconsistency between Runnable and Action as input here.
     public PuzzleBuilderUi(PuzzleBuilderModel model, 
-                           Runnable saveAction,
-                           Runnable resetAction,
                            Runnable defineSandwichesAction,
                            Action addKillerCageAction,
                            Action deleteKillerCageAction) {
         this.model = requireNonNull(model);
-        this.saveAction = requireNonNull(saveAction);
-        this.resetAction = requireNonNull(resetAction);
         this.defineSandwichesAction = requireNonNull(defineSandwichesAction);
         this.addKillerCageAction = requireNonNull(addKillerCageAction);
         this.deleteKillerCageAction = requireNonNull(deleteKillerCageAction);
@@ -68,16 +63,18 @@ public final class PuzzleBuilderUi implements Widget {
 
     @Override
     public JComponent getUi() {
-        JPanel nameFieldPanel = new JPanel();
-        nameFieldPanel.add(new JLabel("Name:"));
-        nameFieldPanel.add(nameField.getUi());
+        JPanel nameFieldPanel = Layouts.form()
+                .addRow("Name:", nameField)
+                .build();
 
         JPanel gridWrapper = new JPanel();
         gridWrapper.add(gridUi.getUi());
 
-        JPanel sandwichesPanel = new JPanel();
-        sandwichesPanel.setBorder(new TitledBorder("Sandwiches"));
-        sandwichesPanel.add(UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction));
+        JPanel sandwichesPanel = Layouts.oneColumnGrid()
+                .withBorder(new TitledBorder("Sandwiches"))
+                .add(UiLook.makeSmallButton("Sandwiches...", defineSandwichesAction))
+                .add(" "/*empty space*/)
+                .build();
         
         JPanel killerCagesPanel = Layouts.oneColumnGrid()
                 .withVerticalGap(5)
@@ -91,23 +88,26 @@ public final class PuzzleBuilderUi implements Widget {
                 .add(killerCagesPanel)
                 .build();
         JPanel optionsPanelWrapper = Layouts.border().north(optionsPanel).build();
-
-        JButton resetButton = UiLook.makeLargeButton("Reset", resetAction);
-        // TODO: Bind the save action to the valid state of the model?
-        JButton saveButton = UiLook.makeLargeButton("Save", saveAction);
-        JPanel buttonPanel = Layouts.oneRowGrid()
-                .withHorizontalGap(10)
-                .add(resetButton)
-                .add(saveButton)
-                .build();
         
-        JPanel ui = Layouts.border()
-                .withVerticalGap(8)
-                .north(nameFieldPanel)
-                .center(gridWrapper)
-                .east(optionsPanelWrapper)
-                .south(buttonPanel)
-                .build();
+        
+        JPanel ui = new JPanel(new GridBagLayout());
+        GridBagConstraints c = new GridBagConstraints();
+        
+        c.gridx = 0;
+        c.gridy = 0;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        ui.add(nameFieldPanel, c);
+        
+        c.gridx = 0;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.BOTH;
+        ui.add(gridWrapper, c);
+        
+        c.gridx = 1;
+        c.gridy = 1;
+        c.fill = GridBagConstraints.HORIZONTAL;
+        ui.add(optionsPanelWrapper, c);
+
         ui.setBorder(new EmptyBorder(5, 5, 5, 5));
         KeyBindings keyBindings = KeyBindings.whenAncestorOfFocusedComponent(gridWrapper);
         gridUi.registerDefaultActions(keyBindings);

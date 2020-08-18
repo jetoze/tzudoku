@@ -12,6 +12,8 @@ import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import jetoze.gunga.KeyBindings;
+import jetoze.gunga.KeyStrokes;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
@@ -39,15 +41,24 @@ public class PuzzleUiController {
     }
     
     public void selectPuzzle() {
+        // TODO: Use a utility for this type of dialog use.
+        // TODO: The user experience is clunky. We show this dialog on app startup.
+        //       In order to build a new puzzle, the user must select the Build New Puzzle
+        //       radio button in the dialog, and then click the Select button. We should be
+        //       able to go to the puzzle builder with a single click.
         InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
         InventoryUi inventoryUi = new InventoryUi(model);
-        // TODO: Use a utility for this.
+        SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi);
         JButton ok = UiLook.createOptionDialogButton("Select", () -> {
-            inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
+            if (selectPuzzleUi.isSelectExistingPuzzleSelected()) {
+                inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
+            } else {
+                buildNewPuzzle();
+            }
         });
         JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
         JOptionPane optionPane = new JOptionPane(
-                inventoryUi.getUi(), 
+                selectPuzzleUi.getUi(), 
                 JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.YES_NO_OPTION,
                 null, 
@@ -64,6 +75,8 @@ public class PuzzleUiController {
                 inventoryUi.requestFocus();
             }
         });
+        KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
+            .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
         inventoryUi.setPuzzleLoader(pi -> {
             dialog.dispose();
             loadPuzzle(pi);
@@ -161,4 +174,53 @@ public class PuzzleUiController {
             puzzleModel.getGridModel().reset();
         }
     }
+    
+    public void buildNewPuzzle() {
+        PuzzleBuilder puzzleBuilder = new PuzzleBuilder();
+        puzzleBuilder.launch();
+    }
+    
+    
+    private class PuzzleBuilder {
+        private final PuzzleBuilderModel model;
+        private final PuzzleBuilderController controller;
+        private final PuzzleBuilderUi ui;
+        
+        public PuzzleBuilder() {
+            model = new PuzzleBuilderModel(puzzleModel.getInventory());
+            controller = new PuzzleBuilderController(appFrame, model);
+            ui = new PuzzleBuilderUi(model,
+                    controller::defineSandwiches,
+                    controller.getAddKillerCageAction(),
+                    controller.getDeleteKillerCageAction());
+        }
+        
+        public void launch() {
+            int input = JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", 
+                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
+            if (input == JOptionPane.OK_OPTION) {
+                // TODO: Wait indication.
+                // TODO: If the puzzle is invalid, the current behavior is to dismiss the dialog, 
+                //       show an error dialog explaining what's wrong, and then reopen the 
+                //       puzzle builder dialog again, with the same model and UI meaning the user 
+                //       input is retained. It would be better to show the error dialog while the
+                //       puzzle builder dialog is still open.
+                // TODO: Prompt to save changes made to existing puzzle before overwriting it.
+                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
+            }
+        }
+        
+        private void showInvalidPuzzleMessage(Throwable e) {
+            String title = (e instanceof PuzzleBuilderException)
+                    ? "Invalid or Incomplete Puzzle"
+                    : "Unexpected Error";
+            JOptionPane.showMessageDialog(
+                    appFrame, 
+                    e.getMessage(), 
+                    title, 
+                    JOptionPane.ERROR_MESSAGE);
+            launch();
+        }
+    }
+
 }
