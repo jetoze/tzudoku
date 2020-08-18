@@ -41,15 +41,24 @@ public class PuzzleUiController {
     }
     
     public void selectPuzzle() {
+        // TODO: Use a utility for this type of dialog use.
+        // TODO: The user experience is clunky. We show this dialog on app startup.
+        //       In order to build a new puzzle, the user must select the Build New Puzzle
+        //       radio button in the dialog, and then click the Select button. We should be
+        //       able to go to the puzzle builder with a single click.
         InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
         InventoryUi inventoryUi = new InventoryUi(model);
-        // TODO: Use a utility for this.
+        SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi);
         JButton ok = UiLook.createOptionDialogButton("Select", () -> {
-            inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
+            if (selectPuzzleUi.isSelectExistingPuzzleSelected()) {
+                inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
+            } else {
+                buildNewPuzzle();
+            }
         });
         JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
         JOptionPane optionPane = new JOptionPane(
-                inventoryUi.getUi(), 
+                selectPuzzleUi.getUi(), 
                 JOptionPane.PLAIN_MESSAGE,
                 JOptionPane.YES_NO_OPTION,
                 null, 
