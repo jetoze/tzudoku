@@ -136,7 +136,18 @@ public class PuzzleUiController {
         puzzleBuilder.launch();
     }
     
-    
+    private void showInvalidNewPuzzleMessage(Throwable e, Runnable runWhenDismissed) {
+        String title = (e instanceof PuzzleBuilderException)
+                ? "Invalid or Incomplete Puzzle"
+                : "Unexpected Error";
+        JOptionPane.showMessageDialog(
+                appFrame, 
+                e.getMessage(), 
+                title, 
+                JOptionPane.ERROR_MESSAGE);
+        UiThread.runLater(runWhenDismissed);
+    }
+
     
     private class PuzzleSelector {
         private final SelectPuzzleModel selectPuzzleModel;
@@ -157,13 +168,13 @@ public class PuzzleUiController {
         }
         
         public void open() {
-            JButton ok = UiLook.createOptionDialogButton("Ok", this::loadPuzzle);
+            JButton ok = UiLook.createOptionDialogButton("OK", this::loadPuzzle);
             JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
-
             
             inventoryUi.setPuzzleLoader(pi -> ok.doClick());
             
-            selectPuzzleModel.addValidationListener(ok::setEnabled);
+            Consumer<Boolean> validationListener = ok::setEnabled;
+            selectPuzzleModel.addValidationListener(validationListener);
             JOptionPane optionPane = new JOptionPane(
                     selectPuzzleUi.getUi(),
                     JOptionPane.PLAIN_MESSAGE,
@@ -185,6 +196,7 @@ public class PuzzleUiController {
             KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
                 .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
             dialog.setVisible(true);
+            selectPuzzleModel.removeValidationListener(validationListener);
         }
         
         private void loadPuzzle() {
@@ -194,26 +206,15 @@ public class PuzzleUiController {
                 .ifPresent(this::loadExistingPuzzle);
                 break;
             case BUILD_NEW_PUZZLE:
-                puzzleBuilderController.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
+                puzzleBuilderController.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
+                    showInvalidNewPuzzleMessage(e, this::open);
+                });
                 break;
             }
         }
         
         private void loadExistingPuzzle(PuzzleInfo puzzleInfo) {
             UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), PuzzleUiController.this::loadPuzzle);
-        }
-
-        // FIXME: Duplicate code in PuzzleBuilder
-        private void showInvalidPuzzleMessage(Throwable e) {
-            String title = (e instanceof PuzzleBuilderException)
-                    ? "Invalid or Incomplete Puzzle"
-                    : "Unexpected Error";
-            JOptionPane.showMessageDialog(
-                    appFrame, 
-                    e.getMessage(), 
-                    title, 
-                    JOptionPane.ERROR_MESSAGE);
-            open();
         }
     }
     
@@ -233,30 +234,38 @@ public class PuzzleUiController {
         }
         
         public void launch() {
-            int input = JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", 
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
-            if (input == JOptionPane.OK_OPTION) {
+            JButton ok = UiLook.createOptionDialogButton("OK", () -> {
                 // TODO: Wait indication.
-                // TODO: If the puzzle is invalid, the current behavior is to dismiss the dialog, 
-                //       show an error dialog explaining what's wrong, and then reopen the 
-                //       puzzle builder dialog again, with the same model and UI meaning the user 
-                //       input is retained. It would be better to show the error dialog while the
-                //       puzzle builder dialog is still open.
                 // TODO: Prompt to save changes made to existing puzzle before overwriting it.
-                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
-            }
-        }
-        
-        private void showInvalidPuzzleMessage(Throwable e) {
-            String title = (e instanceof PuzzleBuilderException)
-                    ? "Invalid or Incomplete Puzzle"
-                    : "Unexpected Error";
-            JOptionPane.showMessageDialog(
-                    appFrame, 
-                    e.getMessage(), 
-                    title, 
-                    JOptionPane.ERROR_MESSAGE);
-            launch();
+                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
+                    showInvalidNewPuzzleMessage(e, this::launch);
+                });
+            });
+            JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
+            // TODO: Add validation listener functionality to PuzzleBuilderModel. Bind the valid 
+            // state to the OK button's enabled state.
+
+            JOptionPane optionPane = new JOptionPane(
+                    ui.getUi(),
+                    JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.OK_CANCEL_OPTION,
+                    null,
+                    new JButton[] {ok, cancel},
+                    ok);
+            JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
+            dialog.setContentPane(optionPane);
+            dialog.pack();
+            dialog.setLocationRelativeTo(appFrame);
+            dialog.addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    ui.requestFocus();
+                }
+            });
+            KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
+                .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
+            dialog.setVisible(true);
         }
     }
 

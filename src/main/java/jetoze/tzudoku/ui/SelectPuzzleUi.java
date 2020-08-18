@@ -9,6 +9,7 @@ import javax.swing.event.ChangeListener;
 import jetoze.attribut.Property;
 import jetoze.gunga.binding.AbstractBinding;
 import jetoze.gunga.binding.Binding;
+import jetoze.gunga.binding.UiListeners;
 import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.ui.SelectPuzzleModel.Option;
 
@@ -31,11 +32,7 @@ class SelectPuzzleUi implements Widget {
         // TODO: I should be a gunga utility.
         Binding binding = new AbstractBinding<SelectPuzzleModel.Option>(optionProperty) {
 
-            private final ChangeListener changeListener = e -> {
-                if (isUiToModelEnabled()) {
-                    syncModel();
-                }
-            };
+            private final ChangeListener changeListener = UiListeners.changeListener(this);
             {
                 tabs.addChangeListener(changeListener);
             }
