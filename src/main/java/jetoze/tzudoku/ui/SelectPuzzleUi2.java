@@ -31,7 +31,11 @@ class SelectPuzzleUi2 implements Widget {
         // TODO: I should be a gunga utility.
         Binding binding = new AbstractBinding<SelectPuzzleModel.Option>(optionProperty) {
 
-            private final ChangeListener changeListener = e -> {};
+            private final ChangeListener changeListener = e -> {
+                if (isUiToModelEnabled()) {
+                    syncModel();
+                }
+            };
             {
                 tabs.addChangeListener(changeListener);
             }
