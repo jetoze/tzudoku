@@ -177,11 +177,15 @@ public class PuzzleInventory {
             String name = (n == 0)
                     ? template
                     : String.format("%s (%d)", template, n);
-            if (!puzzleInfos.containsKey(name)) {
+            if (!containsPuzzle(name)) {
                 return name;
             }
         }
         throw new RuntimeException("Clean up the inventory, please!");
+    }
+    
+    public boolean containsPuzzle(String name) {
+        return puzzleInfos.containsKey(name);
     }
     
     

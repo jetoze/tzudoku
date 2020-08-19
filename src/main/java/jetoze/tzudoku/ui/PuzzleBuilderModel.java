@@ -2,6 +2,10 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.*;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
@@ -14,7 +18,8 @@ public class PuzzleBuilderModel {
     private final PuzzleInventory inventory;
     private final GridUiModel gridModel;
     private final Property<String> puzzleNameProperty;
-    
+    private final List<Consumer<Boolean>> validationListeners = new ArrayList<>();
+
     public PuzzleBuilderModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
         this.gridModel = new GridUiModel(Grid.emptyGrid(), Sandwiches.EMPTY, KillerCages.EMPTY, BoardSize.SMALL);
@@ -22,6 +27,23 @@ public class PuzzleBuilderModel {
         this.gridModel.setDecorateDuplicateCells(true);
         this.puzzleNameProperty = Properties.newProperty("puzzleName", 
                 inventory.getAvailablePuzzleName("New Puzzle"));
+        addInternalListeners();
+    }
+    
+    private void addInternalListeners() {
+        puzzleNameProperty.addListener(e -> notifyValidationListeners());
+        gridModel.addListener(new GridUiModelListener() {
+
+            @Override
+            public void onCellStateChanged() {
+                notifyValidationListeners();
+            }
+        });
+    }
+    
+    private void notifyValidationListeners() {
+        boolean valid = isValid();
+        validationListeners.forEach(lst -> lst.accept(valid));
     }
 
     public PuzzleInventory getInventory() {
@@ -62,6 +84,32 @@ public class PuzzleBuilderModel {
     
     public boolean isEmpty() {
         return gridModel.getGrid().isEmpty() && getSandwiches().isEmpty() && getKillerCages().isEmpty();
+    }
+    
+    public boolean isValid() {
+        return !isEmpty() &&
+                (!puzzleNameProperty.get().isBlank() && !inventory.containsPuzzle(puzzleNameProperty.get())) &&
+                gridModel.getGrid().getCellsWithDuplicateValues().isEmpty();
+    }
+    
+    public void addValidationListener(Consumer<Boolean> listener) {
+        listener.accept(isValid());
+        validationListeners.add(listener);
+    }
+    
+    public void removeValidationListener(Consumer<Boolean> listener) {
+        validationListeners.remove(requireNonNull(listener));
+    }
+    
+    // TODO: Add documentation that explains that the listener may be notified
+    // even if the validation state has not changed, i.e. it is possible for the 
+    // listener to get several valid=true or valid=false notifications in a row.
+    public void addGridListener(GridUiModelListener listener) {
+        gridModel.addListener(listener);
+    }
+    
+    public void removeGridListener(GridUiModelListener listener) {
+        gridModel.addListener(listener);
     }
     
     public void reset() {

@@ -1,5 +1,7 @@
 package jetoze.tzudoku.ui;
 
+import static java.util.Objects.requireNonNull;
+
 import java.awt.Component;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
@@ -14,7 +16,6 @@ import jetoze.gunga.binding.Binding;
 import jetoze.gunga.binding.BooleanBinding;
 import jetoze.gunga.binding.ListBinding;
 import jetoze.gunga.layout.Layouts;
-import jetoze.gunga.selection.Selection;
 import jetoze.gunga.selection.SelectionAction;
 import jetoze.gunga.widget.CheckBoxWidget;
 import jetoze.gunga.widget.ListWidget;
@@ -30,10 +31,12 @@ public final class InventoryUi implements Widget {
     // TODO: Should we really be using a table here, with Status and Last Updated columns?
     //       That would allow for a bit more natural sorting.
     
+    private final InventoryUiModel model;
     private final ListWidget<PuzzleInfo> list;
     private final CheckBoxWidget showCompletedPuzzlesCheckBox = new CheckBoxWidget("Show completed puzzles");
     
     public InventoryUi(InventoryUiModel model) {
+        this.model = requireNonNull(model);
         list = new ListWidget<>();
         list.setVisibleRowCount(20);
         list.setSelectionMode(SelectionMode.SINGLE);
@@ -62,14 +65,19 @@ public final class InventoryUi implements Widget {
         });
         ListBinding.bind(model.getListItems(), list);
         BooleanBinding.bind(model.getShowCompletedPuzzles(), showCompletedPuzzlesCheckBox);
-        Binding.oneWayBinding(model.getListFilter(), list::setFilter).syncUi();;
+        Binding.oneWayBinding(model.getListFilter(), list::setFilter).syncUi();
+        list.addSelectionListener(selection -> {
+            if (selection.isEmpty()) {
+                model.setSelectedPuzzle(null);
+            } else {
+                model.setSelectedPuzzle(selection.getItems().get(0));
+            }
+        });
     }
     
     public Optional<PuzzleInfo> getSelectedPuzzle() {
-        Selection<PuzzleInfo> selection = list.getSelection();
-        return selection.isEmpty()
-                ? Optional.empty()
-                : Optional.of(selection.getItems().get(0));
+        // TODO: Remove this method? Clients should be asking the model directly.
+        return model.getSelectedPuzzle();
     }
 
     public void setPuzzleLoader(Consumer<PuzzleInfo> loader) {
@@ -78,14 +86,8 @@ public final class InventoryUi implements Widget {
         list.setDefaultAction(action);
     }
     
-    public void addValidationListener(Consumer<Boolean> listener) {
-        // TODO: This is a bit clunky. Also, we should probably have a correpsonding remove method.
-        list.addSelectionListener(s -> handleSelection(s, listener));
-        handleSelection(list.getSelection(), listener);
-    }
-    
-    private void handleSelection(Selection<PuzzleInfo> selection, Consumer<Boolean> validationListener) {
-        validationListener.accept(selection.getItems().size() == 1);
+    public boolean isEmpty() {
+        return model.isEmpty();
     }
     
     @Override

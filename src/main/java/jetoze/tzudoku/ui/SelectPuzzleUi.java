@@ -2,68 +2,77 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.GridBagConstraints;
-import java.awt.GridBagLayout;
-import java.awt.Insets;
-
 import javax.swing.JComponent;
-import javax.swing.JPanel;
+import javax.swing.JTabbedPane;
+import javax.swing.event.ChangeListener;
 
-import jetoze.gunga.widget.RadioButtonWidget;
+import jetoze.attribut.Property;
+import jetoze.gunga.binding.AbstractBinding;
+import jetoze.gunga.binding.Binding;
+import jetoze.gunga.binding.UiListeners;
 import jetoze.gunga.widget.Widget;
+import jetoze.tzudoku.ui.SelectPuzzleModel.Option;
 
 class SelectPuzzleUi implements Widget {
 
-    private final RadioButtonWidget existingPuzzleChoice = new RadioButtonWidget("Open existing puzzle", true);
-    private final RadioButtonWidget newPuzzleChoice = new RadioButtonWidget("Build a new puzzle");
     private final InventoryUi inventoryUi;
-    private final JComponent ui;
+    private final PuzzleBuilderUi puzzleBuilderUi;
+    private final JTabbedPane tabs = new JTabbedPane();
     
-    public SelectPuzzleUi(InventoryUi inventoryUi) {
+    public SelectPuzzleUi(SelectPuzzleModel model, InventoryUi inventoryUi, PuzzleBuilderUi puzzleBuilderUi) {
         this.inventoryUi = requireNonNull(inventoryUi);
-        existingPuzzleChoice.addChangeListener(inventoryUi::setEnabled);
-        RadioButtonWidget.makeExclusive(existingPuzzleChoice, newPuzzleChoice);
-        this.ui = layoutUi();
-    }
-    
-    private JComponent layoutUi() {
-        JPanel p = new JPanel(new GridBagLayout());
-        GridBagConstraints c = new GridBagConstraints();
-        c.anchor = GridBagConstraints.LINE_START;
-        c.weightx = 1.0;
-        
-        c.gridx = 0;
-        c.gridy = 0;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        p.add(existingPuzzleChoice.getUi(), c);
-        
-        c.gridy = 1;
-        c.fill = GridBagConstraints.BOTH;
-        c.weighty = 1.0;
-        c.insets = new Insets(12, 32, 32, 0);
-        p.add(inventoryUi.getUi(), c);
-        
-        c.gridy = 2;
-        c.fill = GridBagConstraints.HORIZONTAL;
-        c.weighty = 0.0;
-        c.insets = new Insets(0, 0, 0, 0);
-        p.add(newPuzzleChoice.getUi(), c);
-        
-        return p;
+        this.puzzleBuilderUi = requireNonNull(puzzleBuilderUi);
+        tabs.add("Select Existing Puzzle", inventoryUi.getUi());
+        tabs.add("Build New Puzzle", puzzleBuilderUi.getUi());
+        bindOption(model.getOptionProperty());
     }
 
+    // TODO: Do we need to dispose this binding?
+    private Binding bindOption(Property<SelectPuzzleModel.Option> optionProperty) {
+        // TODO: I should be a gunga utility.
+        Binding binding = new AbstractBinding<SelectPuzzleModel.Option>(optionProperty) {
+
+            private final ChangeListener changeListener = UiListeners.changeListener(this);
+            {
+                tabs.addChangeListener(changeListener);
+            }
+            
+            @Override
+            protected Option getValueFromUi() {
+                return tabs.getSelectedIndex() == 0
+                        ? Option.SELECT_EXISTING_PUZZLE
+                        : Option.BUILD_NEW_PUZZLE;
+            }
+
+            @Override
+            protected void updateUi(Option value) {
+                if (value == Option.SELECT_EXISTING_PUZZLE) {
+                    tabs.setSelectedIndex(0);
+                } else {
+                    tabs.setSelectedIndex(1);
+                }
+            }
+
+            @Override
+            protected void removeUiListener() {
+                tabs.removeChangeListener(changeListener);
+            }
+        };
+        binding.syncUi();
+        return binding;
+    }
+    
     @Override
     public JComponent getUi() {
-        return ui;
+        return tabs;
     }
 
     @Override
     public void requestFocus() {
-        existingPuzzleChoice.requestFocus();
+        if (inventoryUi.isEmpty()) {
+            puzzleBuilderUi.requestFocus();
+        } else {
+            inventoryUi.requestFocus();
+        }
     }
-    
-    public boolean isSelectExistingPuzzleSelected() {
-        return existingPuzzleChoice.isSelected();
-    }
-
 }

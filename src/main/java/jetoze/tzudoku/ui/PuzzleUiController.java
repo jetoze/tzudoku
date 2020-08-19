@@ -41,52 +41,8 @@ public class PuzzleUiController {
     }
     
     public void selectPuzzle() {
-        // TODO: Use a utility for this type of dialog use.
-        // TODO: The user experience is clunky. We show this dialog on app startup.
-        //       In order to build a new puzzle, the user must select the Build New Puzzle
-        //       radio button in the dialog, and then click the Select button. We should be
-        //       able to go to the puzzle builder with a single click.
-        InventoryUiModel model = new InventoryUiModel(puzzleModel.getInventory());
-        InventoryUi inventoryUi = new InventoryUi(model);
-        SelectPuzzleUi selectPuzzleUi = new SelectPuzzleUi(inventoryUi);
-        JButton ok = UiLook.createOptionDialogButton("Select", () -> {
-            if (selectPuzzleUi.isSelectExistingPuzzleSelected()) {
-                inventoryUi.getSelectedPuzzle().ifPresent(this::loadPuzzle);
-            } else {
-                buildNewPuzzle();
-            }
-        });
-        JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
-        JOptionPane optionPane = new JOptionPane(
-                selectPuzzleUi.getUi(), 
-                JOptionPane.PLAIN_MESSAGE,
-                JOptionPane.YES_NO_OPTION,
-                null, 
-                new JButton[] {ok, cancel}, 
-                ok);
-        JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
-        dialog.setContentPane(optionPane);
-        dialog.pack();
-        dialog.setLocationRelativeTo(appFrame);
-        dialog.addWindowListener(new WindowAdapter() {
-
-            @Override
-            public void windowOpened(WindowEvent e) {
-                inventoryUi.requestFocus();
-            }
-        });
-        KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
-            .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
-        inventoryUi.setPuzzleLoader(pi -> {
-            dialog.dispose();
-            loadPuzzle(pi);
-        });
-        inventoryUi.addValidationListener(ok::setEnabled);
-        dialog.setVisible(true);
-    }
-    
-    private void loadPuzzle(PuzzleInfo puzzleInfo) {
-        UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), this::loadPuzzle);
+        PuzzleSelector puzzleSelector = new PuzzleSelector(puzzleModel);
+        puzzleSelector.open();
     }
     
     public void loadPuzzle(Puzzle puzzle) {
@@ -180,6 +136,88 @@ public class PuzzleUiController {
         puzzleBuilder.launch();
     }
     
+    private void showInvalidNewPuzzleMessage(Throwable e, Runnable runWhenDismissed) {
+        String title = (e instanceof PuzzleBuilderException)
+                ? "Invalid or Incomplete Puzzle"
+                : "Unexpected Error";
+        JOptionPane.showMessageDialog(
+                appFrame, 
+                e.getMessage(), 
+                title, 
+                JOptionPane.ERROR_MESSAGE);
+        UiThread.runLater(runWhenDismissed);
+    }
+
+    
+    private class PuzzleSelector {
+        private final SelectPuzzleModel selectPuzzleModel;
+        private final PuzzleBuilderController puzzleBuilderController;
+        private final InventoryUi inventoryUi;
+        private final SelectPuzzleUi selectPuzzleUi;
+        
+        public PuzzleSelector(PuzzleUiModel masterModel) {
+            selectPuzzleModel = new SelectPuzzleModel(masterModel);
+            inventoryUi = new InventoryUi(selectPuzzleModel.getInventoryUiModel());
+            PuzzleBuilderModel puzzleBuilderModel = selectPuzzleModel.getPuzzleBuilderModel();
+            puzzleBuilderController = new PuzzleBuilderController(appFrame, puzzleBuilderModel);
+            PuzzleBuilderUi puzzleBuilderUi = new PuzzleBuilderUi(puzzleBuilderModel,
+                    puzzleBuilderController::defineSandwiches,
+                    puzzleBuilderController.getAddKillerCageAction(),
+                    puzzleBuilderController.getDeleteKillerCageAction());
+            selectPuzzleUi = new SelectPuzzleUi(selectPuzzleModel, inventoryUi, puzzleBuilderUi);
+        }
+        
+        public void open() {
+            JButton ok = UiLook.createOptionDialogButton("OK", this::loadPuzzle);
+            JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
+            
+            inventoryUi.setPuzzleLoader(pi -> ok.doClick());
+            
+            Consumer<Boolean> validationListener = ok::setEnabled;
+            selectPuzzleModel.addValidationListener(validationListener);
+            JOptionPane optionPane = new JOptionPane(
+                    selectPuzzleUi.getUi(),
+                    JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.OK_CANCEL_OPTION,
+                    null,
+                    new JButton[] {ok, cancel},
+                    ok);
+            JDialog dialog = new JDialog(appFrame, "Select a Puzzle", true);
+            dialog.setContentPane(optionPane);
+            dialog.pack();
+            dialog.setLocationRelativeTo(appFrame);
+            dialog.addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    selectPuzzleUi.requestFocus();
+                }
+            });
+            KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
+                .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
+            dialog.setVisible(true);
+            selectPuzzleModel.removeValidationListener(validationListener);
+        }
+        
+        private void loadPuzzle() {
+            switch (selectPuzzleModel.getSelectedOption()) {
+            case SELECT_EXISTING_PUZZLE:
+                selectPuzzleModel.getInventoryUiModel().getSelectedPuzzle()
+                .ifPresent(this::loadExistingPuzzle);
+                break;
+            case BUILD_NEW_PUZZLE:
+                puzzleBuilderController.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
+                    showInvalidNewPuzzleMessage(e, this::open);
+                });
+                break;
+            }
+        }
+        
+        private void loadExistingPuzzle(PuzzleInfo puzzleInfo) {
+            UiThread.offload(() -> puzzleModel.getInventory().loadPuzzle(puzzleInfo), PuzzleUiController.this::loadPuzzle);
+        }
+    }
+    
     
     private class PuzzleBuilder {
         private final PuzzleBuilderModel model;
@@ -196,30 +234,39 @@ public class PuzzleUiController {
         }
         
         public void launch() {
-            int input = JOptionPane.showConfirmDialog(appFrame, ui.getUi(), "Build New Puzzle", 
-                    JOptionPane.OK_CANCEL_OPTION, JOptionPane.PLAIN_MESSAGE, null);
-            if (input == JOptionPane.OK_OPTION) {
+            JButton ok = UiLook.createOptionDialogButton("OK", () -> {
                 // TODO: Wait indication.
-                // TODO: If the puzzle is invalid, the current behavior is to dismiss the dialog, 
-                //       show an error dialog explaining what's wrong, and then reopen the 
-                //       puzzle builder dialog again, with the same model and UI meaning the user 
-                //       input is retained. It would be better to show the error dialog while the
-                //       puzzle builder dialog is still open.
                 // TODO: Prompt to save changes made to existing puzzle before overwriting it.
-                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, this::showInvalidPuzzleMessage);
-            }
-        }
-        
-        private void showInvalidPuzzleMessage(Throwable e) {
-            String title = (e instanceof PuzzleBuilderException)
-                    ? "Invalid or Incomplete Puzzle"
-                    : "Unexpected Error";
-            JOptionPane.showMessageDialog(
-                    appFrame, 
-                    e.getMessage(), 
-                    title, 
-                    JOptionPane.ERROR_MESSAGE);
-            launch();
+                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
+                    showInvalidNewPuzzleMessage(e, this::launch);
+                });
+            });
+            JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
+            Consumer<Boolean> validationListener = ok::setEnabled;
+            model.addValidationListener(validationListener);
+
+            JOptionPane optionPane = new JOptionPane(
+                    ui.getUi(),
+                    JOptionPane.PLAIN_MESSAGE,
+                    JOptionPane.OK_CANCEL_OPTION,
+                    null,
+                    new JButton[] {ok, cancel},
+                    ok);
+            JDialog dialog = new JDialog(appFrame, "Select a Puzzle", true);
+            dialog.setContentPane(optionPane);
+            dialog.pack();
+            dialog.setLocationRelativeTo(appFrame);
+            dialog.addWindowListener(new WindowAdapter() {
+
+                @Override
+                public void windowOpened(WindowEvent e) {
+                    ui.requestFocus();
+                }
+            });
+            KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
+                .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
+            dialog.setVisible(true);
+            model.removeValidationListener(validationListener);
         }
     }
 
