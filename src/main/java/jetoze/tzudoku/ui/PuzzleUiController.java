@@ -8,22 +8,19 @@ import java.util.function.Consumer;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
+import jetoze.gunga.InputDialog;
+import jetoze.gunga.InputDialog.InputOptions;
+import jetoze.gunga.InputDialog.Option;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
-import jetoze.tzudoku.ui.InputDialog.ValidStateMonitor;
 import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 public class PuzzleUiController {
     // TODO: Wait-indication (hour-glass on frame) when background work is in progress.
-    // TODO: When showing Hint, provide option for Applying the hint. To do this, add methods
-    //       apply(Hint) to GridUiModel (one per supported hint), and then update the UiAutoSolver
-    //       to call these methods as well.
-    // TODO: Add "Look for Hint" option, that goes through all known SolvingTechniques until 
-    //       a Hint is found.
     
     private final JFrame appFrame;
     private final PuzzleUiModel puzzleModel;
@@ -163,28 +160,18 @@ public class PuzzleUiController {
         }
         
         public void open() {
-            InputDialog dialog = InputDialog.okCancel()
+            InputOptions inputOptions = InputDialog.okCancel(this::loadPuzzle, () -> {});
+            inventoryUi.setPuzzleLoader(pi -> inputOptions.getMaterializedOption(Option.OK).select());
+
+            Consumer<Boolean> validationListener = inputOptions.getMaterializedOption(Option.OK)::setEnabled;
+            selectPuzzleModel.addValidationListener(validationListener);
+            InputDialog dialog = inputOptions.dialogBuilder()
                     .withOwner(appFrame)
                     .withTitle("Select a Puzzle")
                     .withContent(selectPuzzleUi)
-                    .withOkJob(this::loadPuzzle)
-                    .withValidStateMonitor(new ValidStateMonitor() {
-                        
-                        @Override
-                        public void addValidationListener(Consumer<Boolean> listener) {
-                            selectPuzzleModel.addValidationListener(listener);
-                        }
-                        
-                        @Override
-                        public void removeValidationListener(Consumer<Boolean> listener) {
-                            selectPuzzleModel.removeValidationListener(listener);
-                        }
-                    })
                     .build();
-            // TODO: Restore this functionality so that double-clicking in the puzzle list
-            //       launches the puzzle.
-            // inventoryUi.setPuzzleLoader(pi -> ok.doClick());
             dialog.open();
+            selectPuzzleModel.removeValidationListener(validationListener);
         }
         
         private void loadPuzzle() {
@@ -222,31 +209,22 @@ public class PuzzleUiController {
         }
         
         public void launch() {
-            InputDialog dialog = InputDialog.okCancel()
-                    .withOwner(appFrame)
-                    .withTitle("Build a Puzzle")
-                    .withContent(ui)
-                    .withOkJob(() -> {
+            InputOptions options = InputDialog.okCancel(() -> {
                         // TODO: Wait indication.
                         // TODO: Prompt to save changes made to existing puzzle before overwriting it.
                         controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
                             showInvalidNewPuzzleMessage(e, this::launch);
                         });
-                    })
-                    .withValidStateMonitor(new ValidStateMonitor() {
-                        
-                        @Override
-                        public void addValidationListener(Consumer<Boolean> listener) {
-                            model.addValidationListener(listener);
-                        }
-                        
-                        @Override
-                        public void removeValidationListener(Consumer<Boolean> listener) {
-                            model.removeValidationListener(listener);
-                        }
-                    })
+                    }, () -> {});
+            Consumer<Boolean> validationListener = options.getMaterializedOption(Option.OK)::setEnabled;
+            model.addValidationListener(validationListener);
+            InputDialog dialog = options.dialogBuilder()
+                    .withOwner(appFrame)
+                    .withTitle("Build a Puzzle")
+                    .withContent(ui)
                     .build();
             dialog.open();
+            model.removeValidationListener(validationListener);
         }
     }
 
