@@ -107,7 +107,7 @@ public class UiAutoSolver {
         }
 
         private void replayResult(Result result) {
-            // TODO: If we reach a point here only Naked and Hidden singles 
+            // TODO: If we reach a point where only Naked and Hidden singles 
             // remain in the replay list, speed up the timer.
             if (cancelRequested) {
                 return;

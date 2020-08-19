@@ -74,7 +74,6 @@ public class PuzzleBuilderController {
             UiThread.runLater(() -> {
                 Sandwiches sandwiches = sandwichDefinitionsUi.getSandwiches();
                 model.setSandwiches(sandwiches);
-                // TODO: Must update the UI.
             });
         }
     }
@@ -166,7 +165,6 @@ public class PuzzleBuilderController {
 
         @Override
         public void actionPerformed(ActionEvent e) {
-            // TODO: Prompt the user for an optional sum.
             // Since we wrap this in an invokeLater we pass in a reference to this.selectedCells,
             // to handle the corner case of the selection changing in between.
             UiThread.acceptLater(this::addCage, this.selectedCells);

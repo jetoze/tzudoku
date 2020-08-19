@@ -15,11 +15,11 @@ public class Puzzle {
 
     public static final Puzzle EMPTY = new Puzzle("(Empty)", Grid.emptyGrid());
     
-    // TODO: Thermos, killer cages, etc.
     private final String name;
     private final Grid grid;
     private final Sandwiches sandwiches;
     private final KillerCages killerCages;
+    // TODO: Thermos, when we have them.
     
     public Puzzle(String name, Grid grid) {
         this(name, grid, Sandwiches.EMPTY, KillerCages.EMPTY);

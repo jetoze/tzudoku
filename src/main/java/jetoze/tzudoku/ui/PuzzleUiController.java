@@ -209,13 +209,7 @@ public class PuzzleUiController {
         }
         
         public void launch() {
-            InputOptions options = InputDialog.okCancel(() -> {
-                        // TODO: Wait indication.
-                        // TODO: Prompt to save changes made to existing puzzle before overwriting it.
-                        controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
-                            showInvalidNewPuzzleMessage(e, this::launch);
-                        });
-                    }, () -> {});
+            InputOptions options = InputDialog.okCancel(this::buildPuzzle, () -> {});
             Consumer<Boolean> validationListener = options.getMaterializedOption(Option.OK)::setEnabled;
             model.addValidationListener(validationListener);
             InputDialog dialog = options.dialogBuilder()
@@ -225,6 +219,14 @@ public class PuzzleUiController {
                     .build();
             dialog.open();
             model.removeValidationListener(validationListener);
+        }
+        
+        private void buildPuzzle() {
+            // TODO: Wait indication.
+            // TODO: Prompt to save changes made to existing puzzle before overwriting it.
+            controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
+                showInvalidNewPuzzleMessage(e, this::launch);
+            });
         }
     }
 

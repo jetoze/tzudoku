@@ -21,9 +21,6 @@ import jetoze.tzudoku.model.Puzzle;
 
 public final class PuzzleBuilderUi implements Widget {
 
-    // TODO: When a value has been entered, automatically move to the next cell.
-    //       Add an option for this to GridUi(?).
-    
     private final PuzzleBuilderModel model;
     private final GridUi gridUi;
     // TODO: Restrict input to valid characters only.
@@ -118,9 +115,6 @@ public final class PuzzleBuilderUi implements Widget {
     public Puzzle getPuzzle() {
         // TODO: This will throw a RuntimeException if the name is blank.
         // We need validation.
-        // TODO: Name validation. We use the name as a filename, so it can't contain
-        // certain characters or have certain values. (This is unfortunate. We shouldn't tie
-        // the name of the puzzle to the name of the file we store the puzzle in.)
         String name = nameField.getText().strip().replace(' ', '_');
         return new Puzzle(name, model.getGridModel().getGrid());
     }

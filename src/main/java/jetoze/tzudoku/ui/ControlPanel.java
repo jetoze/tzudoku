@@ -38,7 +38,6 @@ import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Value;
 
 public class ControlPanel {
-    // TODO: Move more things to the controller.
     // TODO: The ControlPanel installs some Bindings on model properties. Is there a chance that
     //       the model will outlive the ControlPanel? If so, we must dispose the bindings when we 
     //       no longer need the ControlPanel.

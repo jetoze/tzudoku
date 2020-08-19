@@ -24,7 +24,7 @@ import jetoze.gunga.widget.Widget;
 import jetoze.tzudoku.model.PuzzleInfo;
 
 public final class InventoryUi implements Widget {
-    // TODO: Add filtering controls, such as hiding/displaying completed puzzles, name search field
+    // TODO: Add name search field
     // TODO: Add status panel, that displays name and lastUpdated date of the selected puzzle.
     // TODO: Is there any change the model will outlive this UI? IOW, is it necessary to
     //       dispose the bindings we install? I don't think so, but I'm not sure.

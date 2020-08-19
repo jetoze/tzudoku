@@ -20,7 +20,6 @@ import com.google.gson.stream.JsonWriter;
 public class PuzzleStorageRepresentation {
     private static final Comparator<Sandwich> SANDWICH_ORDER = Comparator.comparing(Sandwich::getPosition);
     
-    // TODO: Look into GSON TypeAdapters and custom serializers.
     private List<String> given;
     private List<String> entered;
     private List<PencilMarkState> pencilMarks;
