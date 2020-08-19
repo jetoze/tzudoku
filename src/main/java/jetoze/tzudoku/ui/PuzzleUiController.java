@@ -182,7 +182,7 @@ public class PuzzleUiController {
                     null,
                     new JButton[] {ok, cancel},
                     ok);
-            JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
+            JDialog dialog = new JDialog(appFrame, "Select a Puzzle", true);
             dialog.setContentPane(optionPane);
             dialog.pack();
             dialog.setLocationRelativeTo(appFrame);
@@ -242,8 +242,8 @@ public class PuzzleUiController {
                 });
             });
             JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
-            // TODO: Add validation listener functionality to PuzzleBuilderModel. Bind the valid 
-            // state to the OK button's enabled state.
+            Consumer<Boolean> validationListener = ok::setEnabled;
+            model.addValidationListener(validationListener);
 
             JOptionPane optionPane = new JOptionPane(
                     ui.getUi(),
@@ -252,7 +252,7 @@ public class PuzzleUiController {
                     null,
                     new JButton[] {ok, cancel},
                     ok);
-            JDialog dialog = new JDialog(appFrame, "Select a Puzzle");
+            JDialog dialog = new JDialog(appFrame, "Select a Puzzle", true);
             dialog.setContentPane(optionPane);
             dialog.pack();
             dialog.setLocationRelativeTo(appFrame);
@@ -266,6 +266,7 @@ public class PuzzleUiController {
             KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
                 .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
             dialog.setVisible(true);
+            model.removeValidationListener(validationListener);
         }
     }
 

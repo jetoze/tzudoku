@@ -72,6 +72,9 @@ public class SelectPuzzleModel {
         }
     }
     
+    // TODO: Add documentation that explains that the listener may be notified
+    // even if the validation state has not changed, i.e. it is possible for the 
+    // listener to get several valid=true or valid=false notifications in a row.
     public void addValidationListener(Consumer<Boolean> listener) {
         listener.accept(isValid());
         validationListeners.add(listener);

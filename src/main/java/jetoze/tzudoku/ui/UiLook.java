@@ -408,7 +408,7 @@ public final class UiLook {
         button.addActionListener(e -> {
             Window window = SwingUtilities.getWindowAncestor(button);
             if (window instanceof Dialog) {
-                window.dispose();
+                window.setVisible(false);
             }
             job.run();
         });
