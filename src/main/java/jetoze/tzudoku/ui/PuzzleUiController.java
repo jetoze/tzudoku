@@ -2,24 +2,19 @@ package jetoze.tzudoku.ui;
 
 import static java.util.Objects.requireNonNull;
 
-import java.awt.event.WindowAdapter;
-import java.awt.event.WindowEvent;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JFrame;
 import javax.swing.JOptionPane;
 
-import jetoze.gunga.KeyBindings;
-import jetoze.gunga.KeyStrokes;
 import jetoze.gunga.UiThread;
 import jetoze.tzudoku.model.Grid;
 import jetoze.tzudoku.model.GridSolver;
 import jetoze.tzudoku.model.Puzzle;
 import jetoze.tzudoku.model.PuzzleInfo;
 import jetoze.tzudoku.model.ValidationResult;
+import jetoze.tzudoku.ui.InputDialog.ValidStateMonitor;
 import jetoze.tzudoku.ui.hint.HintUiFactory;
 
 public class PuzzleUiController {
@@ -168,35 +163,28 @@ public class PuzzleUiController {
         }
         
         public void open() {
-            JButton ok = UiLook.createOptionDialogButton("OK", this::loadPuzzle);
-            JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
-            
-            inventoryUi.setPuzzleLoader(pi -> ok.doClick());
-            
-            Consumer<Boolean> validationListener = ok::setEnabled;
-            selectPuzzleModel.addValidationListener(validationListener);
-            JOptionPane optionPane = new JOptionPane(
-                    selectPuzzleUi.getUi(),
-                    JOptionPane.PLAIN_MESSAGE,
-                    JOptionPane.OK_CANCEL_OPTION,
-                    null,
-                    new JButton[] {ok, cancel},
-                    ok);
-            JDialog dialog = new JDialog(appFrame, "Select a Puzzle", true);
-            dialog.setContentPane(optionPane);
-            dialog.pack();
-            dialog.setLocationRelativeTo(appFrame);
-            dialog.addWindowListener(new WindowAdapter() {
-
-                @Override
-                public void windowOpened(WindowEvent e) {
-                    selectPuzzleUi.requestFocus();
-                }
-            });
-            KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
-                .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
-            dialog.setVisible(true);
-            selectPuzzleModel.removeValidationListener(validationListener);
+            InputDialog dialog = InputDialog.okCancel()
+                    .withOwner(appFrame)
+                    .withTitle("Select a Puzzle")
+                    .withContent(selectPuzzleUi)
+                    .withOkJob(this::loadPuzzle)
+                    .withValidStateMonitor(new ValidStateMonitor() {
+                        
+                        @Override
+                        public void addValidationListener(Consumer<Boolean> listener) {
+                            selectPuzzleModel.addValidationListener(listener);
+                        }
+                        
+                        @Override
+                        public void removeValidationListener(Consumer<Boolean> listener) {
+                            selectPuzzleModel.removeValidationListener(listener);
+                        }
+                    })
+                    .build();
+            // TODO: Restore this functionality so that double-clicking in the puzzle list
+            //       launches the puzzle.
+            // inventoryUi.setPuzzleLoader(pi -> ok.doClick());
+            dialog.open();
         }
         
         private void loadPuzzle() {
@@ -234,39 +222,31 @@ public class PuzzleUiController {
         }
         
         public void launch() {
-            JButton ok = UiLook.createOptionDialogButton("OK", () -> {
-                // TODO: Wait indication.
-                // TODO: Prompt to save changes made to existing puzzle before overwriting it.
-                controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
-                    showInvalidNewPuzzleMessage(e, this::launch);
-                });
-            });
-            JButton cancel = UiLook.createOptionDialogButton("Cancel", () -> {});
-            Consumer<Boolean> validationListener = ok::setEnabled;
-            model.addValidationListener(validationListener);
-
-            JOptionPane optionPane = new JOptionPane(
-                    ui.getUi(),
-                    JOptionPane.PLAIN_MESSAGE,
-                    JOptionPane.OK_CANCEL_OPTION,
-                    null,
-                    new JButton[] {ok, cancel},
-                    ok);
-            JDialog dialog = new JDialog(appFrame, "Select a Puzzle", true);
-            dialog.setContentPane(optionPane);
-            dialog.pack();
-            dialog.setLocationRelativeTo(appFrame);
-            dialog.addWindowListener(new WindowAdapter() {
-
-                @Override
-                public void windowOpened(WindowEvent e) {
-                    ui.requestFocus();
-                }
-            });
-            KeyBindings.whenAncestorOfFocusedComponent(dialog.getRootPane())
-                .add(KeyStrokes.ESCAPE, "escape", () -> dialog.setVisible(false));
-            dialog.setVisible(true);
-            model.removeValidationListener(validationListener);
+            InputDialog dialog = InputDialog.okCancel()
+                    .withOwner(appFrame)
+                    .withTitle("Build a Puzzle")
+                    .withContent(ui)
+                    .withOkJob(() -> {
+                        // TODO: Wait indication.
+                        // TODO: Prompt to save changes made to existing puzzle before overwriting it.
+                        controller.createPuzzle(PuzzleUiController.this::loadPuzzle, e -> {
+                            showInvalidNewPuzzleMessage(e, this::launch);
+                        });
+                    })
+                    .withValidStateMonitor(new ValidStateMonitor() {
+                        
+                        @Override
+                        public void addValidationListener(Consumer<Boolean> listener) {
+                            model.addValidationListener(listener);
+                        }
+                        
+                        @Override
+                        public void removeValidationListener(Consumer<Boolean> listener) {
+                            model.removeValidationListener(listener);
+                        }
+                    })
+                    .build();
+            dialog.open();
         }
     }
 
