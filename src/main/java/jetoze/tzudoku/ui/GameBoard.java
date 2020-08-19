@@ -91,8 +91,6 @@ public class GameBoard {
                         // Click outside of the grid and the control panel
                         // --> Clear the selection in the grid
                         gridUi.clearSelection();
-                        
-                        // TODO: Implement me.
                     }
                 }
             }
