@@ -40,6 +40,13 @@ public class PuzzleUiController {
     public void loadPuzzle(Puzzle puzzle) {
         puzzleModel.setPuzzle(puzzle);
         appFrame.setTitle(puzzle.getName());
+        ensureAppFrameVisible();
+    }
+
+    private void ensureAppFrameVisible() {
+        if (!appFrame.isVisible()) {
+            appFrame.setVisible(true);
+        }
     }
     
     public void saveProgress() {
@@ -160,7 +167,7 @@ public class PuzzleUiController {
         }
         
         public void open() {
-            InputOptions inputOptions = InputDialog.okCancel(this::loadPuzzle, () -> {});
+            InputOptions inputOptions = InputDialog.okCancel(this::loadPuzzle, PuzzleUiController.this::ensureAppFrameVisible);
             inventoryUi.setPuzzleLoader(pi -> inputOptions.getMaterializedOption(Option.OK).select());
 
             Consumer<Boolean> validationListener = inputOptions.getMaterializedOption(Option.OK)::setEnabled;

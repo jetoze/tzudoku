@@ -87,8 +87,6 @@ public class TzudokuApp {
 
         appFrame.pack();
         appFrame.setLocationRelativeTo(null);
-        appFrame.setVisible(true);
-        appFrame.requestFocusInWindow();
         
         if (puzzle != null) {
             controller.loadPuzzle(puzzle);
