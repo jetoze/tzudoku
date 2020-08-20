@@ -147,17 +147,13 @@ public final class Grid {
 
     public ImmutableSet<Position> getCellsWithDuplicateValues() {
         ImmutableSet.Builder<Position> bin = ImmutableSet.builder();
-        for (int n = 1; n <= 9; ++n) {
-            collectDuplicates(Position.positionsInRow(n), bin);
-            collectDuplicates(Position.positionsInColumn(n), bin);
-            collectDuplicates(Position.positionsInBox(n), bin);
-        }
+        House.ALL.stream().forEach(s -> collectDuplicates(s, bin));
         return bin.build();
     }
     
-    private void collectDuplicates(Stream<Position> positions, ImmutableSet.Builder<Position> bin) {
+    private void collectDuplicates(House house, ImmutableSet.Builder<Position> bin) {
         Multimap<Value, Position> mm = HashMultimap.create();
-        positions.forEach(p -> {
+        house.getPositions().forEach(p -> {
             Cell c = cells.get(p);
             c.getValue().ifPresent(v -> mm.put(v, p));
         });
