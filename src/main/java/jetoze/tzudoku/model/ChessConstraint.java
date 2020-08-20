@@ -37,17 +37,49 @@ public enum ChessConstraint implements Constraint {
             }
             return nums;
         }
-
     },
     
     KNIGHTS_MOVE {
 
         @Override
         protected ImmutableSet<Position> reachableFrom(Position p) {
-            throw new RuntimeException("TODO: Implement me");
+            // TODO: Can I be done in a more elegant way?
+            ImmutableSet.Builder<Position> builder = ImmutableSet.builder();
+            if (p.getRow() > 2) {
+                if (p.getColumn() > 1) {
+                    builder.add(new Position(p.getRow() - 2, p.getColumn() - 1));
+                }
+                if (p.getColumn() < 9) {
+                    builder.add(new Position(p.getRow() - 2, p.getColumn() + 1));
+                }
+            }
+            if (p.getRow() > 1) {
+                if (p.getColumn() > 2) {
+                    builder.add(new Position(p.getRow() - 1, p.getColumn() - 2));
+                }
+                if (p.getColumn() < 8) {
+                    builder.add(new Position(p.getRow() - 1, p.getColumn() + 2));
+                }
+            }
+            if (p.getRow() < 9) {
+                if (p.getColumn() > 2) {
+                    builder.add(new Position(p.getRow() + 1, p.getColumn() - 2));
+                }
+                if (p.getColumn() < 8) {
+                    builder.add(new Position(p.getRow() + 1, p.getColumn() + 2));
+                }
+            }
+            if (p.getRow() < 8) {
+                if (p.getColumn() > 1) {
+                    builder.add(new Position(p.getRow() + 2, p.getColumn() - 1));
+                }
+                if (p.getColumn() < 9) {
+                    builder.add(new Position(p.getRow() + 2, p.getColumn() + 1));
+                }
+            }
+            return builder.build();
         }
     };
-    
     
     @Override
     public final ImmutableSet<Position> validate(Grid grid) {
@@ -71,11 +103,4 @@ public enum ChessConstraint implements Constraint {
     // TODO: I'd like this to return a Stream. Is that going to be convenient for the Knights move constraint?
     protected abstract ImmutableSet<Position> reachableFrom(Position p);
     
-    
-    public static void main(String[] args) {
-        ImmutableSet<Position> ps = KINGS_MOVE.reachableFrom(new Position(9, 7));
-        ps.stream()
-            .sorted(Position.BY_ROW_AND_COLUMN)
-            .forEach(System.out::println);
-    }
 }
