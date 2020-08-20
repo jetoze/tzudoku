@@ -67,11 +67,7 @@ public class Sandwich implements Constraint {
         // Three cases:
         //   1. Sum is 0 --> sandwichedCells must be empty.
         //   2. Sum is > 0, all sandwiched cells have values --> sum must equal sandwich sum
-        //   3. Sum is > 0, only some sandwiched cells have values --> sum must be less than sandwich sum.
-        // Case 3 could be made even more fancy; for example if two cells are missing a value, but the sum
-        // totals up to (sandwich sum - 1), then we know that the sandwich is broken because the reamining
-        // two cells are guaranteed to increase the sum beyond the sandwich sum. Handling all those cases 
-        // are too complicated, so I won't bother.
+        //   3. Sum is > 0, any sandwiched cell with a digit >= sum is invalid
         if (sum == 0) {
             // TODO: Implement me. The problem is what cells to consider to be invalid. Clearly at least one
             // of the 1 or 9 is invalid, but I don't know which one.
@@ -87,11 +83,12 @@ public class Sandwich implements Constraint {
                 if (totalSum != this.sum) {
                     return ImmutableSet.copyOf(sandwichedCells.keySet());
                 }
-            } else if (totalSum >= this.sum) {
+            } else {
                 return sandwichedCells.entrySet().stream()
-                        .filter(e -> e.getValue().hasValue())
-                        .map(e -> e.getKey())
-                        .collect(toImmutableSet());
+                        .filter(e -> {
+                            Cell c = e.getValue();
+                            return c.hasValue() && c.getValue().get().toInt() >= this.sum;
+                        }).map(e -> e.getKey()).collect(toImmutableSet());
             }
         }
         return ImmutableSet.of();
