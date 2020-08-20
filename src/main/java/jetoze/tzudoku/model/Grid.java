@@ -7,7 +7,6 @@ import static java.util.stream.Collectors.toList;
 import static java.util.stream.Collectors.toSet;
 
 import java.util.Arrays;
-import java.util.Collection;
 import java.util.EnumSet;
 import java.util.HashSet;
 import java.util.Iterator;
@@ -159,8 +158,7 @@ public final class Grid {
         });
         mm.asMap().values().stream()
             .filter(c -> c.size() > 1)
-            .flatMap(Collection::stream)
-            .forEach(bin::add);
+            .forEach(bin::addAll);
     }
     
     public void showRemainingCandidates() {

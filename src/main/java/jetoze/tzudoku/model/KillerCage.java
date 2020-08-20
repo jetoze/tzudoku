@@ -152,15 +152,12 @@ public class KillerCage implements Constraint {
             return positions;
         }
         // 1.
-        Set<Position> invalid = new HashSet<>();
-        for (Value digit : digitToCell.keySet()) {
-            Collection<Position> ps = digitToCell.get(digit);
-            if (ps.size() > 1) {
-                invalid.addAll(ps);
-            }
-        }
-        if (!invalid.isEmpty()) {
-            return ImmutableSet.copyOf(invalid);
+        ImmutableSet<Position> duplicates = digitToCell.asMap().values().stream()
+                .filter(c -> c.size() > 1)
+                .flatMap(Collection::stream)
+                .collect(toImmutableSet());
+        if (!duplicates.isEmpty()) {
+            return duplicates;
         }
         // 3.
         if (hasSum()) {
@@ -169,7 +166,7 @@ public class KillerCage implements Constraint {
                 return cell.hasValue() && cell.getValue().get().toInt() >= this.sum;
             }).collect(toImmutableSet());
         }
-        return ImmutableSet.copyOf(invalid);
+        return ImmutableSet.of();
     }
 
     // TODO: Move the boundary related methods to an inner class Boundary?

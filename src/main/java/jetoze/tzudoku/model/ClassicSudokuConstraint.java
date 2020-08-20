@@ -10,6 +10,7 @@ public class ClassicSudokuConstraint implements Constraint {
 
     @Override
     public ImmutableSet<Position> validate(Grid grid) {
+        // TODO: Or should we move the getCellsWithDuplicateValues() implementation from Grid to this class?
         return grid.getCellsWithDuplicateValues();
     }
 

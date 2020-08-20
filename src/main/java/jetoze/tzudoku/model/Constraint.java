@@ -15,6 +15,12 @@ public interface Constraint {
     // cage is incorrect. In that case we know for sure that one or more cells in the cage
     // are wrong, but we don't know which ones. (We currently consider all the cells in the
     // cage as invalid in this case.)
+
+    /**
+     * The classic sudoku constraint: duplicate digits are not allowed in a row, column,
+     * or box.
+     */
+    public static final Constraint CLASSIC_SUDOKU = Grid::getCellsWithDuplicateValues;
     
     /**
      * Applies this constraint to the given grid, and returns a set of the 
