@@ -1,25 +1,34 @@
 package jetoze.tzudoku.model;
 
-import static tzeth.preconds.MorePreconditions.*;
+import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.*;
+import static tzeth.preconds.MorePreconditions.checkInRange;
 
+import java.util.EnumSet;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 
 import javax.annotation.Nullable;
 
-public class Sandwich {
+import com.google.common.collect.ImmutableSet;
+
+public class Sandwich implements Constraint {
     // TODO: Is "position" a confusing name for this property, seeing how
     // it represents a row or a column, and we have a Position class representing
     // a row and a column.
-    private final int position;
+    private final House house;
     private final int sum;
     
-    public Sandwich(int position, int sum) {
-        this.position = checkInRange(position, 1, 9);
+    public Sandwich(House house, int sum) {
+        checkArgument(house.getType() != House.Type.BOX, "Only rows and columns allowed");
+        this.house = house;
         this.sum = checkInRange(sum, 0, 35);
     }
 
-    public int getPosition() {
-        return position;
+    public House getHouse() {
+        return house;
     }
 
     public int getSum() {
@@ -27,13 +36,75 @@ public class Sandwich {
     }
     
     @Override
+    public ImmutableSet<Position> validate(Grid grid) {
+        EnumSet<Value> oneAndNine = EnumSet.noneOf(Value.class);
+        boolean foundStart = false;
+        Map<Position, Cell> sandwichedCells = new HashMap<>();
+        for (Position p : house.toList()) {
+            Cell cell = grid.cellAt(p);
+            ifBoundaryDigit(cell).ifPresent(oneAndNine::add);
+            if (oneAndNine.size() == 2) {
+                break;
+            }
+            if (!foundStart && oneAndNine.size() == 1) {
+                foundStart = true;
+                continue;
+            }
+            sandwichedCells.put(p, cell);
+        }
+        return oneAndNine.size() == 2
+                ? validateSandwichedCells(sandwichedCells)
+                : ImmutableSet.of();
+    }
+    
+    private Optional<Value> ifBoundaryDigit(Cell cell) {
+        return (cell.hasValue(Value.ONE) || cell.hasValue(Value.NINE))
+                ? cell.getValue()
+                : Optional.empty();
+    }
+
+    private ImmutableSet<Position> validateSandwichedCells(Map<Position, Cell> sandwichedCells) {
+        // Three cases:
+        //   1. Sum is 0 --> sandwichedCells must be empty.
+        //   2. Sum is > 0, all sandwiched cells have values --> sum must equal sandwich sum
+        //   3. Sum is > 0, only some sandwiched cells have values --> sum must be less than sandwich sum.
+        // Case 3 could be made even more fancy; for example if two cells are missing a value, but the sum
+        // totals up to (sandwich sum - 1), then we know that the sandwich is broken because the reamining
+        // two cells are guaranteed to increase the sum beyond the sandwich sum. Handling all those cases 
+        // are too complicated, so I won't bother.
+        if (sum == 0) {
+            // TODO: Implement me. The problem is what cells to consider to be invalid. Clearly at least one
+            // of the 1 or 9 is invalid, but I don't know which one.
+            return ImmutableSet.of();
+        } else {
+            int totalSum = sandwichedCells.values().stream()
+                    .map(Cell::getValue)
+                    .flatMap(Optional::stream)
+                    .mapToInt(Value::toInt)
+                    .sum();
+            boolean allSandwichedCellsHaveValues = sandwichedCells.values().stream().allMatch(Cell::hasValue);
+            if (allSandwichedCellsHaveValues) {
+                if (totalSum != this.sum) {
+                    return ImmutableSet.copyOf(sandwichedCells.keySet());
+                }
+            } else if (totalSum >= this.sum) {
+                return sandwichedCells.entrySet().stream()
+                        .filter(e -> e.getValue().hasValue())
+                        .map(e -> e.getKey())
+                        .collect(toImmutableSet());
+            }
+        }
+        return ImmutableSet.of();
+    }
+
+    @Override
     public String toString() {
-        return String.format("Position: %d, Sum: %d", position, sum);
+        return String.format("%s - Sum: %d", house, sum);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(position, sum);
+        return Objects.hash(house, sum);
     }
 
     @Override
@@ -43,7 +114,7 @@ public class Sandwich {
         }
         if (obj instanceof Sandwich) {
             Sandwich that = (Sandwich) obj;
-            return (this.position == that.position) && (this.sum == that.sum);
+            return this.house.equals(that.house) && (this.sum == that.sum);
         }
         return false;
     }

@@ -55,7 +55,7 @@ public class SandwichDefinitionsUi implements Widget {
     
     private static void populateSelectors(ImmutableSet<Sandwich> sums, ImmutableMap<Integer, ComboBoxWidget<Integer>> selectors) {
         sums.forEach(s -> {
-            ComboBoxWidget<Integer> selector = selectors.get(s.getPosition());
+            ComboBoxWidget<Integer> selector = selectors.get(s.getHouse().getNumber());
             selector.setSelectedItem(s.getSum());
         });
     }

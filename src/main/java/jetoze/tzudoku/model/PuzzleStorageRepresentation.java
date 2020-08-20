@@ -1,14 +1,19 @@
 package jetoze.tzudoku.model;
 
-import static java.util.stream.Collectors.*;
+import static java.util.stream.Collectors.joining;
+import static java.util.stream.Collectors.toSet;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import com.google.gson.Gson;
@@ -18,14 +23,13 @@ import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
 public class PuzzleStorageRepresentation {
-    private static final Comparator<Sandwich> SANDWICH_ORDER = Comparator.comparing(Sandwich::getPosition);
+    private static final Comparator<Sandwich> SANDWICH_ORDER = Comparator.comparing(SandwichAdapter::houseRepresentation);
     
     private List<String> given;
     private List<String> entered;
     private List<PencilMarkState> pencilMarks;
     private List<ColorState> colors;
-    private Set<Sandwich> rowSandwiches;
-    private Set<Sandwich> columnSandwiches;
+    private Set<Sandwich> sandwiches;
     private Set<KillerCage> killerCages;
 
     private PuzzleStorageRepresentation() {
@@ -37,16 +41,15 @@ public class PuzzleStorageRepresentation {
         entered = new ArrayList<>();
         pencilMarks = new ArrayList<>();
         colors = new ArrayList<>();
-        rowSandwiches = new TreeSet<>(SANDWICH_ORDER);
-        columnSandwiches = new TreeSet<>(SANDWICH_ORDER);
+        sandwiches = new TreeSet<>(SANDWICH_ORDER);
         killerCages = new HashSet<>();
     }
 
     public PuzzleStorageRepresentation(Puzzle puzzle) {
         this();
         storeGrid(puzzle);
-        rowSandwiches.addAll(puzzle.getSandwiches().getRows());
-        columnSandwiches.addAll(puzzle.getSandwiches().getColumns());
+        sandwiches.addAll(puzzle.getSandwiches().getRows());
+        sandwiches.addAll(puzzle.getSandwiches().getColumns());
         killerCages.addAll(puzzle.getKillerCages().getCages());
     }
 
@@ -83,6 +86,10 @@ public class PuzzleStorageRepresentation {
 
     public Puzzle restorePuzzle(String name) { // TODO: Include the name in the representation?
         Grid grid = restoreGrid();
+        Map<House.Type, List<Sandwich>> sandwichesByType = sandwiches.stream()
+                .collect(Collectors.groupingBy(s -> s.getHouse().getType()));
+        Collection<Sandwich> rowSandwiches = sandwichesByType.getOrDefault(House.Type.ROW, Collections.emptyList());
+        Collection<Sandwich> columnSandwiches = sandwichesByType.getOrDefault(House.Type.COLUMN, Collections.emptyList());
         Sandwiches sandwiches = new Sandwiches(rowSandwiches, columnSandwiches);
         return new Puzzle(name, grid, sandwiches, new KillerCages(killerCages));
     }
@@ -133,6 +140,7 @@ public class PuzzleStorageRepresentation {
                 .create();
         return gson.fromJson(json, PuzzleStorageRepresentation.class);
     }
+    
 
     private static class PencilMarkState {
         private int row;
@@ -186,10 +194,23 @@ public class PuzzleStorageRepresentation {
     
     private static class SandwichAdapter extends TypeAdapter<Sandwich> {
 
+        public static String houseRepresentation(Sandwich s) {
+            House.Type houseType = s.getHouse().getType();
+            return (houseType == House.Type.ROW ? "r" : "c") + s.getHouse().getNumber();
+        }
+        
+        private static House toHouse(String s) {
+            House.Type houseType = s.charAt(0) == 'r'
+                    ? House.Type.ROW
+                    : House.Type.COLUMN;
+            int number = s.charAt(1) - 48;
+            return houseType.createHouse(number);
+        }
+        
         @Override
         public void write(JsonWriter out, Sandwich value) throws IOException {
             out.beginArray()
-                .value(value.getPosition())
+                .value(houseRepresentation(value))
                 .value(value.getSum())
                 .endArray();
         }
@@ -197,10 +218,11 @@ public class PuzzleStorageRepresentation {
         @Override
         public Sandwich read(JsonReader in) throws IOException {
             in.beginArray();
-            int pos = in.nextInt();
+            String houseRep = in.nextString();
+            House house = toHouse(houseRep);
             int sum = in.nextInt();
             in.endArray();
-            return new Sandwich(pos, sum);
+            return new Sandwich(house, sum);
         }
     }
     

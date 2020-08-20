@@ -1,6 +1,7 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableList.toImmutableList;
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.requireNonNull;
 
@@ -15,6 +16,7 @@ import java.util.function.ToIntFunction;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 
 /**
@@ -288,6 +290,10 @@ public class House {
      */
     public Stream<Position> getPositions() {
         return type.positions(number);
+    }
+    
+    public ImmutableList<Position> toList() {
+        return getPositions().collect(toImmutableList());
     }
     
     /**

@@ -8,10 +8,11 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 import java.util.TreeMap;
+import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 
-public class Sandwiches {
+public class Sandwiches implements Constraint {
     public static final Sandwiches EMPTY = new Sandwiches();
     
     private final ImmutableSet<Sandwich> rows;
@@ -32,7 +33,8 @@ public class Sandwiches {
     private static void checkNoDuplicatePositions(Collection<Sandwich> c, String rowOrColumn) {
         Set<Integer> positions = new HashSet<>();
         for (Sandwich s : c) {
-            checkArgument(positions.add(s.getPosition()), "Duplicate position in %s: %s", rowOrColumn, s.getPosition());
+            checkArgument(positions.add(s.getHouse().getNumber()), "Duplicate position in %s", rowOrColumn, 
+                    s.getHouse().getNumber());
         }
     }
     
@@ -48,6 +50,11 @@ public class Sandwiches {
         return rows.isEmpty() && columns.isEmpty();
     }
     
+    @Override
+    public ImmutableSet<Position> validate(Grid grid) {
+        return Constraint.validateAll(grid, Stream.concat(rows.stream(), columns.stream()));
+    }
+
     public String toString() {
         return String.format("Rows: %s. Columns: %s", rows, columns);
     }
@@ -80,14 +87,14 @@ public class Sandwiches {
         
         public Builder row(int row, int sum) {
             checkArgument(!rows.containsKey(row), "A sandwich already exists for row %s", row);
-            Sandwich s = new Sandwich(row, sum);
+            Sandwich s = new Sandwich(House.row(row), sum);
             rows.put(row, s);
             return this;
         }
         
         public Builder column(int col, int sum) {
             checkArgument(!columns.containsKey(col), "A sandwich already exists for column %s", col);
-            Sandwich s = new Sandwich(col, sum);
+            Sandwich s = new Sandwich(House.column(col), sum);
             columns.put(col, s);
             return this;
         }

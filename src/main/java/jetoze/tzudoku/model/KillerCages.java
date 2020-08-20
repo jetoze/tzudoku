@@ -20,7 +20,7 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public class KillerCages {
+public class KillerCages implements Constraint {
 
     public static final KillerCages EMPTY = new KillerCages();
     
@@ -55,6 +55,11 @@ public class KillerCages {
     
     public boolean isEmpty() {
         return cages.isEmpty();
+    }
+
+    @Override
+    public ImmutableSet<Position> validate(Grid grid) {
+        return Constraint.validateAll(grid, cages.values());
     }
 
     public boolean contains(KillerCage cage) {

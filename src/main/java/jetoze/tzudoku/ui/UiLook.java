@@ -174,12 +174,12 @@ public final class UiLook {
         g.setFont(boardSize.getSandwichFont());
         
         for (Sandwich rowSandwich : sandwiches.getRows()) {
-            Rectangle bounds = boardSize.getRowSandwichSumBounds(rowSandwich.getPosition());
+            Rectangle bounds = boardSize.getRowSandwichSumBounds(rowSandwich.getHouse().getNumber());
             drawTextCentered(g, boardSize.getSandwichFont(), Integer.toString(rowSandwich.getSum()), bounds);
         }
         
         for (Sandwich columnSandwich : sandwiches.getColumns()) {
-            Rectangle bounds = boardSize.getColumnSandwichSumBounds(columnSandwich.getPosition());
+            Rectangle bounds = boardSize.getColumnSandwichSumBounds(columnSandwich.getHouse().getNumber());
             drawTextCentered(g, boardSize.getSandwichFont(), Integer.toString(columnSandwich.getSum()), bounds);
         }
         

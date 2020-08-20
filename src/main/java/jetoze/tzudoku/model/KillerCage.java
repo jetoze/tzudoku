@@ -4,6 +4,7 @@ import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableTable.toImmutableTable;
 import static java.util.Objects.requireNonNull;
 
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.NoSuchElementException;
 import java.util.Objects;
@@ -12,12 +13,14 @@ import java.util.Set;
 
 import javax.annotation.Nullable;
 
+import com.google.common.collect.HashMultimap;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableTable;
+import com.google.common.collect.Multimap;
 
-public class KillerCage {
+public class KillerCage implements Constraint {
 
     // TODO: It is technically not necessary to store the positions separately
     // like this, since we also have them in a Table. This allows us to implement
@@ -117,6 +120,45 @@ public class KillerCage {
         return Optional.ofNullable(sum);
     }
     
+    @Override
+    public ImmutableSet<Position> validate(Grid grid) {
+        // 1. No repeated digits allowed
+        // 2. If all cells have a digit, the sum must match the cage sum (if there is one)
+        // 3. For an incomplete cage, he current sum must be < the total sum.
+        Multimap<Value, Position> digitToCell = HashMultimap.create();
+        int currentSum = 0;
+        boolean allCellsArePopulated = true;
+        for (Position p : positions) {
+            Cell cell = grid.cellAt(p);
+            if (cell.hasValue()) {
+                Value digit = cell.getValue().get();
+                currentSum += digit.toInt();
+                digitToCell.put(digit, p);
+            } else {
+                allCellsArePopulated = false;
+            }
+        }
+        // 2.
+        if (allCellsArePopulated && this.hasSum() && currentSum > this.sum) {
+            return positions;
+        }
+        // 1.
+        Set<Position> invalid = new HashSet<>();
+        for (Value digit : digitToCell.keySet()) {
+            Collection<Position> ps = digitToCell.get(digit);
+            if (ps.size() > 1) {
+                invalid.addAll(ps);
+            }
+        }
+        // 3.
+        if (hasSum() && currentSum >= this.sum) {
+            positions.stream().filter(p -> grid.cellAt(p).hasValue()).forEach(invalid::add);
+        }
+        
+        return ImmutableSet.copyOf(invalid);
+    }
+
+    // TODO: Move the boundary related methods to an inner class Boundary?
     public boolean isUpperBoundary(Position p) {
         return !byRowAndColumn.contains(p.getRow() - 1, p.getColumn());
     }
