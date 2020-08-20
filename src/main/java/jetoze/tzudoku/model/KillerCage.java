@@ -1,6 +1,7 @@
 package jetoze.tzudoku.model;
 
 import static com.google.common.base.Preconditions.checkArgument;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static com.google.common.collect.ImmutableTable.toImmutableTable;
 import static java.util.Objects.requireNonNull;
 
@@ -123,8 +124,16 @@ public class KillerCage implements Constraint {
     @Override
     public ImmutableSet<Position> validate(Grid grid) {
         // 1. No repeated digits allowed
-        // 2. If all cells have a digit, the sum must match the cage sum (if there is one)
-        // 3. For an incomplete cage, he current sum must be < the total sum.
+        // 2. If all cells have a digit, the sum must match the cage sum (if there is one).
+        //    If not, we flag the entire cage as invalid even though individual cells in the
+        //    cage may be valid. See TODO in the Constraint interface about a more powerful 
+        //    validation approach, that would allow us to highlight the boundary of an invalid
+        //    cage rather than the individual cells.
+        // 3. A cell with a value that is >= the cage sum is obviously wrong (e.g. a 9 cell 
+        //    in a 7-sum cage).
+        // Note that for an incomplete cell we know that something is wrong if the total value of
+        // all digits entered so far is >= the cage sum, but we don't know which of the digits
+        // are wrong --> don't validate that case.
         Multimap<Value, Position> digitToCell = HashMultimap.create();
         int currentSum = 0;
         boolean allCellsArePopulated = true;
@@ -150,11 +159,16 @@ public class KillerCage implements Constraint {
                 invalid.addAll(ps);
             }
         }
-        // 3.
-        if (hasSum() && currentSum >= this.sum) {
-            positions.stream().filter(p -> grid.cellAt(p).hasValue()).forEach(invalid::add);
+        if (!invalid.isEmpty()) {
+            return ImmutableSet.copyOf(invalid);
         }
-        
+        // 3.
+        if (hasSum()) {
+            return positions.stream().filter(p -> {
+                Cell cell = grid.cellAt(p);
+                return cell.hasValue() && cell.getValue().get().toInt() >= this.sum;
+            }).collect(toImmutableSet());
+        }
         return ImmutableSet.copyOf(invalid);
     }
 

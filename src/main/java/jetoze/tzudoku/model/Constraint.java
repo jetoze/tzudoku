@@ -10,6 +10,12 @@ import com.google.common.collect.ImmutableSet;
 
 public interface Constraint {
 
+    // TODO: This approach is very primitive. A more sophisticated approach would allow us
+    // to do things like highlight the boundary of a killer cage if the total sum of the 
+    // cage is incorrect. In that case we know for sure that one or more cells in the cage
+    // are wrong, but we don't know which ones. (We currently consider all the cells in the
+    // cage as invalid in this case.)
+    
     /**
      * Applies this constraint to the given grid, and returns a set of the 
      * positions of the cells that are currently violating this constraint.
