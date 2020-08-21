@@ -87,6 +87,10 @@ public class PuzzleBuilderModel {
         gridModel.setKillerCages(cages);
     }
     
+    public ImmutableSet<ChessConstraint> getChessConstraints() {
+        return chessConstraints.get();
+    }
+    
     public Property<ImmutableSet<ChessConstraint>> getChessConstraintsProperty() {
         return chessConstraints;
     }

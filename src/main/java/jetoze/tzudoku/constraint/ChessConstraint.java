@@ -8,6 +8,7 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+import com.google.gson.annotations.SerializedName;
 
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
@@ -16,6 +17,7 @@ import jetoze.tzudoku.model.Value;
 
 public enum ChessConstraint implements Constraint {
 
+    @SerializedName("ki")
     KINGS_MOVE {
 
         @Override
@@ -44,6 +46,7 @@ public enum ChessConstraint implements Constraint {
         }
     },
     
+    @SerializedName("kn")
     KNIGHTS_MOVE {
 
         @Override

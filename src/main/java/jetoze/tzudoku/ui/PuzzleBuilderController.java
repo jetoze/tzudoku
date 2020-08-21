@@ -117,7 +117,7 @@ public class PuzzleBuilderController {
             cells.put(p, cellToUse);
         });
         Grid grid = new Grid(cells);
-        Puzzle puzzle = new Puzzle(name, grid, model.getSandwiches(), model.getKillerCages());
+        Puzzle puzzle = new Puzzle(name, grid, model.getSandwiches(), model.getKillerCages(), model.getChessConstraints());
         try {
             model.getInventory().addNewPuzzle(puzzle);
             return puzzle;

@@ -22,6 +22,7 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import jetoze.tzudoku.constraint.ChessConstraint;
 import jetoze.tzudoku.constraint.KillerCage;
 import jetoze.tzudoku.constraint.KillerCages;
 import jetoze.tzudoku.constraint.Sandwich;
@@ -36,6 +37,7 @@ public class PuzzleStorageRepresentation {
     private List<ColorState> colors;
     private Set<Sandwich> sandwiches;
     private Set<KillerCage> killerCages;
+    private Set<ChessConstraint> chessConstraints;
 
     private PuzzleStorageRepresentation() {
         // XXX: This is necessary to satisfy Gson when deserializing input that doesn't
@@ -48,6 +50,7 @@ public class PuzzleStorageRepresentation {
         colors = new ArrayList<>();
         sandwiches = new TreeSet<>(SANDWICH_ORDER);
         killerCages = new HashSet<>();
+        chessConstraints = new HashSet<>();
     }
 
     public PuzzleStorageRepresentation(Puzzle puzzle) {
@@ -56,6 +59,7 @@ public class PuzzleStorageRepresentation {
         sandwiches.addAll(puzzle.getSandwiches().getRows());
         sandwiches.addAll(puzzle.getSandwiches().getColumns());
         killerCages.addAll(puzzle.getKillerCages().getCages());
+        chessConstraints.addAll(puzzle.getChessConstraints());
     }
 
     private void storeGrid(Puzzle puzzle) {
@@ -96,7 +100,7 @@ public class PuzzleStorageRepresentation {
         Collection<Sandwich> rowSandwiches = sandwichesByType.getOrDefault(House.Type.ROW, Collections.emptyList());
         Collection<Sandwich> columnSandwiches = sandwichesByType.getOrDefault(House.Type.COLUMN, Collections.emptyList());
         Sandwiches sandwiches = new Sandwiches(rowSandwiches, columnSandwiches);
-        return new Puzzle(name, grid, sandwiches, new KillerCages(killerCages));
+        return new Puzzle(name, grid, sandwiches, new KillerCages(killerCages), chessConstraints);
     }
 
     private Grid restoreGrid() {
@@ -130,20 +134,21 @@ public class PuzzleStorageRepresentation {
     }
 
     public String toJson() {
-        return new GsonBuilder()
-                .registerTypeAdapter(Sandwich.class, new SandwichAdapter())
-                .registerTypeAdapter(KillerCage.class, new KillerCageAdapter())
-                .setPrettyPrinting()
-                .create()
+        return createGson()
                 .toJson(this);
     }
 
     public static PuzzleStorageRepresentation fromJson(String json) {
-        Gson gson = new GsonBuilder()
+        Gson gson = createGson();
+        return gson.fromJson(json, PuzzleStorageRepresentation.class);
+    }
+
+    private static Gson createGson() {
+        return new GsonBuilder()
                 .registerTypeAdapter(Sandwich.class, new SandwichAdapter())
                 .registerTypeAdapter(KillerCage.class, new KillerCageAdapter())
+                .setPrettyPrinting()
                 .create();
-        return gson.fromJson(json, PuzzleStorageRepresentation.class);
     }
     
 
@@ -269,4 +274,5 @@ public class PuzzleStorageRepresentation {
                     : new KillerCage(positions);
         }
     }
+
 }

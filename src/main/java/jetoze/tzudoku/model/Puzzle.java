@@ -1,13 +1,16 @@
 package jetoze.tzudoku.model;
 
+import static com.google.common.base.Preconditions.checkArgument;
 import static java.util.Objects.requireNonNull;
 
-import com.google.common.base.CharMatcher;
+import java.util.Set;
 
+import com.google.common.base.CharMatcher;
+import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.constraint.ChessConstraint;
 import jetoze.tzudoku.constraint.KillerCages;
 import jetoze.tzudoku.constraint.Sandwiches;
-
-import static com.google.common.base.Preconditions.*;
 
 public class Puzzle {
     
@@ -22,17 +25,19 @@ public class Puzzle {
     private final Grid grid;
     private final Sandwiches sandwiches;
     private final KillerCages killerCages;
+    private final ImmutableSet<ChessConstraint> chessConstraints;
     // TODO: Thermos, when we have them.
     
     public Puzzle(String name, Grid grid) {
-        this(name, grid, Sandwiches.EMPTY, KillerCages.EMPTY);
+        this(name, grid, Sandwiches.EMPTY, KillerCages.EMPTY, ImmutableSet.of());
     }
     
-    public Puzzle(String name, Grid grid, Sandwiches sandwiches, KillerCages killerCages) {
+    public Puzzle(String name, Grid grid, Sandwiches sandwiches, KillerCages killerCages, Set<ChessConstraint> chessConstraints) {
         this.name = validateName(name);
         this.grid = requireNonNull(grid);
         this.sandwiches = requireNonNull(sandwiches);
         this.killerCages = requireNonNull(killerCages);
+        this.chessConstraints = ImmutableSet.copyOf(chessConstraints);
     }
     
     private static String validateName(String name) {
@@ -57,6 +62,10 @@ public class Puzzle {
     public KillerCages getKillerCages() {
         return killerCages;
     }
+    
+    public ImmutableSet<ChessConstraint> getChessConstraints() {
+        return chessConstraints;
+    }
 
     public boolean isSolved() {
         return grid.isSolved();
@@ -64,6 +73,6 @@ public class Puzzle {
     
     public boolean isEmpty() {
         // TODO: Thermos, when we have them.
-        return grid.isEmpty() && sandwiches.isEmpty() && killerCages.isEmpty();
+        return grid.isEmpty() && sandwiches.isEmpty() && killerCages.isEmpty() && chessConstraints.isEmpty();
     }
 }
