@@ -9,10 +9,10 @@ import java.util.function.Consumer;
 import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwiches;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.Puzzle;
-import jetoze.tzudoku.model.Sandwiches;
 
 public class PuzzleBuilderModel {
     private final PuzzleInventory inventory;

@@ -11,6 +11,10 @@ import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
 
+import jetoze.tzudoku.constraint.KillerCage;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwiches;
+
 public class PuzzleStorageRepresentationTest {
 
     @Test

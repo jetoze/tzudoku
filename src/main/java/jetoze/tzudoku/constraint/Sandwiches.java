@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -11,6 +11,10 @@ import java.util.TreeMap;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.Position;
 
 public class Sandwiches implements Constraint {
     public static final Sandwiches EMPTY = new Sandwiches();

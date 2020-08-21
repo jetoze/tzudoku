@@ -28,16 +28,16 @@ import com.google.common.collect.ImmutableMap;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.icon.ColoredDiskIcon;
 import jetoze.gunga.widget.Customizable;
+import jetoze.tzudoku.constraint.KillerCage;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwich;
+import jetoze.tzudoku.constraint.Sandwiches;
+import jetoze.tzudoku.constraint.KillerCage.InnerCorner;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.GridSolver.Result;
-import jetoze.tzudoku.model.KillerCage;
-import jetoze.tzudoku.model.KillerCage.InnerCorner;
-import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.PuzzleState;
-import jetoze.tzudoku.model.Sandwich;
-import jetoze.tzudoku.model.Sandwiches;
 import jetoze.tzudoku.model.Value;
 
 public final class UiLook {

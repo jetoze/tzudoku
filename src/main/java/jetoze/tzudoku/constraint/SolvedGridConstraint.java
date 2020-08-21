@@ -1,9 +1,13 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.*;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
 
 /**
  * Constraint that uses a solved version of the grid to detect invalid cells.

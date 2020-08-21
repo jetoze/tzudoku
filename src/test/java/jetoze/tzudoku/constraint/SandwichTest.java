@@ -1,10 +1,17 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 public class SandwichTest {
 

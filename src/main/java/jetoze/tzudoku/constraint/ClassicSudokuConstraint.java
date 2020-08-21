@@ -1,6 +1,9 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
 
 /**
  * The classic sudoku constraint: duplicate digits are not allowed in a row, column,

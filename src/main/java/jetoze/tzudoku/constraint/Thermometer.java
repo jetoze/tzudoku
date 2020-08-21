@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.base.Preconditions.checkArgument;
 
@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 import com.google.common.collect.ImmutableList;
+
+import jetoze.tzudoku.model.Position;
 
 public class Thermometer {
 

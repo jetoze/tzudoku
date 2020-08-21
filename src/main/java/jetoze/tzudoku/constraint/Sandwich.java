@@ -1,7 +1,7 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.base.Preconditions.checkArgument;
-import static com.google.common.collect.ImmutableSet.*;
+import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static tzeth.preconds.MorePreconditions.checkInRange;
 
 import java.util.EnumSet;
@@ -13,6 +13,12 @@ import java.util.Optional;
 import javax.annotation.Nullable;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.House;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 public class Sandwich implements Constraint {
     // TODO: Is "position" a confusing name for this property, seeing how

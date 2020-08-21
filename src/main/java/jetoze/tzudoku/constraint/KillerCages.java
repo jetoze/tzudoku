@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
@@ -19,6 +19,9 @@ import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
 
 public class KillerCages implements Constraint {
 

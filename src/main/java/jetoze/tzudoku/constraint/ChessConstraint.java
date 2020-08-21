@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 
@@ -8,6 +8,11 @@ import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
+
+import jetoze.tzudoku.model.Cell;
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 public enum ChessConstraint implements Constraint {
 

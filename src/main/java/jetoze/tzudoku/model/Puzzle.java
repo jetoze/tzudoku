@@ -4,6 +4,9 @@ import static java.util.Objects.requireNonNull;
 
 import com.google.common.base.CharMatcher;
 
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwiches;
+
 import static com.google.common.base.Preconditions.*;
 
 public class Puzzle {

@@ -22,6 +22,11 @@ import com.google.gson.TypeAdapter;
 import com.google.gson.stream.JsonReader;
 import com.google.gson.stream.JsonWriter;
 
+import jetoze.tzudoku.constraint.KillerCage;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwich;
+import jetoze.tzudoku.constraint.Sandwiches;
+
 public class PuzzleStorageRepresentation {
     private static final Comparator<Sandwich> SANDWICH_ORDER = Comparator.comparing(SandwichAdapter::houseRepresentation);
     

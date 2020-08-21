@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.stream.Collectors.toSet;
@@ -12,6 +12,10 @@ import java.util.Set;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
+import jetoze.tzudoku.model.Value;
 
 public class KillerCageTest {
 

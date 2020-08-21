@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.collect.ImmutableSet.toImmutableSet;
 import static java.util.Objects.*;
@@ -7,6 +7,9 @@ import java.util.Collection;
 import java.util.stream.Stream;
 
 import com.google.common.collect.ImmutableSet;
+
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
 
 public interface Constraint {
 

@@ -23,14 +23,14 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.gunga.UiThread;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.ComboBoxWidget;
+import jetoze.tzudoku.constraint.KillerCage;
+import jetoze.tzudoku.constraint.KillerCageSums;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwiches;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.KillerCage;
-import jetoze.tzudoku.model.KillerCageSums;
-import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
-import jetoze.tzudoku.model.Sandwiches;
 
 public class PuzzleBuilderController {
     // TODO: Edit Killer Cage action. To begin with at least allow changing the cage sum.
