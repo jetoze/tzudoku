@@ -75,9 +75,10 @@ public class Sandwich implements Constraint {
         //   2. Sum is > 0, all sandwiched cells have values --> sum must equal sandwich sum
         //   3. Sum is > 0, any sandwiched cell with a digit >= sum is invalid
         if (sum == 0) {
-            // TODO: Implement me. The problem is what cells to consider to be invalid. Clearly at least one
-            // of the 1 or 9 is invalid, but I don't know which one.
-            return ImmutableSet.of();
+            // XXX: The problem here is what cells to consider to be invalid. Clearly at least one
+            // of the 1 or 9 is invalid, but we don't know which one. For now, just mark the 
+            // sandwiched cells as invalid (even though they may in fact all be correct!).
+            return ImmutableSet.copyOf(sandwichedCells.keySet());
         } else {
             int totalSum = sandwichedCells.values().stream()
                     .map(Cell::getValue)

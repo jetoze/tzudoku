@@ -66,7 +66,9 @@ public class SandwichTest {
         grid.cellAt(p1).setValue(Value.ONE);
         grid.cellAt(p2).setValue(Value.FIVE);
         grid.cellAt(p3).setValue(Value.NINE);
-        assertFalse(sandwich.validate(grid).isEmpty());
+        // The validation of this case is still up in the air, but for now we flag all
+        // sandwiched cells as invalid.
+        assertEquals(ImmutableSet.of(p2), sandwich.validate(grid));
     }
 
 }
