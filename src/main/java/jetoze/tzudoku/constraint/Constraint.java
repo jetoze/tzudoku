@@ -18,6 +18,10 @@ public interface Constraint {
     // cage is incorrect. In that case we know for sure that one or more cells in the cage
     // are wrong, but we don't know which ones. (We currently consider all the cells in the
     // cage as invalid in this case.)
+    //
+    // TODO: (Related to previous one) It would also be neat if hovering over an invalid
+    // cell in the UI would tell you which constraint (or constraints, it could be more than
+    // one) is violated by that cell.
 
     /**
      * The classic sudoku constraint: duplicate digits are not allowed in a row, column,

@@ -25,6 +25,7 @@ public class Puzzle {
     private final Grid grid;
     private final Sandwiches sandwiches;
     private final KillerCages killerCages;
+    // TODO: Some indication in the UI if the puzzle is using chess constraints.
     private final ImmutableSet<ChessConstraint> chessConstraints;
     // TODO: Thermos, when we have them.
     
