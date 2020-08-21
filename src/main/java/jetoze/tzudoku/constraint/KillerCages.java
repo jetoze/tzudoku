@@ -1,4 +1,4 @@
-package jetoze.tzudoku.model;
+package jetoze.tzudoku.constraint;
 
 import static com.google.common.base.Preconditions.checkArgument;
 import static com.google.common.collect.ImmutableMap.toImmutableMap;
@@ -20,7 +20,10 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Sets;
 
-public class KillerCages {
+import jetoze.tzudoku.model.Grid;
+import jetoze.tzudoku.model.Position;
+
+public class KillerCages implements Constraint {
 
     public static final KillerCages EMPTY = new KillerCages();
     
@@ -55,6 +58,11 @@ public class KillerCages {
     
     public boolean isEmpty() {
         return cages.isEmpty();
+    }
+
+    @Override
+    public ImmutableSet<Position> validate(Grid grid) {
+        return Constraint.validateAll(grid, cages.values());
     }
 
     public boolean contains(KillerCage cage) {

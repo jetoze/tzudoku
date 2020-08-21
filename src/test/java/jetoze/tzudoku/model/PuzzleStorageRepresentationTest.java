@@ -10,11 +10,17 @@ import java.util.stream.Collectors;
 import org.junit.jupiter.api.Test;
 
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Sets;
+
+import jetoze.tzudoku.constraint.ChessConstraint;
+import jetoze.tzudoku.constraint.KillerCage;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwiches;
 
 public class PuzzleStorageRepresentationTest {
 
     @Test
-    public void deserializePuzzleWithSandwichesAndKillerCages() {
+    public void deserializePuzzleWithConstraints() {
         // Arrange
         String puzzleName = "Test Puzzle";
         Grid grid = Grid.exampleOfUnsolvedGrid();
@@ -29,7 +35,9 @@ public class PuzzleStorageRepresentationTest {
                 .add(new KillerCage(ImmutableSet.of(new Position(2, 2), new Position(2, 3), new Position(2, 4))))
                 .add(new KillerCage(ImmutableSet.of(new Position(4, 5), new Position(4, 6), new Position(5, 5)), 17))
                 .build();
-        Puzzle p1 = new Puzzle(puzzleName, grid, sandwiches, killerCages);
+        ImmutableSet<ChessConstraint> chessConstraints = Sets.immutableEnumSet(
+                ChessConstraint.KINGS_MOVE, ChessConstraint.KNIGHTS_MOVE);
+        Puzzle p1 = new Puzzle(puzzleName, grid, sandwiches, killerCages, chessConstraints);
 
         // Act
         String json = new PuzzleStorageRepresentation(p1).toJson();
@@ -40,14 +48,15 @@ public class PuzzleStorageRepresentationTest {
         assertTrue(grid.isEquivalent(p2.getGrid()), "Wrong grid");
         assertEquals(sandwiches, p2.getSandwiches(), "Wrong sandwiches");
         assertEquals(killerCages, p2.getKillerCages(), "Wrong killer cages");
+        assertEquals(chessConstraints, p2.getChessConstraints(), "Wrong chess constraints");
     }
 
     @Test
-    public void deserializePuzzleWithoutSandwichesOrKillerCages() {
+    public void deserializePuzzleWithoutConstraints() {
         // Arrange
         String puzzleName = "Test Puzzle";
         Grid grid = Grid.exampleOfUnsolvedGrid();
-        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY, KillerCages.EMPTY);
+        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY, KillerCages.EMPTY, ImmutableSet.of());
 
         // Act
         String json = new PuzzleStorageRepresentation(p1).toJson();
@@ -82,7 +91,7 @@ public class PuzzleStorageRepresentationTest {
             .toggle(Value.SIX);
         cells.get(2).setColor(CellColor.BLUE);
         cells.get(3).setColor(CellColor.ORANGE);
-        Puzzle p1 = new Puzzle(puzzleName, grid, Sandwiches.EMPTY, KillerCages.EMPTY);
+        Puzzle p1 = new Puzzle(puzzleName, grid);
 
         // Act
         String json = new PuzzleStorageRepresentation(p1).toJson();

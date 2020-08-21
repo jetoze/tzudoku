@@ -28,14 +28,14 @@ import com.google.common.collect.Sets;
 
 import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
+import jetoze.tzudoku.constraint.KillerCages;
+import jetoze.tzudoku.constraint.Sandwiches;
 import jetoze.tzudoku.model.Cell;
 import jetoze.tzudoku.model.CellColor;
 import jetoze.tzudoku.model.Grid;
-import jetoze.tzudoku.model.KillerCages;
 import jetoze.tzudoku.model.PencilMarks;
 import jetoze.tzudoku.model.Position;
 import jetoze.tzudoku.model.Puzzle;
-import jetoze.tzudoku.model.Sandwiches;
 import jetoze.tzudoku.model.ValidationResult;
 import jetoze.tzudoku.model.Value;
 

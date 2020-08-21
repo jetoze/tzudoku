@@ -19,9 +19,9 @@ import com.google.common.collect.ImmutableSet;
 import jetoze.gunga.layout.Layouts;
 import jetoze.gunga.widget.ComboBoxWidget;
 import jetoze.gunga.widget.Widget;
+import jetoze.tzudoku.constraint.Sandwich;
+import jetoze.tzudoku.constraint.Sandwiches;
 import jetoze.tzudoku.model.House;
-import jetoze.tzudoku.model.Sandwich;
-import jetoze.tzudoku.model.Sandwiches;
 
 /**
  * UI for defining Sandwiches when building a puzzle.
@@ -55,7 +55,7 @@ public class SandwichDefinitionsUi implements Widget {
     
     private static void populateSelectors(ImmutableSet<Sandwich> sums, ImmutableMap<Integer, ComboBoxWidget<Integer>> selectors) {
         sums.forEach(s -> {
-            ComboBoxWidget<Integer> selector = selectors.get(s.getPosition());
+            ComboBoxWidget<Integer> selector = selectors.get(s.getHouse().getNumber());
             selector.setSelectedItem(s.getSum());
         });
     }

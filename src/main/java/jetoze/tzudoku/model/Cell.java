@@ -63,6 +63,11 @@ public class Cell {
         }
         this.value = requireNonNull(value);
     }
+    
+    public boolean hasValue(Value digit) {
+        requireNonNull(digit);
+        return digit == value;
+    }
 
     public void clearContent() {
         if (given) {
