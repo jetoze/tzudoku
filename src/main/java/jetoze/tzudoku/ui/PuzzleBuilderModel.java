@@ -1,14 +1,17 @@
 package jetoze.tzudoku.ui;
 
-import static java.util.Objects.*;
+import static java.util.Objects.requireNonNull;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
+import com.google.common.collect.ImmutableSet;
+
 import jetoze.attribut.Properties;
 import jetoze.attribut.Property;
 import jetoze.tzudoku.PuzzleInventory;
+import jetoze.tzudoku.constraint.ChessConstraint;
 import jetoze.tzudoku.constraint.KillerCages;
 import jetoze.tzudoku.constraint.Sandwiches;
 import jetoze.tzudoku.model.Grid;
@@ -19,6 +22,8 @@ public class PuzzleBuilderModel {
     private final GridUiModel gridModel;
     private final Property<String> puzzleNameProperty;
     private final List<Consumer<Boolean>> validationListeners = new ArrayList<>();
+    private final Property<ImmutableSet<ChessConstraint>> chessConstraints = Properties.newProperty(
+            "chessConstraints", ImmutableSet.of());
 
     public PuzzleBuilderModel(PuzzleInventory inventory) {
         this.inventory = requireNonNull(inventory);
@@ -82,6 +87,10 @@ public class PuzzleBuilderModel {
         gridModel.setKillerCages(cages);
     }
     
+    public Property<ImmutableSet<ChessConstraint>> getChessConstraintsProperty() {
+        return chessConstraints;
+    }
+
     public boolean isEmpty() {
         return gridModel.getGrid().isEmpty() && getSandwiches().isEmpty() && getKillerCages().isEmpty();
     }
