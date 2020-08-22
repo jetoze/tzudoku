@@ -53,12 +53,12 @@ class SimpleColoringUi implements HintUi {
     }
     
     private String getTooCrowdedHousePreamble(TooCrowdedHouse houseTooCrowded) {
-        return " produced a Too Crowded House, with two " +
+        return " produced a Too Crowded House,<br>with two " +
                 houseTooCrowded.getColor().name().toLowerCase() + " cells in " + houseTooCrowded.getHouse() + ".";
     }
     
     private String getSeesOppositeColorPreamble() {
-        return " resulted with one or more cells seeing cells of opposite colors.";
+        return " resulted with one or more<br>cells seeing cells of opposite colors.";
     }
 
     @Override
