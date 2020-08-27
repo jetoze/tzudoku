@@ -44,7 +44,7 @@ public enum SolvingTechnique {
     SWORDFISH("Swordfish", Swordfish::analyze);
     
     // TODO: W-Wing
-    // TODO: Two String Kite.
+    // TODO: Two String Kite. Example: "Random Reddit Puzzle" (https://www.reddit.com/r/sudoku/comments/igkqhf/crashed_out_early_in_this_one_and_not_seeing_any/)
     // TODO: X-Cycle. See puzzle "SudokuWiki.org 2020-08-13" for an example.
 
     private final String name;
