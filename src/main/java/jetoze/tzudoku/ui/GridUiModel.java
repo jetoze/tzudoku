@@ -419,6 +419,7 @@ public class GridUiModel {
         if (decorateDuplicateCells.get()) {
             decorateDuplicateCells();
         }
+        notifyListeners(GridUiModelListener::onCellValueChanged);
         notifyListeners(GridUiModelListener::onCellStateChanged);
     }
     
@@ -580,11 +581,14 @@ public class GridUiModel {
 
     private class ClearCellsAction implements UndoableAction {
         private final ImmutableMap<Cell, PreviousCellState> cellsAndTheirPreviousState;
+        private final boolean atLeastOneCellHasDigit;
         private final boolean reset;
 
         public ClearCellsAction(List<Cell> cells, boolean reset) {
             this.cellsAndTheirPreviousState = cells.stream()
                     .collect(toImmutableMap(Function.identity(), PreviousCellState::new));
+            this.atLeastOneCellHasDigit = cells.stream()
+                    .anyMatch(Cell::hasValue);
             this.reset = reset;
         }
         
@@ -603,13 +607,17 @@ public class GridUiModel {
                     c.clearContent();
                 }
             });
-            onCellValuesChanged();
+            if (atLeastOneCellHasDigit) {
+                onCellValuesChanged();
+            }
         }
 
         @Override
         public void undo() {
             cellsAndTheirPreviousState.forEach((c, s) -> s.restore(c));
-            onCellValuesChanged();
+            if (atLeastOneCellHasDigit) {
+                onCellValuesChanged();
+            }
         }
     }
     

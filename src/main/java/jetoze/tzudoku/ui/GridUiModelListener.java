@@ -14,6 +14,13 @@ public interface GridUiModelListener {
     default void onNewPuzzleLoaded() {/**/}
     
     /**
+     * Notifies this listener that the value of one or more cells changed.
+     * <p>
+     * This notification is always accompanied by a {@link #onCellStateChanged()} notification. 
+     */
+    default void onCellValueChanged() {/**/}
+    
+    /**
      * Notifies this listener that the state of one or more cells changed. This could mean
      * changes to the cell's value, pencil marks, or color.
      */
